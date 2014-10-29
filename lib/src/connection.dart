@@ -8,7 +8,7 @@ class Connection {
 
     Pool _pool;
 
-    Connection(this._uri, [this._min = 1, int this._max = 5]) {
+    Connection(this._uri, [this._min = 1, this._max = 5]) {
         _createPool();
     }
 
