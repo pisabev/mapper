@@ -70,7 +70,7 @@ class Builder {
 
     Builder(this.connection);
 
-    _error(e) => throw new QueryException(e.toString(), getSQL());
+    _error(e) => throw new QueryException(e, getSQL(), _params);
 
     Future execute() {
         return connection
@@ -445,6 +445,7 @@ class Builder {
             else
                 clone._sqlParts[k] = v;
         });
+        clone._params = new Map.from(_params);
         return clone;
     }
 

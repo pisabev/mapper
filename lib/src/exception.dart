@@ -12,12 +12,18 @@ class TransactionStartedException implements Exception {
 
 class QueryException implements Exception {
 
-    String _msg;
+    PgServerInformation _e;
 
     String _q;
 
-    QueryException(this._msg, this._q);
+    Map _p;
 
-    String toString() => _msg + ':\n' + _q;
+    QueryException(this._e, this._q, this._p);
+
+    String get code => _e.code;
+
+    String get severity => _e.severity;
+
+    String toString() => _e.toString() + ':\n' + _q + ':\n' + _p.toString();
 
 }

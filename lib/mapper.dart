@@ -3,6 +3,7 @@ library mapper_server;
 import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql_pool.dart';
+import 'package:postgresql/postgresql.dart';
 import 'client.dart';
 
 part 'src/application.dart';
