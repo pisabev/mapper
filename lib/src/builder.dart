@@ -281,6 +281,7 @@ class Builder {
     }
 
     orderBy(String sort, [String order = 'ASC']) {
+        _sqlParts['orderBy'] = new List();
         return this.add('orderBy', sort + ' ' + order, true);
     }
 
