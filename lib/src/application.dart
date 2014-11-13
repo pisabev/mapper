@@ -4,11 +4,11 @@ class Application<A extends Application> {
 
     Manager<A> m;
 
-    Map _data = new Map();
+    Map<Symbol, Function> _data = new Map();
 
     Map _cache = new Map();
 
-    setData(Map data) => data.forEach((k, v) => _data[new Symbol(k)] = v);
+    set data(Map data) => _data = data;
 
     noSuchMethod(Invocation invocation) {
         var key = invocation.memberName;
