@@ -12,7 +12,7 @@ class TransactionStartedException implements Exception {
 
 class QueryException implements Exception {
 
-    PgServerInformation _e;
+    PostgresqlException _e;
 
     String _q;
 
@@ -20,9 +20,9 @@ class QueryException implements Exception {
 
     QueryException(this._e, this._q, this._p);
 
-    String get code => _e.code;
+    String get code => _e.serverMessage.code;
 
-    String get severity => _e.severity;
+    String get severity => _e.serverMessage.severity;
 
     String toString() => _e.toString() + ':\n' + _q + ':\n' + _p.toString();
 

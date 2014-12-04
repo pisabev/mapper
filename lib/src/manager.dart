@@ -52,7 +52,7 @@ class Manager<A extends Application> {
     }*/
 
 
-    void destroy() => _connection._pool.destroy();
+    Future destroy() => _connection._pool.stop();
 
     Future query(query, [params]) => connection.query(query, params).toList();
 

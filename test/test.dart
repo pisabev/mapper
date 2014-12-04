@@ -35,7 +35,7 @@ cleanUp() {
 main() {
     //startUp();
     group('Builder', () {
-        //test('Select', querySelector);
+        test('Select', querySelector);
         test('annotations', ttt);
         /*var s = new Serialization()..addRule(new TestDBRule());
         var p = new Test();
