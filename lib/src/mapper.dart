@@ -73,7 +73,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         Map data = readObject(object);
         return _setUpdateData(insertBuilder(), data, true)
         .execute().then((result) {
-            setObject(object, _reMapResult(result[0]));
+            setObject(object, result[0].toMap());
             return _cacheAdd(_cacheKeyFromData(data), new Future.value(object));
         });
     }
@@ -126,14 +126,14 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
     }
 
     Future<E> _onStreamRow(row) {
-        Map data = _reMapResult(row);
+        Map data = row.toMap();
         String key = _cacheKeyFromData(data);
         Future<E> f = _cacheGet(key);
         return (f == null)? _cacheAdd(key, new Future.value(createObject(data))) : f;
     }
 
     Future<E> _streamToEntityFind(Stream stream) {
-        return stream.map((row) => createObject(_reMapResult(row)))
+        return stream.map((row) => createObject(row.toMap()))
         .toList()
         .then((list) => (list.length > 0)? list[0] : null);
     }
@@ -159,12 +159,6 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
     E _markObject(E object) {
         _ref[object.runtimeType.toString()] = this;
         return object;
-    }
-
-    Map _reMapResult(data) {
-        Map d = new Map();
-        data.forEach((k, v) => d[k] = v);
-        return d;
     }
 
     String _cacheKeyFromData(Map data) {
