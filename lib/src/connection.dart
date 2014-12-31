@@ -10,25 +10,20 @@ class Connection {
 
     Connection(this._uri, [this._min = 1, this._max = 5]) {
         _createPool();
+        _pool.messages.listen((e) => log.warning(e.message));
     }
 
     _createPool() => _pool = new Pool(_uri,
-        minConnections: 1,
-        maxConnections: 4,
-        idleTimeout: new Duration(seconds: 15));
+        minConnections: _min,
+        maxConnections: _max,
+        leakDetectionThreshold: new Duration(seconds: 10),
+        restartIfAllConnectionsLeaked: true
+    );
 
     Future start() => _pool.start();
 
-    Future connect() {
-        return _pool.connect()
-        .timeout(new Duration(milliseconds:5000), onTimeout:() {
-            _pool.stop()
-            .then((_) {
-                _createPool();
-                log.warning('pool destroyed (probably connections leak)');
-                return start().then((_) => connect());
-            });
-        })
+    Future connect([String debugId]) {
+        return _pool.connect(debugName: debugId)
         .catchError((e) => log.severe(e));
     }
 

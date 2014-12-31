@@ -39,9 +39,8 @@ class Manager<A extends Application> {
         app.m = this;
     }*/
 
-    Future<Manager> init() {
-        return _connection.connect().then((c) {
-            //print(_connection._pool);
+    Future<Manager> init([String debugId]) {
+        return _connection.connect(debugId).then((c) {
             connection = c;
             return this;
         });
