@@ -47,7 +47,7 @@ class Unit {
 
     Future _doFutures() => Future.wait(_future);
 
-    Future _begin() => _manager.connection.execute('BEGIN').then((_) => _started = true);
+    Future _begin() => (!_started) ? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
 
     Future _commit() => _manager.connection.execute('COMMIT').then((_) => _started = false);
 
