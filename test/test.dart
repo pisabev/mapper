@@ -1,12 +1,9 @@
 library test;
 
 import 'dart:io';
-import 'dart:async';
 import 'dart:mirrors';
 import 'package:mapper/mapper.dart';
 import 'package:unittest/unittest.dart';
-
-import 'package:mapper/mapper.dart';
 
 part 'builder_test.dart';
 part 'mapper_test.dart';
