@@ -12,6 +12,8 @@ class Unit {
 
     List<Future> _future;
 
+    List<Function> _on_commit;
+
     bool _started = false;
 
     bool get started => _started;
@@ -28,6 +30,7 @@ class Unit {
         _new = new List<Entity>();
         _delete = new List<Entity>();
         _future = new List<Future>();
+        _on_commit = new List<Function>();
         _transaction = null;
     }
 
@@ -39,6 +42,8 @@ class Unit {
 
     addFuture(Future f) => (!_future.contains(f))? _future.add(f) : null;
 
+    addOnCommit(Function f) => (!_on_commit.contains(f))? _on_commit.add(f) : null;
+
     Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
 
     Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
@@ -46,6 +51,8 @@ class Unit {
     Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
 
     Future _doFutures() => Future.wait(_future);
+
+    _doOnCommit() => _on_commit.forEach((func) => func());
 
     Future _begin() => (!_started) ? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
 
@@ -70,6 +77,7 @@ class Unit {
     Future commit() {
         return persist()
         .then((_) => _commit())
+        .then((_) => _doOnCommit())
         .catchError((e) => _rollback().then((_) => throw e));
     }
 

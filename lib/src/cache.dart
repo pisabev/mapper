@@ -2,11 +2,7 @@ part of mapper_server;
 
 class Cache {
 
-    static Map _cache;
-
-    Cache() {
-        _cache = new Map();
-    }
+    Map _cache = new Map();
 
     add(String key, Future<Entity> object) => _cache[key] = object;
 

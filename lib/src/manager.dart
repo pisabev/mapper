@@ -92,6 +92,10 @@ class Manager<A extends Application> {
 
     addFuture(Future f) => _unit.addFuture(f);
 
+    addOnCommit(Function f) => _unit.addOnCommit(f);
+
+    addOnDone(Function f) => inTransaction()? addOnCommit(f) : f();
+
     Future persist() => _unit.persist();
 
     Future commit() => _unit.commit();
