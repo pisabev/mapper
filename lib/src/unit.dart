@@ -22,6 +22,7 @@ class Unit {
 
     Unit(Manager manager) {
         _manager = manager;
+        _on_commit = new List<Function>();
         _set();
     }
 
@@ -30,7 +31,6 @@ class Unit {
         _new = new List<Entity>();
         _delete = new List<Entity>();
         _future = new List<Future>();
-        _on_commit = new List<Function>();
         _transaction = null;
     }
 
@@ -78,6 +78,7 @@ class Unit {
         return persist()
         .then((_) => _commit())
         .then((_) => _doOnCommit())
+        .then((_) => _on_commit.clear())
         .catchError((e) => _rollback().then((_) => throw e));
     }
 
