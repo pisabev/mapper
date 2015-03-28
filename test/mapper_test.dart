@@ -32,10 +32,9 @@ class ProductExt extends Product {
 ttt() {
     var obj = new Product2();
     obj.title = 'ssss';
-    return;
     var data = readClassData();
     var date = new DateTime.now();
-    for(int i = 0; i<100000; i++) {
+    for(int i = 0; i<1000000; i++) {
 
         readObject(obj, data);
         //readObject2(obj);

@@ -33,7 +33,7 @@ main() {
     //startUp();
     group('Builder', () {
         test('Select', querySelector);
-        test('annotations', ttt);
+        //test('annotations', ttt);
         /*var s = new Serialization()..addRule(new TestDBRule());
         var p = new Test();
         p.title = 'title';
