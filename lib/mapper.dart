@@ -17,3 +17,29 @@ part 'src/cache.dart';
 part 'src/exception.dart';
 
 final Logger log = new Logger('Mapper');
+
+class Database<A extends Application> {
+
+    static String _base = '_';
+    static Database instance;
+
+    Map<String, Manager<A>> _managers = new Map();
+
+    factory Database(Manager<Application> manager) {
+        if (instance == null)
+            instance = new Database._();
+        return instance;
+    }
+
+    Database._();
+
+    addManager(Manager<A> manager, [String namespace]) {
+        namespace = namespace == null? _base : namespace;
+        _managers[namespace] = manager;
+    }
+
+    Future<Manager<A>> init([String namespace]) {
+        namespace = namespace == null? _base : namespace;
+        return _managers[namespace].init();
+    }
+}
