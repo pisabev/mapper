@@ -23,7 +23,7 @@ class Database<A extends Application> {
     static String _base = '_';
     static Database instance;
 
-    Map<String, Manager<A>> _managers = new Map();
+    Map<String, Function> _managers = new Map();
 
     factory Database() {
         if (instance == null)
@@ -33,13 +33,13 @@ class Database<A extends Application> {
 
     Database._();
 
-    addManager(Manager<A> manager, [String namespace]) {
+    add(Function f, [String namespace]) {
         namespace = namespace == null? _base : namespace;
-        _managers[namespace] = manager;
+        _managers[namespace] = f;
     }
 
     Future<Manager<A>> init([String namespace, String debugId]) {
         namespace = namespace == null? _base : namespace;
-        return _managers[namespace].init(debugId);
+        return _managers[namespace]();
     }
 }
