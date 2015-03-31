@@ -38,8 +38,8 @@ class Database<A extends Application> {
         _managers[namespace] = manager;
     }
 
-    Future<Manager<A>> init([String namespace]) {
+    Future<Manager<A>> init([String namespace, String debugId]) {
         namespace = namespace == null? _base : namespace;
-        return _managers[namespace].init();
+        return _managers[namespace].init(debugId);
     }
 }
