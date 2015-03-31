@@ -25,7 +25,7 @@ class Database<A extends Application> {
 
     Map<String, Manager<A>> _managers = new Map();
 
-    factory Database(Manager<Application> manager) {
+    factory Database() {
         if (instance == null)
             instance = new Database._();
         return instance;
