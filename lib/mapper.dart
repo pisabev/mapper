@@ -40,6 +40,6 @@ class Database<A extends Application> {
 
     Future<Manager<A>> init([String namespace, String debugId]) {
         namespace = namespace == null? _base : namespace;
-        return _managers[namespace]();
+        return _managers[namespace](debugId);
     }
 }
