@@ -16,7 +16,7 @@ class Connection {
     _createPool() => _pool = new Pool(_uri,
         minConnections: _min,
         maxConnections: _max,
-        leakDetectionThreshold: new Duration(seconds: 20),
+        leakDetectionThreshold: new Duration(seconds: 10),
         restartIfAllConnectionsLeaked: true
     );
 
