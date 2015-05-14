@@ -41,6 +41,7 @@ class Manager<A extends Application> {
 
     Future<Manager> init([String debugId]) {
         return _connection.connect(debugId).then((c) {
+            print('open');
             connection = c;
             return this;
         });
@@ -107,6 +108,7 @@ class Manager<A extends Application> {
     bool inTransaction() => _unit.started;
 
     Future close() {
+        print('close');
         return new Future.sync(() {
             if(_unit.started)
                 return _unit.rollback().then((_) => connection.close());
