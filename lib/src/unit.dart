@@ -54,17 +54,11 @@ class Unit {
 
     _doOnCommit() => _on_commit.forEach((func) => func());
 
-    /*Future _begin() => (!_started) ? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
+    Future _begin() => (!_started) ? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
 
     Future _commit() => _manager.connection.execute('COMMIT').then((_) => _started = false);
 
-    Future _rollback() => _manager.connection.execute('ROLLBACK').then((_) => _started = false);*/
-
-    Future _begin() => (!_started) ? new Future.value().then((_) => _started = true) : new Future.value();
-
-    Future _commit() => new Future.value().then((_) => _started = false);
-
-    Future _rollback() => new Future.value().then((_) => _started = false);
+    Future _rollback() => _manager.connection.execute('ROLLBACK').then((_) => _started = false);
 
     Future _start() => (!_started) ? _begin() : new Future.value();
 
