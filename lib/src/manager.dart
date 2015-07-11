@@ -19,25 +19,8 @@ class Manager<A extends Application> {
         _cache = new Cache();
         _connection = conn;
         app = application;
-        //app = application.init();
         app.m = this;
     }
-
-
-    /*static Manager instance;
-    factory Manager(Connection conn, A application) {
-        if(instance == null)
-            instance = new Manager._(conn, application);
-        return instance;
-    }
-    Manager._(Connection conn, A application) {
-        _unit = new Unit(this);
-        _cache = new Cache();
-        _connection = conn;
-        app = application;
-        //app = application.init();
-        app.m = this;
-    }*/
 
     Future<Manager> init([String debugId]) {
         return _connection.connect(debugId).then((c) {
@@ -46,35 +29,9 @@ class Manager<A extends Application> {
         });
     }
 
-    /*Future<Manager> init() {
-        return new Future.value(this);
-    }*/
-
-
     Future destroy() => _connection._pool.stop();
 
     Future query(query, [params]) => connection.query(query, params).toList();
-
-    /*Future query(query, [params]) {
-        Completer completer = new Completer();
-        connection.connect().then((con) {
-            con.query(query, params)
-            .toList()
-            .then(completer.complete)
-            .then((_) => con.close());
-        });
-        return completer.future;
-    }
-
-    Future execute(query, [params]) {
-        Completer completer = new Completer();
-        connection.connect().then((con) {
-            con.execute(query, params)
-            .then(completer.complete)
-            .then((_) => con.close());
-        });
-        return completer.future;
-    }*/
 
     builder() => new Builder(connection);
 
@@ -108,6 +65,7 @@ class Manager<A extends Application> {
 
     Future close() {
         return new Future.sync(() {
+            _cache = new Cache();
             if(_unit.started)
                 return _unit.rollback().then((_) => connection.close());
             return connection.close();
