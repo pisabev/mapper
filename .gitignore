@@ -2,4 +2,5 @@
 .settings
 .pub
 packages
+.packages
 pubspec.lock
