@@ -23,6 +23,7 @@ class Connection {
     Future start() => _pool.start();
 
     Future connect([String debugId]) {
+        log.info(_pool.connections);
         return _pool.connect(debugName: debugId)
         .catchError((e) => log.severe(e));
     }
