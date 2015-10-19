@@ -71,7 +71,7 @@ class Unit {
         .then((_) => _doUpdates())
         .then((_) => _doInserts())
         .then((_) => _set())
-        .catchError((e) => _rollback().then((_) => throw e));
+        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
     }
 
     Future commit() {
@@ -79,7 +79,7 @@ class Unit {
         .then((_) => _commit())
         .then((_) => _doOnCommit())
         .then((_) => _on_commit.clear())
-        .catchError((e) => _rollback().then((_) => throw e));
+        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
     }
 
     Future begin() => _start();
