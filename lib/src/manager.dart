@@ -63,10 +63,7 @@ class Manager<A extends Application> {
 
     bool inTransaction() => _unit.started;
 
-    bool on_cls = false;
     Future close() {
-        if(on_cls)
-            throw new Exception();
         return new Future.sync(() {
             _cache = new Cache();
             if(_unit.started)
