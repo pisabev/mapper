@@ -77,8 +77,8 @@ class Unit {
     Future commit() {
         return persist()
         .then((_) => _commit())
-        //.then((_) => _doOnCommit())
-        //.then((_) => _on_commit.clear())
+        .then((_) => _doOnCommit())
+        .then((_) => _on_commit.clear())
         .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
     }
 
