@@ -71,7 +71,7 @@ class Builder {
     Builder(this.connection);
 
     _error(e) {
-        if(e.serverMessage.code == 23503)
+        if(e.serverMessage.code == '23503')
             throw new ConstrainException(e, getSQL(), _params);
         else
             throw new QueryException(e, getSQL(), _params);
@@ -88,29 +88,6 @@ class Builder {
         return handler(connection.query(getSQL(), _params))
         .catchError(_error);
     }
-
-    /*Future execute() {
-        Completer completer = new Completer();
-        connection.connect().then((con) {
-            con.query(getSQL(), _params)
-            .toList()
-            .then(completer.complete)
-            .then((_) => con.close())
-            .catchError((e) => completer.completeError(_error(e)));
-        });
-        return completer.future;
-    }
-
-    Future stream(Function handler) {
-        Completer completer = new Completer();
-        connection.connect().then((con) {
-            return handler(con.query(getSQL(), _params))
-            .then(completer.complete)
-            .then((_) => con.close())
-            .catchError((e) => completer.completeError(_error(e)));
-        });
-        return completer.future;
-    }*/
 
     getType() {
         return _type;
