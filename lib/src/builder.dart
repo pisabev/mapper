@@ -70,7 +70,12 @@ class Builder {
 
     Builder(this.connection);
 
-    _error(e) => throw new QueryException(e, getSQL(), _params);
+    _error(e) {
+        if(e.serverMessage.code == 23503)
+            throw new ConstrainException(e, getSQL(), _params);
+        else
+            throw new QueryException(e, getSQL(), _params);
+    }
 
     Future execute() {
         return connection
