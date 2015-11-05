@@ -22,8 +22,8 @@ class Database<A extends Application> {
 
     static const String _base = '_';
     static Database instance;
-    static Map _data = new Map();
-    static Map _connections = new Map();
+
+    static Map<String, Function> _managers = new Map();
 
     factory Database() {
         if (instance == null)
@@ -33,13 +33,11 @@ class Database<A extends Application> {
 
     Database._();
 
-    static register(Map data) => _data.addAll(data);
-
-    static registerConnection(Connection connection, [namespace = _base]) {
-        _connections[namespace] = connection;
+    static add(Function f, [String namespace = _base]) {
+        _managers[namespace] = f;
     }
 
     Future<Manager<A>> init([String debugId, String namespace = _base]) {
-        return new Manager(_connections[namespace], new Application()..data = _data).init(debugId);
+        return _managers[namespace](debugId);
     }
 }
