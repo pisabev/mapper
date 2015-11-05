@@ -20,10 +20,10 @@ final Logger log = new Logger('Mapper');
 
 class Database<A extends Application> {
 
-    static String _base = '_';
+    static const String _base = '_';
     static Database instance;
-
-    Map<String, Function> _managers = new Map();
+    static Map _data = new Map();
+    static Map _connections = new Map();
 
     factory Database() {
         if (instance == null)
@@ -33,13 +33,13 @@ class Database<A extends Application> {
 
     Database._();
 
-    add(Function f, [String namespace]) {
-        namespace = namespace == null? _base : namespace;
-        _managers[namespace] = f;
+    static register(Map data) => _data.addAll(data);
+
+    static registerConnection(Connection connection, [namespace = _base]) {
+        _connections[namespace] = connection;
     }
 
-    Future<Manager<A>> init([String namespace, String debugId]) {
-        namespace = namespace == null? _base : namespace;
-        return _managers[namespace](debugId);
+    Future<Manager<A>> init([String debugId, String namespace = _base]) {
+        return new Manager(_connections[namespace], new Application()..data = _data).init(debugId);
     }
 }
