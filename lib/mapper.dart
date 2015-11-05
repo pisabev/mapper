@@ -23,7 +23,7 @@ class Database<A extends Application> {
     static const String _base = '_';
     static Database instance;
 
-    static Map<String, Function> _managers = new Map();
+    Map<String, Function> _managers = new Map();
 
     factory Database() {
         if (instance == null)
@@ -33,7 +33,7 @@ class Database<A extends Application> {
 
     Database._();
 
-    static add(Function f, [String namespace = _base]) {
+    add(Function f, [String namespace = _base]) {
         _managers[namespace] = f;
     }
 
