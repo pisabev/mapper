@@ -93,12 +93,12 @@ class Builder {
         return _type;
     }
 
-    setParameter(String key, dynamic value) {
+    Builder setParameter(String key, dynamic value) {
         _params[key] = value;
         return this;
     }
 
-    setParameters(Map<String, String> params) {
+    Builder setParameters(Map<String, String> params) {
         _params = params;
         return this;
     }
@@ -137,7 +137,7 @@ class Builder {
         return sql;
     }
 
-    offset(int offset) {
+    Builder offset(int offset) {
         _offset = offset;
         return this;
     }
@@ -146,7 +146,7 @@ class Builder {
         return _offset;
     }
 
-    limit(int limit) {
+    Builder limit(int limit) {
         _limit = limit;
         return this;
     }
@@ -155,7 +155,7 @@ class Builder {
         return _limit;
     }
 
-    add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
+    Builder add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
         if ((sqlPart is String && sqlPart == '') || (sqlPart is Map && sqlPart.isEmpty)) return this;
         if (append) {
             _sqlParts[sqlPartName].add(sqlPart);
@@ -165,40 +165,40 @@ class Builder {
         return this;
     }
 
-    select(String select) {
+    Builder select(String select) {
         _sqlParts['select'] = new List();
         return addSelect(select);
     }
 
-    addSelect(String select) {
+    Builder addSelect(String select) {
         _type = Builder.SELECT;
         return this.add('select', select, true);
     }
 
-    delete(String del) {
+    Builder delete(String del) {
         _type = Builder.DELETE;
         return this.add('from', del, true);
     }
 
-    insert(String update) {
+    Builder insert(String update) {
         _type = Builder.INSERT;
         return this.add('from', update, true);
     }
 
-    update(String update) {
+    Builder update(String update) {
         _type = Builder.UPDATE;
         return this.add('from', update, true);
     }
 
-    from(String from) {
+    Builder from(String from) {
         return this.add('from', from, true);
     }
 
-    join(String joinTable, String condition) {
+    Builder join(String joinTable, String condition) {
         return innerJoin(joinTable, condition);
     }
 
-    innerJoin(String joinTable, String condition) {
+    Builder innerJoin(String joinTable, String condition) {
         return this.add('join', {
             'joinType' : 'INNER',
             'joinTable' : joinTable,
@@ -206,7 +206,7 @@ class Builder {
         }, true);
     }
 
-    leftJoin(String joinTable, String condition) {
+    Builder leftJoin(String joinTable, String condition) {
         return this.add('join', {
             'joinType' : 'LEFT',
             'joinTable' : joinTable,
@@ -214,7 +214,7 @@ class Builder {
         }, true);
     }
 
-    rightJoin(String joinTable, String condition) {
+    Builder rightJoin(String joinTable, String condition) {
         return this.add('join', {
             'joinType' : 'RIGHT',
             'joinTable' : joinTable,
@@ -222,56 +222,56 @@ class Builder {
         }, true);
     }
 
-    set(String key, dynamic value) {
+    Builder set(String key, dynamic value) {
         return this.add('set', {
             key: value
         }, true);
     }
 
-    where(String where, [String where2 = '']) {
+    Builder where(String where, [String where2 = '']) {
         if (where2 != '') where = new Expression('AND', [where, where2]).toString();
         return this.add('where', where);
     }
 
-    andWhere(String where) {
+    Builder andWhere(String where) {
         return _exprBuilder('where', where, 'AND');
     }
 
-    orWhere(String where) {
+    Builder orWhere(String where) {
         return _exprBuilder('where', where, 'OR');
     }
 
-    groupBy(String groupBy) {
+    Builder groupBy(String groupBy) {
         return addGroupBy(groupBy);
     }
 
-    addGroupBy(String groupBy) {
+    Builder addGroupBy(String groupBy) {
         return this.add('groupBy', groupBy, true);
     }
 
-    having(String having, [String having2 = '']) {
+    Builder having(String having, [String having2 = '']) {
         if (having2 != '') having = new Expression('AND', [having, having2]).toString();
         return this.add('having', having);
     }
 
-    andHaving(String having) {
+    Builder andHaving(String having) {
         return _exprBuilder('having', having, 'AND');
     }
 
-    orHaving(String having) {
+    Builder orHaving(String having) {
         return _exprBuilder('having', having, 'OR');
     }
 
-    orderBy(String sort, [String order = 'ASC']) {
+    Builder orderBy(String sort, [String order = 'ASC']) {
         _sqlParts['orderBy'] = new List();
         return this.add('orderBy', sort + ' ' + order, true);
     }
 
-    addOrderBy(String sort, [String order = 'ASC']) {
+    Builder addOrderBy(String sort, [String order = 'ASC']) {
         return this.add('orderBy', sort + ' ' + order, true);
     }
 
-    setQueryPart(String queryPartName, dynamic queryPart) {
+    Builder setQueryPart(String queryPartName, dynamic queryPart) {
         _sqlParts[queryPartName] = queryPart;
         return this;
     }
@@ -286,7 +286,7 @@ class Builder {
         return res;
     }
 
-    resetQueryParts(List queryPartNames) {
+    Builder resetQueryParts(List queryPartNames) {
         if (queryPartNames.length == 0) {
             var queryPartNames = [];
             _sqlParts.forEach((k, v) => queryPartNames.add(k));
@@ -295,7 +295,7 @@ class Builder {
         return this;
     }
 
-    resetQueryPart(String queryPartName) {
+    Builder resetQueryPart(String queryPartName) {
         _sqlParts[queryPartName] = (_sqlParts[queryPartName] is List) ? [] : '';
         _sql = '';
         return this;
@@ -309,7 +309,7 @@ class Builder {
         return false;
     }
 
-    _exprBuilder(String key, args, type, [bool append = false]) {
+    Builder _exprBuilder(String key, args, type, [bool append = false]) {
         var expr = this.getQueryPart(key);
         expr = (new Expression(type, [expr, args])).toString();
         return this.add(key, expr, append);
@@ -405,7 +405,7 @@ class Builder {
         return sb.toString();
     }
 
-    clone() {
+    Builder clone() {
         Builder clone = new Builder(connection);
         _sqlParts.forEach((k, v) {
             if(v is List)
@@ -419,7 +419,7 @@ class Builder {
         return clone;
     }
 
-    cloneFilter() {
+    Builder cloneFilter() {
         Builder clone = new Builder(connection);
         ['join', 'where', 'having'].forEach((k) {
             var v = _sqlParts[k];
