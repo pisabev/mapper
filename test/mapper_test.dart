@@ -45,19 +45,19 @@ ttt() {
     print(new DateTime.now().difference(date).inMilliseconds);
 }
 
-class _Field {
+/*class _Field {
 
     Symbol property;
     String field;
     dynamic def;
 
     _Field(this.property, this.field, this.def);
-}
+}*/
 
 readClassData() {
     Map field_map = new Map();
     var classMirror = reflectClass(ProductExt);
-    var metadata = classMirror.superclass.metadata;
+    //var metadata = classMirror.superclass.metadata;
     classMirror.superclass.declarations.forEach((k, v) {
         var f = v.metadata.firstWhere((e) => e.reflectee is Field, orElse: () => null);
         if(f != null) {
