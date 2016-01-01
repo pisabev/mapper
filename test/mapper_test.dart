@@ -30,29 +30,20 @@ class ProductExt extends Product {
 }
 
 ttt() {
-    var obj = new Product2();
+    var obj = new Product();
     obj.title = 'ssss';
     var data = readClassData();
     var date = new DateTime.now();
     for(int i = 0; i<1000000; i++) {
 
-        readObject(obj, data);
+        //readObject(obj, data);
         //readObject2(obj);
-        //setObject(obj, data, {'title':'dddd'});
+        setObject(obj, data, {'title':'dddd'});
         //setObject2(obj, {'title':'dddd'});
         //print(data);
     }
     print(new DateTime.now().difference(date).inMilliseconds);
 }
-
-/*class _Field {
-
-    Symbol property;
-    String field;
-    dynamic def;
-
-    _Field(this.property, this.field, this.def);
-}*/
 
 readClassData() {
     Map field_map = new Map();
@@ -84,46 +75,6 @@ setObject(obj, Map field_map, Map data) {
     var refl = reflect(obj);
     data.forEach((k, v) => refl.setField(field_map[k]['symbol'], v));
 }
-
-
-/*class TestDBRule extends CustomRule {
-    bool appliesTo(instance, Writer w) => instance is Test;
-    getState(instance) => {
-        'title': instance.title,
-        'price': instance._price
-    };
-    create(state) => new Test();
-    setState(Test a, Map state) {
-        a.title = state['title'];
-        a._price = state['price'];
-    }
-}
-
-/*class Test2 extends Test {
-
-    var ddddd;
-
-    Test2(title, price) : super(title, price);
-}*/
-
-inpsector(object) {
-    InstanceMirror mirror = reflect(object);
-    List data = new List();
-    mirror.type.superclass.declarations.forEach((k, v) {
-        if(v.metadata.isNotEmpty) {
-            var f = v.metadata.firstWhere((e) => e.reflectee is Field);
-            if(f != null) {
-                Field field = f.reflectee;
-                data.add({
-                    'property': k,
-                    'field': field.name != null? field.name : MirrorSystem.getName(k),
-                    'default': field.def
-                });
-            }
-        }
-    });
-    return data;
-}*/
 
 class Product2 {
     var title;
