@@ -22,7 +22,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             pkey = table + '_id';
     }
 
-    Future<E> find(dynamic id) {
+    Future<E> find(dynamic id, [no_cache = false]) {
         if (id is List)
             return findComposite(id);
         String cache_key = id.toString();
@@ -36,7 +36,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         }
     }
 
-    Future<E> findComposite(List<dynamic> ids) {
+    Future<E> findComposite(List<dynamic> ids, [no_cache = false]) {
         String cache_key = ids.join(_SEP);
         Future<E> f = _cacheGet(cache_key);
         if (f != null) {
@@ -94,6 +94,32 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             return deleteComposite(pkey.map((k) => data[k]));
         else
             return deleteById(data[pkey]);
+    }
+
+    Future<bool> refresh(E object) {
+        var data = readObject(object);
+        if(pkey is List) {
+            Builder q = selectBuilder();
+            int i = 0;
+            pkey.forEach((k) {
+                String key = 'pkey' + i.toString();
+                q.andWhere(_escape(pkey[k]) + ' = @' + key).setParameter(key, k);
+                i++;
+            });
+            return q.execute().then((data) {
+                mergeData(object, data.first.toMap());
+                return true;
+            });
+        } else {
+            var id = data[pkey];
+            return selectBuilder()
+                .where(_escape(pkey) + ' = @pkey')
+                .setParameter('pkey', id)
+                .execute().then((data) {
+                    mergeData(object, data.first.toMap());
+                    return true;
+                });
+        }
     }
 
     Future<bool> deleteById(dynamic id) {
