@@ -8,6 +8,6 @@ abstract class Entity<E> {
 
     Map toMap();
 
-    Map toJson() => toMap();
+    Map toJson();
 
 }
