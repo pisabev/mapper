@@ -79,7 +79,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             return _cacheAdd(_cacheKeyFromData(data), new Future.value(object))
                 .then((E obj) {
                     if(notifier != null)
-                        notifier._contr_create.add(obj);
+                        notifier._contr_create.add(obj..manager = null);
                     return obj;
                 });
         });
@@ -94,7 +94,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
         return q.stream((stream) => stream.drain(object)).then((E obj) {
             if(notifier != null)
-                notifier._contr_update.add(obj);
+                notifier._contr_update.add(obj..manager = null);
             return obj;
         });
     }
@@ -138,7 +138,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         if(notifier != null) {
             if(object != null)
                 object = await find(id);
-            notifier._contr_delete.add(object);
+            notifier._contr_delete.add(object..manager = null);
         }
         return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey).setParameter(pkey, id)
@@ -149,7 +149,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         if(notifier != null) {
             if(object != null)
                 object = await findComposite(ids);
-            notifier._contr_delete.add(object);
+            notifier._contr_delete.add(object..manager = null);
         }
         _cacheAdd(ids.join(_SEP), new Future.value(null));
         Builder q = deleteBuilder();
