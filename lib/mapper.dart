@@ -18,6 +18,23 @@ part 'src/exception.dart';
 
 final Logger log = new Logger('Mapper');
 
+class Notifier<E> {
+
+    StreamController _contr_update = new StreamController.broadcast();
+    StreamController _contr_create = new StreamController.broadcast();
+    StreamController _contr_delete = new StreamController.broadcast();
+
+    Stream<E> onUpdate;
+    Stream<E> onCreate;
+    Stream<E> onDelete;
+
+    Notifier() {
+        onUpdate = _contr_update.stream;
+        onCreate = _contr_create.stream;
+        onDelete = _contr_delete.stream;
+    }
+}
+
 class Database<A extends Application> {
 
     static const String _base = '_';
