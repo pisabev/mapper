@@ -18,8 +18,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     Notifier<E> notifier;
 
-    Mapper(Manager<A> man) {
-        manager = man;
+    Mapper() {
         if (pkey == null)
             pkey = table + '_id';
     }
