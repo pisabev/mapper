@@ -13,7 +13,7 @@ class Application<A extends Application> {
     noSuchMethod(Invocation invocation) {
         var key = invocation.memberName;
         if(invocation.isGetter)
-            return (_cache.containsKey(key))? _cache[key] : _cache[key] = _data[key](m);
+            return (_cache.containsKey(key))? _cache[key] : _cache[key] = _data[key]()..manager = m;
         super.noSuchMethod(invocation);
     }
 
