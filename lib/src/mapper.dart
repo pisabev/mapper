@@ -228,7 +228,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     _escape(String string) => '"$string"';
 
-    E createObject([dynamic data]) => _markObject(entity(manager, data));
+    E createObject([dynamic data]) => _markObject(entity()..manager = manager..init(data));
 
     C createCollection() => collection();
 
