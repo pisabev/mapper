@@ -16,6 +16,8 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     Function collection;
 
+    Notifier<E> notifier;
+
     Mapper(Manager<A> man) {
         manager = man;
         if (pkey == null)
@@ -74,7 +76,12 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         return _setUpdateData(insertBuilder(), data, true)
         .execute().then((result) {
             setObject(object, result[0].toMap());
-            return _cacheAdd(_cacheKeyFromData(data), new Future.value(object));
+            return _cacheAdd(_cacheKeyFromData(data), new Future.value(object))
+                .then((E obj) {
+                    if(notifier != null)
+                        notifier._contr_create.add(obj);
+                    return obj;
+                });
         });
     }
 
@@ -85,7 +92,11 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             pkey.forEach((k) => q.andWhere(_escape(k) + ' = @' + k).setParameter(k, data[k]));
         else
             q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
-        return q.stream((stream) => stream.drain(object));
+        return q.stream((stream) => stream.drain(object)).then((E obj) {
+            if(notifier != null)
+                notifier._contr_update.add(obj);
+            return obj;
+        });
     }
 
     Future<bool> delete(E object) {
@@ -122,14 +133,24 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         }
     }
 
-    Future<bool> deleteById(dynamic id) {
+    Future<bool> deleteById(dynamic id, [E object]) async {
         _cacheAdd(id.toString(), new Future.value(null));
+        if(notifier != null) {
+            if(object != null)
+                object = await find(id);
+            notifier._contr_delete.add(object);
+        }
         return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey).setParameter(pkey, id)
         .stream((stream) => stream.drain(true));
     }
 
-    Future<bool> deleteComposite(Iterable<dynamic> ids) {
+    Future<bool> deleteComposite(Iterable<dynamic> ids, [E object]) async {
+        if(notifier != null) {
+            if(object != null)
+                object = await findComposite(ids);
+            notifier._contr_delete.add(object);
+        }
         _cacheAdd(ids.join(_SEP), new Future.value(null));
         Builder q = deleteBuilder();
         int i = 0;
