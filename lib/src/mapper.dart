@@ -16,7 +16,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     Function collection;
 
-    Notifier<E> notifier;
+    EntityNotifier<E> notifier;
 
     Mapper() {
         if (pkey == null)
@@ -99,8 +99,8 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
     Future<bool> delete(E object) {
         Map data = readObject(object);
         return (pkey is List)
-            ? _deleteComposite(pkey.map((k) => data[k]))
-            : _deleteById(data[pkey]);
+            ? _deleteComposite(pkey.map((k) => data[k]), object)
+            : _deleteById(data[pkey], object);
     }
 
     Future<bool> refresh(E object) {
@@ -133,7 +133,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         => find(id).then((E object) => _deleteById(id, object));
 
     Future<bool> deleteComposite(Iterable<dynamic> ids)
-        => findComposite(ids).then((E object) => _deleteComposite(id, object));
+        => findComposite(ids).then((E object) => _deleteComposite(ids, object));
 
     Future<bool> _deleteById(dynamic id, E object) async {
         _cacheAdd(id.toString(), new Future.value(null));

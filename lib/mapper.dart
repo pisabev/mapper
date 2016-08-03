@@ -18,7 +18,7 @@ part 'src/exception.dart';
 
 final Logger log = new Logger('Mapper');
 
-class Notifier<E> {
+class EntityNotifier<E> {
 
     StreamController _contr_update = new StreamController.broadcast();
     StreamController _contr_create = new StreamController.broadcast();
@@ -28,7 +28,7 @@ class Notifier<E> {
     Stream<E> onCreate;
     Stream<E> onDelete;
 
-    Notifier() {
+    EntityNotifier() {
         onUpdate = _contr_update.stream;
         onCreate = _contr_create.stream;
         onDelete = _contr_delete.stream;
