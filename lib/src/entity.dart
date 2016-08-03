@@ -1,12 +1,12 @@
 part of mapper_server;
 
-class Entity<E> {
+abstract class Entity<E> {
 
     Manager manager;
 
-    void init(Map data) {}
+    void init(Map data);
 
-    Map toMap() => {};
+    Map toMap();
 
     Map toJson() => toMap();
 
