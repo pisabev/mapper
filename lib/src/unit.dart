@@ -44,11 +44,41 @@ class Unit {
 
     addOnCommit(Function f) => (!_on_commit.contains(f))? _on_commit.add(f) : null;
 
-    Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
+    Future _doUpdates() => Future.wait(_dirty.map((o) {
+        var mapper = _manager._mapper(o);
+        if(mapper.notifier != null && _started) {
+            mapper._in_transaction = true;
+            _on_commit.add(() {
+                mapper._in_transaction = false;
+                mapper.notifier._contr_update.add(o..manager = null);
+            });
+        }
+        return mapper.update(o);
+    }));
 
-    Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
+    Future _doInserts() => Future.wait(_new.map((o) {
+        var mapper =_manager._mapper(o);
+        if(mapper.notifier != null && _started) {
+            mapper._in_transaction = true;
+            _on_commit.add(() {
+                mapper._in_transaction = false;
+                mapper.notifier._contr_create.add(o..manager = null);
+            });
+        }
+        return mapper.insert(o);
+    }));
 
-    Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
+    Future _doDeletes() => Future.wait(_delete.map((o) {
+        var mapper =_manager._mapper(o);
+        if(mapper.notifier != null && _started) {
+            mapper._in_transaction = true;
+            _on_commit.add(() {
+                mapper._in_transaction = false;
+                mapper.notifier._contr_delete.add(o..manager = null);
+            });
+        }
+        return mapper.delete(o);
+    }));
 
     Future _doFutures() => Future.wait(_future);
 
@@ -62,7 +92,7 @@ class Unit {
 
     Future _start() => (!_started) ? _begin() : new Future.value();
 
-    Future persist() {
+    Future persist() async {
         if(_transaction != null)
             throw new TransactionStartedException();
         return _transaction = _start()
