@@ -50,7 +50,7 @@ class Unit {
             mapper._in_transaction = true;
             _on_commit.add(() {
                 mapper._in_transaction = false;
-                mapper.notifier._contr_update.add(o..manager = null);
+                mapper.notifier._addUpdate(o);
             });
         }
         return mapper.update(o);
@@ -62,7 +62,7 @@ class Unit {
             mapper._in_transaction = true;
             _on_commit.add(() {
                 mapper._in_transaction = false;
-                mapper.notifier._contr_create.add(o..manager = null);
+                mapper.notifier._addCreate(o);
             });
         }
         return mapper.insert(o);
@@ -74,7 +74,7 @@ class Unit {
             mapper._in_transaction = true;
             _on_commit.add(() {
                 mapper._in_transaction = false;
-                mapper.notifier._contr_delete.add(o..manager = null);
+                mapper.notifier._addDelete(o);
             });
         }
         return mapper.delete(o);
