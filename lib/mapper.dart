@@ -20,18 +20,36 @@ final Logger log = new Logger('Mapper');
 
 class EntityNotifier<E> {
 
+    StreamController _contr_change = new StreamController.broadcast();
     StreamController _contr_update = new StreamController.broadcast();
     StreamController _contr_create = new StreamController.broadcast();
     StreamController _contr_delete = new StreamController.broadcast();
 
+    Stream<E> onChange;
     Stream<E> onUpdate;
     Stream<E> onCreate;
     Stream<E> onDelete;
 
     EntityNotifier() {
+        onChange = _contr_change.stream;
         onUpdate = _contr_update.stream;
         onCreate = _contr_create.stream;
         onDelete = _contr_delete.stream;
+    }
+
+    _addUpdate(E o) {
+        _contr_update.add(o);
+        _contr_change.add(o);
+    }
+
+    _addCreate(E o) {
+        _contr_create.add(o);
+        _contr_change.add(o);
+    }
+
+    _addDelete(E o) {
+        _contr_delete.add(o);
+        _contr_change.add(o);
     }
 }
 
