@@ -71,7 +71,7 @@ class Builder {
     Builder(this.connection);
 
     _error(e) {
-        if(e.serverMessage.code == '23503')
+        if(e is PostgresqlException && e.serverMessage.code == '23503')
             throw new ConstrainException(e, getSQL(), _params);
         else
             throw new QueryException(e, getSQL(), _params);
