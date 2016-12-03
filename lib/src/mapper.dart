@@ -18,8 +18,6 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     EntityNotifier<E> notifier;
 
-    bool _in_transaction = false;
-
     Mapper() {
         if (pkey == null)
             pkey = table + '_id';
@@ -79,7 +77,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             setObject(object, result[0].toMap());
             return _cacheAdd(_cacheKeyFromData(data), new Future.value(object))
                 .then((E obj) {
-                    if(notifier != null && !_in_transaction) notifier._addCreate(obj);
+                    _notifyCreate(obj);
                     return obj;
                 });
         });
@@ -93,7 +91,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         else
             q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
         return q.stream((stream) => stream.drain(object)).then((E obj) {
-            if(notifier != null && !_in_transaction) notifier._addUpdate(obj);
+            _notifyUpdate(obj);
             return obj;
         });
     }
@@ -139,14 +137,14 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     Future<bool> _deleteById(dynamic id, E object) async {
         _cacheAdd(id.toString(), new Future.value(null));
-        if(notifier != null && !_in_transaction) notifier._addDelete(object);
+        _notifyDelete(object);
         return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey).setParameter(pkey, id)
         .stream((stream) => stream.drain(true));
     }
 
     Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
-        if(notifier != null && !_in_transaction) notifier._addDelete(object);
+        _notifyDelete(object);
         _cacheAdd(ids.join(_SEP), new Future.value(null));
         Builder q = deleteBuilder();
         int i = 0;
@@ -156,6 +154,33 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             i++;
         });
         return q.stream((stream) => stream.drain(true));
+    }
+
+    _notifyUpdate(E obj) {
+        if(notifier != null) {
+            if(!manager.inTransaction)
+                notifier._addUpdate(obj);
+            else
+                manager.addOnCommit(() => notifier._addUpdate(obj));
+        }
+    }
+
+    _notifyCreate(E obj) {
+        if(notifier != null) {
+            if(!manager.inTransaction)
+                notifier._addCreate(obj);
+            else
+                manager.addOnCommit(() => notifier._addCreate(obj));
+        }
+    }
+
+    _notifyDelete(E obj) {
+        if(notifier != null) {
+            if(!manager.inTransaction)
+                notifier._addDelete(obj);
+            else
+                manager.addOnCommit(() => notifier._addDelete(obj));
+        }
     }
 
     Builder _setUpdateData(Builder builder, data, [bool insert = false]) {

@@ -44,41 +44,11 @@ class Unit {
 
     addOnCommit(Function f) => (!_on_commit.contains(f))? _on_commit.add(f) : null;
 
-    Future _doUpdates() => Future.wait(_dirty.map((o) {
-        var mapper = _manager._mapper(o);
-        if(mapper.notifier != null && _started) {
-            mapper._in_transaction = true;
-            _on_commit.add(() {
-                mapper._in_transaction = false;
-                mapper.notifier._addUpdate(o);
-            });
-        }
-        return mapper.update(o);
-    }));
+    Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
 
-    Future _doInserts() => Future.wait(_new.map((o) {
-        var mapper =_manager._mapper(o);
-        if(mapper.notifier != null && _started) {
-            mapper._in_transaction = true;
-            _on_commit.add(() {
-                mapper._in_transaction = false;
-                mapper.notifier._addCreate(o);
-            });
-        }
-        return mapper.insert(o);
-    }));
+    Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
 
-    Future _doDeletes() => Future.wait(_delete.map((o) {
-        var mapper =_manager._mapper(o);
-        if(mapper.notifier != null && _started) {
-            mapper._in_transaction = true;
-            _on_commit.add(() {
-                mapper._in_transaction = false;
-                mapper.notifier._addDelete(o);
-            });
-        }
-        return mapper.delete(o);
-    }));
+    Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
 
     Future _doFutures() => Future.wait(_future);
 
