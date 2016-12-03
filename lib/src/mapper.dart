@@ -161,7 +161,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             if(!manager.inTransaction)
                 notifier._addUpdate(obj);
             else
-                manager.addOnCommit(() => notifier._addUpdate(obj));
+                manager._unit._addNotifyUpdate(obj);
         }
     }
 
@@ -170,7 +170,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             if(!manager.inTransaction)
                 notifier._addCreate(obj);
             else
-                manager.addOnCommit(() => notifier._addCreate(obj));
+                manager._unit._addNotifyCreate(obj);
         }
     }
 
@@ -179,7 +179,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             if(!manager.inTransaction)
                 notifier._addDelete(obj);
             else
-                manager.addOnCommit(() => notifier._addDelete(obj));
+                manager._unit._addNotifyDelete(obj);
         }
     }
 

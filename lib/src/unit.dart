@@ -12,6 +12,12 @@ class Unit {
 
     List<Future> _future;
 
+    List<Entity> _on_create;
+
+    List<Entity> _on_update;
+
+    List<Entity> _on_delete;
+
     List<Function> _on_commit;
 
     bool _started = false;
@@ -23,15 +29,22 @@ class Unit {
     Unit(Manager manager) {
         _manager = manager;
         _on_commit = new List<Function>();
-        _set();
+        _resetEntities();
+        _resetNotifies();
     }
 
-    _set() {
+    _resetEntities() {
         _dirty = new List<Entity>();
         _new = new List<Entity>();
         _delete = new List<Entity>();
         _future = new List<Future>();
         _transaction = null;
+    }
+
+    _resetNotifies() {
+        _on_create = new List<Entity>();
+        _on_update = new List<Entity>();
+        _on_delete = new List<Entity>();
     }
 
     addDirty(Entity object) => (!_new.contains(object) && !_dirty.contains(object))? _dirty.add(object) : null;
@@ -49,6 +62,18 @@ class Unit {
     Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
 
     Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
+
+    _addNotifyUpdate(Entity object) => !_on_update.contains(object)? _on_update.add(object) : null;
+
+    _addNotifyCreate(Entity object) => !_on_create.contains(object)? _on_create.add(object) : null;
+
+    _addNotifyDelete(Entity object) => !_on_delete.contains(object)? _on_delete.add(object): null;
+
+    void _doUpdateNotifies() => _on_update.forEach((o) => _manager._mapper(o).notifier._addUpdate(o));
+
+    void _doCreateNotifies() => _on_create.forEach((o) => _manager._mapper(o).notifier._addCreate(o));
+
+    void _doDeleteNotifies() => _on_delete.forEach((o) => _manager._mapper(o).notifier._addDelete(o));
 
     Future _doFutures() => Future.wait(_future);
 
@@ -70,13 +95,17 @@ class Unit {
         .then((_) => _doDeletes())
         .then((_) => _doUpdates())
         .then((_) => _doInserts())
-        .then((_) => _set())
+        .then((_) => _resetEntities())
         .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
     }
 
     Future commit() {
         return persist()
         .then((_) => _commit())
+        .then((_) => _doUpdateNotifies())
+        .then((_) => _doCreateNotifies())
+        .then((_) => _doDeleteNotifies())
+        .then((_) => _resetNotifies())
         .then((_) => _doOnCommit())
         .then((_) => _on_commit.clear())
         .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
