@@ -51,7 +51,7 @@ class Manager<A extends Application> {
 
     addOnCommit(Function f) => _unit.addOnCommit(f);
 
-    addOnDone(Function f) => inTransaction()? addOnCommit(f) : f();
+    addOnDone(Function f) => inTransaction? addOnCommit(f) : f();
 
     Future persist() => _unit.persist();
 
@@ -61,7 +61,7 @@ class Manager<A extends Application> {
 
     Future rollback() => _unit.rollback();
 
-    bool inTransaction() => _unit.started;
+    bool get inTransaction => _unit.started;
 
     Future close() {
         return new Future.sync(() {
