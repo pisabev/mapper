@@ -60,7 +60,7 @@ class Unit {
 
     void _doDeleteNotifies() => _on_delete.forEach((o) => _manager._mapper(o).notifier._addDelete(o));
 
-    Future _begin() => !_started? _manager.connection.execute('BEGIN').then((_) => _started = true) : null;
+    Future _begin() => !_started? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
 
     Future _commit() => _manager.connection.execute('COMMIT').then((_) => _started = false);
 
