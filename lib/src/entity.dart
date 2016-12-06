@@ -1,8 +1,8 @@
 part of mapper_server;
 
-abstract class Entity<A extends Application> {
+abstract class Entity {
 
-    Manager<A> manager;
+    Manager manager;
 
     void init(Map data);
 

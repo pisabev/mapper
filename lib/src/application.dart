@@ -4,7 +4,7 @@ class Application<A extends Application> {
 
     Manager<A> m;
 
-    Map<Symbol, Function> _data = new Map();
+    Map<dynamic, dynamic> _data = new Map();
 
     Map _cache = new Map();
 

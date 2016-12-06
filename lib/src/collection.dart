@@ -2,7 +2,7 @@ part of mapper_shared;
 
 class Collection<E> extends ListBase<E> {
 
-    List innerList = new List();
+    List<E> innerList = new List();
 
     int get length => innerList.length;
 
@@ -20,6 +20,6 @@ class Collection<E> extends ListBase<E> {
 
     void addAll(Iterable<E> all) => innerList.addAll(all);
 
-    Iterable map(f(E element)) => innerList.map(f);
+    Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E e)) => innerList.map(f);
 
 }
