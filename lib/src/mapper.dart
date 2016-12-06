@@ -8,7 +8,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     dynamic pkey;
 
-    static Map _ref = new Map();
+    static Map<String, Mapper> _ref = new Map();
 
     static const String _SEP = '.';
 
@@ -31,9 +31,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         if (f != null) {
             return f;
         } else {
-            return _cacheAdd(cache_key, selectBuilder()
+            return _cacheAdd(cache_key, _streamToEntityFind(selectBuilder()
             .where(_escape(pkey) + ' = @pkey')
-            .setParameter('pkey', id).stream(_streamToEntityFind));
+            .setParameter('pkey', id).stream));
         }
     }
 
@@ -50,7 +50,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
                 q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
                 i++;
             });
-            return _cacheAdd(cache_key, q.stream(_streamToEntityFind));
+            return _cacheAdd(cache_key, _streamToEntityFind(q.stream));
         }
     }
 
@@ -66,9 +66,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     Builder updateBuilder() => new Builder(manager.connection).update(_escape(table));
 
-    Future<E> loadE(Builder builder) => builder.stream(_streamToEntity);
+    Future<E> loadE(Builder builder) => _streamToEntity(builder.stream);
 
-    Future<C> loadC(Builder builder) => builder.stream(_streamToCollection);
+    Future<C> loadC(Builder builder) => _streamToCollection(builder.stream);
 
     Future<E> insert(E object) {
         Map data = readObject(object);
@@ -90,7 +90,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             pkey.forEach((k) => q.andWhere(_escape(k) + ' = @' + k).setParameter(k, data[k]));
         else
             q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
-        return q.stream((stream) => stream.drain(object)).then((E obj) {
+        return q.stream.drain().then((E obj) {
             _notifyUpdate(obj);
             return obj;
         });
@@ -140,7 +140,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         _notifyDelete(object);
         return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey).setParameter(pkey, id)
-        .stream((stream) => stream.drain(true));
+        .stream.drain(true);
     }
 
     Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
@@ -153,7 +153,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
             i++;
         });
-        return q.stream((stream) => stream.drain(true));
+        return q.stream.drain(true);
     }
 
     _notifyUpdate(E obj) {

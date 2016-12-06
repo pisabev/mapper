@@ -37,7 +37,7 @@ class Manager<A extends Application> {
 
     cacheAdd(String key, Future<Entity> object) => _cache.add(key, object);
 
-    cacheGet(String key) => _cache.get(key);
+    Future<Entity> cacheGet(String key) => _cache.get(key);
 
     cache() => _cache.toString();
 

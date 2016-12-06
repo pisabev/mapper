@@ -20,10 +20,10 @@ final Logger log = new Logger('Mapper');
 
 class EntityNotifier<E> {
 
-    StreamController _contr_change = new StreamController.broadcast();
-    StreamController _contr_update = new StreamController.broadcast();
-    StreamController _contr_create = new StreamController.broadcast();
-    StreamController _contr_delete = new StreamController.broadcast();
+    StreamController<E> _contr_change = new StreamController.broadcast();
+    StreamController<E> _contr_update = new StreamController.broadcast();
+    StreamController<E> _contr_create = new StreamController.broadcast();
+    StreamController<E> _contr_delete = new StreamController.broadcast();
 
     Stream<E> onChange;
     Stream<E> onUpdate;

@@ -54,8 +54,7 @@ class Builder {
 
     int _type = Builder.SELECT;
 
-    Map _params = <String, dynamic> {
-    };
+    Map<String, dynamic> _params = {};
 
     Map _sqlParts = <String, dynamic> {
         'select': new List(),
@@ -85,10 +84,7 @@ class Builder {
         .catchError(_error);
     }
 
-    Future stream(Function handler) {
-        return handler(connection.query(getSQL(), _params))
-        .catchError(_error);
-    }
+    Stream get stream => connection.query(getSQL(), _params).catchError(_error);
 
     getType() {
         return _type;
@@ -99,14 +95,12 @@ class Builder {
         return this;
     }
 
-    Builder setParameters(Map<String, String> params) {
+    Builder setParameters(Map<String, dynamic> params) {
         _params = params;
         return this;
     }
 
-    getParameters() {
-        return _params;
-    }
+    Map<String, dynamic> getParameters() => _params;
 
     getParameter(key) {
         return (_params[key] != null) ? _params[key] : null;
@@ -482,7 +476,7 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>, A extends App
 
     Future process([total = false]) {
         _queryFilter();
-        List list = new List();
+        List<Future> list = new List();
         if (total)
             list.add(_total());
         _queryResult();
