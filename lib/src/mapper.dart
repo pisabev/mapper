@@ -90,9 +90,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             pkey.forEach((k) => q.andWhere(_escape(k) + ' = @' + k).setParameter(k, data[k]));
         else
             q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
-        return q.stream.drain().then((E obj) {
-            _notifyUpdate(obj);
-            return obj;
+        return q.stream.drain().then((_) {
+            _notifyUpdate(object);
+            return object;
         });
     }
 
