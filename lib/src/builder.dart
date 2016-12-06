@@ -84,7 +84,10 @@ class Builder {
         .catchError(_error);
     }
 
-    Stream get stream => connection.query(getSQL(), _params).catchError(_error);
+    Future stream(Function handler) {
+        return handler(connection.query(getSQL(), _params))
+        .catchError(_error);
+    }
 
     getType() {
         return _type;
