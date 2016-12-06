@@ -10,25 +10,16 @@ class Unit {
 
     List<Entity> _delete;
 
-    List<Future> _future;
-
     List<Entity> _on_create;
 
     List<Entity> _on_update;
 
     List<Entity> _on_delete;
 
-    List<Function> _on_commit;
-
     bool _started = false;
-
-    bool get started => _started;
-
-    Future _transaction;
 
     Unit(Manager manager) {
         _manager = manager;
-        _on_commit = new List<Function>();
         _resetEntities();
         _resetNotifies();
     }
@@ -37,8 +28,6 @@ class Unit {
         _dirty = new List<Entity>();
         _new = new List<Entity>();
         _delete = new List<Entity>();
-        _future = new List<Future>();
-        _transaction = null;
     }
 
     _resetNotifies() {
@@ -52,10 +41,6 @@ class Unit {
     addNew(Entity object) => (!_new.contains(object))? _new.add(object) : null;
 
     addDelete(Entity object) => (!_delete.contains(object))? _delete.add(object): null;
-
-    addFuture(Future f) => (!_future.contains(f))? _future.add(f) : null;
-
-    addOnCommit(Function f) => (!_on_commit.contains(f))? _on_commit.add(f) : null;
 
     Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
 
@@ -75,23 +60,14 @@ class Unit {
 
     void _doDeleteNotifies() => _on_delete.forEach((o) => _manager._mapper(o).notifier._addDelete(o));
 
-    Future _doFutures() => Future.wait(_future);
-
-    _doOnCommit() => _on_commit.forEach((func) => func());
-
-    Future _begin() => (!_started) ? _manager.connection.execute('BEGIN').then((_) => _started = true) : new Future.value();
+    Future _begin() => !_started? _manager.connection.execute('BEGIN').then((_) => _started = true) : null;
 
     Future _commit() => _manager.connection.execute('COMMIT').then((_) => _started = false);
 
     Future _rollback() => _manager.connection.execute('ROLLBACK').then((_) => _started = false);
 
-    Future _start() => (!_started) ? _begin() : new Future.value();
-
     Future persist() async {
-        if(_transaction != null)
-            throw new TransactionStartedException();
-        return _transaction = _start()
-        .then((_) => _doFutures())
+        return _begin()
         .then((_) => _doDeletes())
         .then((_) => _doUpdates())
         .then((_) => _doInserts())
@@ -106,13 +82,7 @@ class Unit {
         .then((_) => _doCreateNotifies())
         .then((_) => _doDeleteNotifies())
         .then((_) => _resetNotifies())
-        .then((_) => _doOnCommit())
-        .then((_) => _on_commit.clear())
         .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
     }
-
-    Future begin() => _start();
-
-    Future rollback() => _rollback();
 
 }

@@ -1,15 +1,5 @@
 part of mapper_server;
 
-class TransactionStartedException implements Exception {
-
-    String _msg = 'Transaction already started';
-
-    TransactionStartedException();
-
-    String toString() => _msg;
-
-}
-
 class QueryException implements Exception {
 
     PostgresqlException _e;
