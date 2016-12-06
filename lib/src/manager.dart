@@ -47,29 +47,21 @@ class Manager<A extends Application> {
 
     addDelete(Entity object) => _unit.addDelete(object);
 
-    addFuture(Future f) => _unit.addFuture(f);
-
-    addOnCommit(Function f) => _unit.addOnCommit(f);
-
-    addOnDone(Function f) => inTransaction? addOnCommit(f) : f();
-
     Future persist() => _unit.persist();
 
     Future commit() => _unit.commit();
 
-    Future begin() => _unit.begin();
+    Future begin() => _unit._begin();
 
-    Future rollback() => _unit.rollback();
+    Future rollback() => _unit._rollback();
 
-    bool get inTransaction => _unit.started;
+    bool get inTransaction => _unit._started;
 
-    Future close() {
-        return new Future.sync(() {
-            _cache = new Cache();
-            if(_unit.started)
-                return _unit.rollback().then((_) => connection.close());
-            return connection.close();
-        });
+    Future close() async {
+        _cache = new Cache();
+        if(_unit._started)
+            await _unit._rollback();
+        return connection.close();
     }
 
     Mapper _mapper(Entity object) => Mapper._ref[object.runtimeType.toString()];
