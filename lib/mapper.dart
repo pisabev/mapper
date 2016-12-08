@@ -53,12 +53,14 @@ class EntityNotifier<E> {
     }
 }
 
+typedef Future<Manager> LoadFunction(String debug);
+
 class Database<A extends Application> {
 
     static const String _base = '_';
     static Database instance;
 
-    Map<String, Function> _managers = new Map();
+    Map<String, LoadFunction> _managers = new Map();
 
     factory Database() {
         if (instance == null)
@@ -68,7 +70,7 @@ class Database<A extends Application> {
 
     Database._();
 
-    add(Function f, [String namespace = _base]) {
+    add(LoadFunction f, [String namespace = _base]) {
         _managers[namespace] = f;
     }
 
