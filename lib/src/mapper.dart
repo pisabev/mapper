@@ -1,6 +1,8 @@
 part of mapper_server;
 
-abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Application> {
+typedef T EntityFunction<T>();
+
+abstract class Mapper<E extends Entity<A>, C extends Collection<E>, A extends Application> {
 
     Manager<A> manager;
 
@@ -12,9 +14,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
 
     static const String _SEP = '.';
 
-    Function entity;
+    EntityFunction<E> entity;
 
-    Function collection;
+    EntityFunction<C> collection;
 
     EntityNotifier<E> notifier;
 
@@ -140,7 +142,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
         _notifyDelete(object);
         return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey).setParameter(pkey, id)
-        .stream((stream) => stream.drain(true));
+        .stream((Stream<bool> stream) => stream.drain(true));
     }
 
     Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
@@ -153,7 +155,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
             q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
             i++;
         });
-        return q.stream((stream) => stream.drain(true));
+        return q.stream((Stream<bool> stream) => stream.drain(true));
     }
 
     _notifyUpdate(E obj) {
@@ -245,7 +247,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>, A extends Appli
     CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
         if (q == null)
             q = selectBuilder();
-        return new CollectionBuilder(q, this);
+        return new CollectionBuilder<E, C, A>(q, this);
     }
 
     _escape(String string) => '"$string"';

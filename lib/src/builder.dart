@@ -34,7 +34,9 @@ class Expression {
     }
 }
 
-class Builder {
+typedef T StreamFunction<T>();
+
+class Builder<T> {
 
     static const int SELECT = 0;
 
@@ -84,7 +86,7 @@ class Builder {
         .catchError(_error);
     }
 
-    Future stream(Function handler) {
+    Future/*<T>*/ stream/*<T>*/(/*=Future<T>*/ handler(a)) {
         return handler(connection.query(getSQL(), _params))
         .catchError(_error);
     }
@@ -435,7 +437,7 @@ class Builder {
     }
 }
 
-class CollectionBuilder<E extends Entity, C extends Collection<E>, A extends Application> {
+class CollectionBuilder<E extends Entity<A>, C extends Collection<E>, A extends Application> {
 
     static int _unique = 0;
 
