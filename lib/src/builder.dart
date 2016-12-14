@@ -86,7 +86,7 @@ class Builder<T> {
         .catchError(_error);
     }
 
-    Future/*<T>*/ stream/*<T>*/(/*=Future<T>*/ handler(a)) {
+    Future<T> stream<T>(Future<T> handler(a)) {
         return handler(connection.query(getSQL(), _params))
         .catchError(_error);
     }
