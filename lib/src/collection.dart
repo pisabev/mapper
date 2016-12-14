@@ -20,6 +20,6 @@ class Collection<E> extends ListBase<E> {
 
     void addAll(Iterable<E> all) => innerList.addAll(all);
 
-    Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E e)) => innerList.map(f);
+    Iterable<T> map<T>(T f(E e)) => innerList.map(f);
 
 }
