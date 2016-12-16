@@ -41,9 +41,9 @@ class TSquery {
 
     String toString() {
         var parts = query.trim().split(new RegExp(r'\s+'));
-        if(parts.length == 1)
-            return parts.first + ':*';
-        return parts.join(' ');
+        //if(parts.length == 1)
+          //  return parts.first + ':*';
+        return parts.join(' & ') + ':*';
     }
 }
 
