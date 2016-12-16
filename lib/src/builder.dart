@@ -40,9 +40,12 @@ class TSquery {
     TSquery(this.query);
 
     String toString() {
-        var parts = query.trim().split(new RegExp(r'\s+'));
-        //if(parts.length == 1)
-          //  return parts.first + ':*';
+        var parts = query.trim().split(new RegExp(r'\s+'))
+            .map((e) => e
+                .replaceAll('!', '\\!')
+                .replaceAll('(', '\\(')
+                .replaceAll(')', '\\)')
+                .replaceAll('\'', '\\\''));
         return parts.join(' & ') + ':*';
     }
 }
