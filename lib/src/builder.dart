@@ -34,6 +34,19 @@ class Expression {
     }
 }
 
+class TSquery {
+    String query;
+
+    TSquery(this.query);
+
+    String toString() {
+        var parts = query.trim().split(new RegExp(r'\s+'));
+        if(parts.length == 1)
+            return parts.first + ':*';
+        return parts.join(' ');
+    }
+}
+
 typedef T StreamFunction<T>();
 
 class Builder<T> {
