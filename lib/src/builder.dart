@@ -43,9 +43,9 @@ class TSquery {
         var parts = query.trim().split(new RegExp(r'\s+'))
             .map((e) => e
                 .replaceAll('!', '\\!')
+                .replaceAll(':', '\\:')
                 .replaceAll('(', '\\(')
                 .replaceAll(')', '\\)')
-                .replaceAll('\:', '\\\:')
                 .replaceAll('\'', '\\\''));
         return parts.join(' & ') + ':*';
     }
