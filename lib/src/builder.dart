@@ -93,6 +93,7 @@ class Builder<T> {
 
     _error(e) {
         if(e is PostgresqlException &&
+            e.serverMessage != null &&
             (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
             throw new ConstrainException(e);
         else
