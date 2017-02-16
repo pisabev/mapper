@@ -190,7 +190,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>, A extends Ap
             if (v == null && insert)
                 builder.set(_escape(k), 'DEFAULT');
             else
-                builder.set(_escape(k), '@' + k).setParameter(k, v);
+                builder.set(_escape(k), v is List? '@$k:jsonb' : '@$k').setParameter(k, v);
         });
         return builder;
     }
