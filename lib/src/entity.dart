@@ -1,13 +1,11 @@
 part of mapper_server;
 
 abstract class Entity<A extends Application> {
+  Manager<A> manager;
 
-    Manager<A> manager;
+  void init(Map data);
 
-    void init(Map data);
+  Map toMap();
 
-    Map toMap();
-
-    Map toJson();
-
+  Map toJson();
 }

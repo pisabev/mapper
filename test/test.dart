@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 part 'builder_test.dart';
 part 'mapper_test.dart';
 
-class A extends Application<A> {
+class A extends Application {
     init() => new A();
 }
 
