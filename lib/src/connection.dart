@@ -1,30 +1,26 @@
 part of mapper_server;
 
 class Connection {
+  String _uri;
 
-    String _uri;
+  int _min, _max;
 
-    int _min, _max;
+  Pool _pool;
 
-    Pool _pool;
+  Connection(this._uri, [this._min = 1, this._max = 5]) {
+    _createPool();
+    _pool.messages.listen((e) => log.warning(e.message));
+  }
 
-    Connection(this._uri, [this._min = 1, this._max = 5]) {
-        _createPool();
-        _pool.messages.listen((e) => log.warning(e.message));
-    }
+  _createPool() => _pool = new Pool(_uri,
+      minConnections: _min,
+      maxConnections: _max,
+      leakDetectionThreshold: new Duration(seconds: 60),
+      restartIfAllConnectionsLeaked: true);
 
-    _createPool() => _pool = new Pool(_uri,
-        minConnections: _min,
-        maxConnections: _max,
-        leakDetectionThreshold: new Duration(seconds: 60),
-        restartIfAllConnectionsLeaked: true
-    );
+  Future start() => _pool.start();
 
-    Future start() => _pool.start();
-
-    Future connect([String debugId]) {
-        return _pool.connect(debugName: debugId)
-        .catchError((e) => log.severe(e));
-    }
-
+  Future connect([String debugId]) {
+    return _pool.connect(debugName: debugId).catchError((e) => log.severe(e));
+  }
 }
