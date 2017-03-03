@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:postgresql/pool.dart';
 import 'package:postgresql/postgresql.dart';
+import 'package:meta/meta.dart';
 import 'client.dart';
 
 part 'src/application.dart';
