@@ -4,5 +4,6 @@ version: 1.0.0
 dependencies:
   postgresql: '>=0.3.3'
   logging: any
+  meta: any
 dev_dependencies:
   test: any
