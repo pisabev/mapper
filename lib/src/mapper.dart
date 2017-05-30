@@ -10,7 +10,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
 
   @virtual dynamic pkey;
 
-  static Map<String, Mapper> _ref = new Map();
+  static Map<String, Object> _ref = new Map();
 
   static const String _SEP = '.';
 
