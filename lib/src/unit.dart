@@ -1,6 +1,6 @@
 part of mapper_server;
 
-class Unit {
+class Unit<A extends Application> {
   Manager _manager;
 
   List<Entity> _dirty;
@@ -24,25 +24,25 @@ class Unit {
   }
 
   _resetEntities() {
-    _dirty = new List<Entity>();
-    _new = new List<Entity>();
-    _delete = new List<Entity>();
+    _dirty = new List<Entity<A>>();
+    _new = new List<Entity<A>>();
+    _delete = new List<Entity<A>>();
   }
 
   _resetNotifies() {
-    _on_create = new List<Entity>();
-    _on_update = new List<Entity>();
-    _on_delete = new List<Entity>();
+    _on_create = new List<Entity<A>>();
+    _on_update = new List<Entity<A>>();
+    _on_delete = new List<Entity<A>>();
   }
 
-  addDirty(Entity object) =>
+  addDirty(Entity<A> object) =>
       (!_new.contains(object) && !_dirty.contains(object))
           ? _dirty.add(object)
           : null;
 
-  addNew(Entity object) => (!_new.contains(object)) ? _new.add(object) : null;
+  addNew(Entity<A> object) => (!_new.contains(object)) ? _new.add(object) : null;
 
-  addDelete(Entity object) =>
+  addDelete(Entity<A> object) =>
       (!_delete.contains(object)) ? _delete.add(object) : null;
 
   Future _doUpdates() =>
@@ -54,13 +54,13 @@ class Unit {
   Future _doDeletes() =>
       Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
 
-  _addNotifyUpdate(Entity object) =>
+  _addNotifyUpdate(Entity<A> object) =>
       !_on_update.contains(object) ? _on_update.add(object) : null;
 
-  _addNotifyCreate(Entity object) =>
+  _addNotifyCreate(Entity<A> object) =>
       !_on_create.contains(object) ? _on_create.add(object) : null;
 
-  _addNotifyDelete(Entity object) =>
+  _addNotifyDelete(Entity<A> object) =>
       !_on_delete.contains(object) ? _on_delete.add(object) : null;
 
   void _doUpdateNotifies() =>

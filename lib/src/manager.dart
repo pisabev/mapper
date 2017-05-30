@@ -3,7 +3,7 @@ part of mapper_server;
 class Manager<A extends Application> {
   A app;
 
-  Unit _unit;
+  Unit<A> _unit;
 
   Cache _cache;
 
@@ -34,9 +34,9 @@ class Manager<A extends Application> {
 
   builder() => new Builder(connection);
 
-  cacheAdd(String key, Future<Entity> object) => _cache.add(key, object);
+  cacheAdd(String key, Future<Entity<A>> object) => _cache.add(key, object);
 
-  Future<Entity> cacheGet(String key) => _cache.get(key);
+  Future<Entity<A>> cacheGet(String key) => _cache.get(key);
 
   cache() => _cache.toString();
 
