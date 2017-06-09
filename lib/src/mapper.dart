@@ -149,7 +149,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey)
         .setParameter(pkey, id)
-        .stream((Stream<bool> stream) => stream.drain(true));
+        .stream((Stream stream) => stream.drain(true));
   }
 
   Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
@@ -162,7 +162,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
       q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
       i++;
     });
-    return q.stream((Stream<bool> stream) => stream.drain(true));
+    return q.stream((Stream stream) => stream.drain(true));
   }
 
   _notifyUpdate(E obj) {
