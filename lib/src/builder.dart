@@ -40,7 +40,7 @@ class TSquery {
 
   String toString() {
     var search = query.trim();
-    if (search.length == 1) return null;
+    if (search.length < 2) return null;
     var parts = search.split(new RegExp(r'\s+')).map((e) => e
         .replaceAll('!', '\\!')
         .replaceAll(':', '\\:')
