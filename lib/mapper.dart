@@ -17,7 +17,7 @@ part 'src/entity.dart';
 part 'src/cache.dart';
 part 'src/exception.dart';
 
-final Logger log = new Logger('Mapper');
+final Logger _log = new Logger('Mapper');
 
 class EntityNotifier<E> {
   StreamController<E> _contr_change = new StreamController.broadcast();
