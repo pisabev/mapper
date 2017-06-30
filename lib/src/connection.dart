@@ -9,7 +9,7 @@ class Connection {
 
   Connection(this._uri, [this._min = 1, this._max = 5]) {
     _createPool();
-    _pool.messages.listen((e) => log.warning(e.message));
+    _pool.messages.listen((e) => _log.warning(e.message));
   }
 
   _createPool() => _pool = new Pool(_uri,
@@ -21,6 +21,6 @@ class Connection {
   Future start() => _pool.start();
 
   Future connect([String debugId]) {
-    return _pool.connect(debugName: debugId).catchError((e) => log.severe(e));
+    return _pool.connect(debugName: debugId).catchError((e) => _log.severe(e));
   }
 }
