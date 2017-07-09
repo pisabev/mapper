@@ -37,17 +37,17 @@ class EntityNotifier<E> {
     onDelete = _contr_delete.stream;
   }
 
-  _addUpdate(E o) {
+  void _addUpdate(E o) {
     _contr_update.add(o);
     _contr_change.add(o);
   }
 
-  _addCreate(E o) {
+  void _addCreate(E o) {
     _contr_create.add(o);
     _contr_change.add(o);
   }
 
-  _addDelete(E o) {
+  void _addDelete(E o) {
     _contr_delete.add(o);
     _contr_change.add(o);
   }
@@ -68,7 +68,7 @@ class Database<A extends Application> {
 
   Database._();
 
-  add(LoadFunction f, [String namespace = _base]) {
+  void add(LoadFunction f, [String namespace = _base]) {
     _managers[namespace] = f;
   }
 

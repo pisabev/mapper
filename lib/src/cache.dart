@@ -1,12 +1,11 @@
 part of mapper_server;
 
 class Cache {
-  Map<String, Future<Entity>> _cache = new Map();
+  final Map<String, Future<Entity>> _cache = new Map<String, Future<Entity>>();
 
   add(String key, Future<Entity> object) => _cache[key] = object;
 
-  Future<Entity> get(String key) =>
-      (_cache.containsKey(key)) ? _cache[key] : null;
+  Future<Entity> get(String key) => _cache.containsKey(key) ? _cache[key] : null;
 
-  toString() => _cache.toString();
+  String toString() => _cache.toString();
 }

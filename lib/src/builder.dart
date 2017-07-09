@@ -19,18 +19,14 @@ class Expression {
       _parts.add(part);
   }
 
-  count() {
-    return _parts.length;
-  }
+  int count() => _parts.length;
 
-  toString() {
+  String toString() {
     if (_parts.length == 1) return _parts[0].toString();
     return '(' + _parts.join(') ' + _type + ' (') + ')';
   }
 
-  getType() {
-    return _type;
-  }
+  String getType() => _type;
 }
 
 class TSquery {
