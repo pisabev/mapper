@@ -165,7 +165,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return q.stream((Stream stream) => stream.drain(true));
   }
 
-  _notifyUpdate(E obj) {
+  void _notifyUpdate(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
         notifier._addUpdate(obj);
@@ -174,7 +174,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     }
   }
 
-  _notifyCreate(E obj) {
+  void _notifyCreate(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
         notifier._addCreate(obj);
@@ -183,7 +183,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     }
   }
 
-  _notifyDelete(E obj) {
+  void _notifyDelete(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
         notifier._addDelete(obj);
@@ -260,7 +260,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return new CollectionBuilder<E, C, A>(q, this);
   }
 
-  _escape(String string) => '"$string"';
+  String _escape(String string) => '"$string"';
 
   E createObject([dynamic data]) {
     E object = entity()..manager = manager;

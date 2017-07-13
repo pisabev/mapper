@@ -9,7 +9,7 @@ class Application {
 
   set data(Map data) => _data = data;
 
-  noSuchMethod(Invocation invocation) {
+  void noSuchMethod(Invocation invocation) {
     var key = invocation.memberName;
     if (invocation.isGetter)
       return (_cache.containsKey(key))

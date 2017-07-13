@@ -4,7 +4,7 @@ import 'dart:collection';
 
 part 'src/collection.dart';
 
-setDateTime(dynamic date) {
+DateTime setDateTime(dynamic date) {
   if (date != null) {
     if (date is DateTime)
       return date;
@@ -17,7 +17,7 @@ setDateTime(dynamic date) {
   return null;
 }
 
-setDouble(dynamic value) {
+double setDouble(dynamic value) {
   if (value != null) {
     if (value is int) return value.toDouble();
     if (value is double)

@@ -35,15 +35,17 @@ class Unit<A extends Application> {
     _on_delete = new List<Entity<A>>();
   }
 
-  addDirty(Entity<A> object) =>
-      (!_new.contains(object) && !_dirty.contains(object))
-          ? _dirty.add(object)
-          : null;
+  void addDirty(Entity<A> object) {
+    if (_new.contains(object) == false && _dirty.contains(object) == false) _dirty.add(object);
+  }
 
-  addNew(Entity<A> object) => (!_new.contains(object)) ? _new.add(object) : null;
+  void addNew(Entity<A> object) {
+    if (_new.contains(object) == false) _new.add(object);
+  }
 
-  addDelete(Entity<A> object) =>
-      (!_delete.contains(object)) ? _delete.add(object) : null;
+  void addDelete(Entity<A> object) {
+    if (_delete.contains(object) == false) _delete.add(object);
+  }
 
   Future _doUpdates() =>
       Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
