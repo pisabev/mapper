@@ -1,13 +1,13 @@
 part of mapper_server;
 
-class QueryException implements Exception {
+class PostgreSQLException implements Exception {
   PostgresqlException _e;
 
   String _q;
 
   Map _p;
 
-  QueryException(this._e, this._q, this._p);
+  PostgreSQLException(this._e, this._q, this._p);
 
   String get code => _e.serverMessage.code;
 
@@ -26,4 +26,16 @@ class ConstrainException implements Exception {
   String get severity => _e.serverMessage.severity;
 
   String toString() => _e.message.toString();
+}
+
+class RandomException implements Exception {
+  Exception _e;
+
+  String _q;
+
+  Map _p;
+
+  RandomException(this._e, this._q, this._p);
+
+  String toString() => _e.toString() + ':\n' + _q + ':\n' + _p.toString();
 }

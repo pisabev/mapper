@@ -88,12 +88,15 @@ class Builder<T> {
   Builder(this.connection);
 
   _error(e) {
-    if (e is PostgresqlException &&
-        e.serverMessage != null &&
-        (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
-      throw new ConstrainException(e);
-    else
-      throw new QueryException(e, getSQL(), _params);
+    if (e is PostgresqlException) {
+      if(e.serverMessage != null &&
+          (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
+        throw new ConstrainException(e);
+      else
+        throw new PostgreSQLException(e, getSQL(), _params);
+    } else {
+      throw new RandomException(e, getSQL(), _params);
+    }
   }
 
   Future execute() {
