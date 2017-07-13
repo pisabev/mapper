@@ -94,6 +94,8 @@ class Builder<T> {
         throw new ConstrainException(e);
       else
         throw new PostgreSQLException(e, getSQL(), _params);
+    } else if (e is Error) {
+      throw new Exception(e.toString() + ':\n' + getSQL() + ':\n' + _params.toString());
     } else {
       throw new RandomException(e, getSQL(), _params);
     }
