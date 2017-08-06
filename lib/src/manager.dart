@@ -34,9 +34,14 @@ class Manager<A extends Application> {
 
   builder() => new Builder(connection);
 
-  cacheAdd(String key, Future<Entity<A>> object) => _cache.add(key, object);
+  cacheAdd(String key, Entity<A> object, Map initData) =>
+      _cache.add(key, object, initData);
 
-  Future<Entity<A>> cacheGet(String key) => _cache.get(key);
+  cacheClean(String key) => _cache.delete(key);
+
+  Entity<A> cacheGet(String key) => _cache.get(key);
+
+  Map cacheGetInitData(String key) => _cache.getInitData(key);
 
   cache() => _cache.toString();
 

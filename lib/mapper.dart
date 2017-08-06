@@ -19,16 +19,26 @@ part 'src/exception.dart';
 
 final Logger _log = new Logger('Mapper');
 
-class EntityNotifier<E> {
-  StreamController<E> _contr_change = new StreamController.broadcast();
-  StreamController<E> _contr_update = new StreamController.broadcast();
-  StreamController<E> _contr_create = new StreamController.broadcast();
-  StreamController<E> _contr_delete = new StreamController.broadcast();
+class EntityContainer<E> {
+  final E entity;
+  final Map<String, dynamic> diff;
+  const EntityContainer(this.entity, this.diff);
+}
 
-  Stream<E> onChange;
-  Stream<E> onUpdate;
-  Stream<E> onCreate;
-  Stream<E> onDelete;
+class EntityNotifier<E> {
+  StreamController<EntityContainer<E>> _contr_change =
+      new StreamController.broadcast();
+  StreamController<EntityContainer<E>> _contr_update =
+      new StreamController.broadcast();
+  StreamController<EntityContainer<E>> _contr_create =
+      new StreamController.broadcast();
+  StreamController<EntityContainer<E>> _contr_delete =
+      new StreamController.broadcast();
+
+  Stream<EntityContainer<E>> onChange;
+  Stream<EntityContainer<E>> onUpdate;
+  Stream<EntityContainer<E>> onCreate;
+  Stream<EntityContainer<E>> onDelete;
 
   EntityNotifier() {
     onChange = _contr_change.stream;
@@ -37,17 +47,17 @@ class EntityNotifier<E> {
     onDelete = _contr_delete.stream;
   }
 
-  _addUpdate(E o) {
+  _addUpdate(EntityContainer<E> o) {
     _contr_update.add(o);
     _contr_change.add(o);
   }
 
-  _addCreate(E o) {
+  _addCreate(EntityContainer<E> o) {
     _contr_create.add(o);
     _contr_change.add(o);
   }
 
-  _addDelete(E o) {
+  _addDelete(EntityContainer<E> o) {
     _contr_delete.add(o);
     _contr_change.add(o);
   }

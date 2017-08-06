@@ -9,11 +9,11 @@ class Unit<A extends Application> {
 
   List<Entity> _delete;
 
-  List<Entity> _on_create;
+  List<EntityContainer> _on_create;
 
-  List<Entity> _on_update;
+  List<EntityContainer> _on_update;
 
-  List<Entity> _on_delete;
+  List<EntityContainer> _on_delete;
 
   bool _started = false;
 
@@ -30,9 +30,9 @@ class Unit<A extends Application> {
   }
 
   _resetNotifies() {
-    _on_create = new List<Entity<A>>();
-    _on_update = new List<Entity<A>>();
-    _on_delete = new List<Entity<A>>();
+    _on_create = new List<EntityContainer<Entity<A>>>();
+    _on_update = new List<EntityContainer<Entity<A>>>();
+    _on_delete = new List<EntityContainer<Entity<A>>>();
   }
 
   addDirty(Entity<A> object) =>
@@ -40,7 +40,8 @@ class Unit<A extends Application> {
           ? _dirty.add(object)
           : null;
 
-  addNew(Entity<A> object) => (!_new.contains(object)) ? _new.add(object) : null;
+  addNew(Entity<A> object) =>
+      (!_new.contains(object)) ? _new.add(object) : null;
 
   addDelete(Entity<A> object) =>
       (!_delete.contains(object)) ? _delete.add(object) : null;
@@ -54,23 +55,23 @@ class Unit<A extends Application> {
   Future _doDeletes() =>
       Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
 
-  _addNotifyUpdate(Entity<A> object) =>
+  _addNotifyUpdate(EntityContainer<Entity<A>> object) =>
       !_on_update.contains(object) ? _on_update.add(object) : null;
 
-  _addNotifyCreate(Entity<A> object) =>
+  _addNotifyCreate(EntityContainer<Entity<A>> object) =>
       !_on_create.contains(object) ? _on_create.add(object) : null;
 
-  _addNotifyDelete(Entity<A> object) =>
+  _addNotifyDelete(EntityContainer<Entity<A>> object) =>
       !_on_delete.contains(object) ? _on_delete.add(object) : null;
 
-  void _doUpdateNotifies() =>
-      _on_update.forEach((o) => _manager._mapper(o).notifier._addUpdate(o));
+  void _doUpdateNotifies() => _on_update
+      .forEach((o) => _manager._mapper(o.entity).notifier._addUpdate(o));
 
-  void _doCreateNotifies() =>
-      _on_create.forEach((o) => _manager._mapper(o).notifier._addCreate(o));
+  void _doCreateNotifies() => _on_create
+      .forEach((o) => _manager._mapper(o.entity).notifier._addCreate(o));
 
-  void _doDeleteNotifies() =>
-      _on_delete.forEach((o) => _manager._mapper(o).notifier._addDelete(o));
+  void _doDeleteNotifies() => _on_delete
+      .forEach((o) => _manager._mapper(o.entity).notifier._addDelete(o));
 
   Future _begin() => !_started
       ? _manager.connection.execute('BEGIN').then((_) => _started = true)
