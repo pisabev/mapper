@@ -6,12 +6,12 @@ class Cache {
 
   void add(String key, Entity object, Map initData) {
     _cache[key] = object;
-    _cache_init[key] = initData;
+    if (initData != null) _cache_init[key] = initData;
   }
 
   void delete(String key) {
     _cache[key] = null;
-    _cache_init[key] = null;
+    if (_cache_init.containsKey(key)) _cache_init[key] = null;
   }
 
   Entity get(String key) => (_cache.containsKey(key)) ? _cache[key] : null;
