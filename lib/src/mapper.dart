@@ -80,9 +80,8 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
   Future<E> insert(E object) {
     Map data = readObject(object);
     return _setUpdateData(insertBuilder(), data, true).execute().then((result) {
-      var d = result[0].toMap();
-      setObject(object, d);
-      _cacheAdd(_cacheKeyFromData(data), object, notifier != null? d : null);
+      setObject(object, result[0].toMap());
+      _cacheAdd(_cacheKeyFromData(data), object, notifier != null? readObject(object) : null);
       _notifyCreate(object);
       return object;
     });
@@ -173,7 +172,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
         var oldValue = oldData[k];
         if (oldValue != v) diffm[k] = oldValue;
       });
-      var cont = new EntityContainer(obj, diffm);
+      var cont = new EntityContainer(obj, diffm.isEmpty? null : diffm);
       if (!manager.inTransaction)
         notifier._addUpdate(cont);
       else
@@ -219,7 +218,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     E object = _cacheGet(key);
     if (object != null) return object;
     object = createObject(data);
-    _cacheAdd(key, object, notifier != null? data : null);
+    _cacheAdd(key, object, notifier != null? readObject(object) : null);
     return object;
   }
 
