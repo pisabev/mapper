@@ -172,7 +172,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
         var oldValue = oldData[k];
         if (oldValue != v) diffm[k] = oldValue;
       });
-      var cont = new EntityContainer(obj, diffm.isEmpty? null : diffm);
+      var cont = new EntityContainer(obj, diffm);
       if (!manager.inTransaction)
         notifier._addUpdate(cont);
       else

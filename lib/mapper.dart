@@ -23,6 +23,8 @@ class EntityContainer<E> {
   final E entity;
   final Map<String, dynamic> diff;
   const EntityContainer(this.entity, this.diff);
+
+  bool isUpdated() => diff != null;
 }
 
 class EntityNotifier<E> {
