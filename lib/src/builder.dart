@@ -85,13 +85,14 @@ class Builder<T> {
 
   _error(e) {
     if (e is PostgresqlException) {
-      if(e.serverMessage != null &&
+      if (e.serverMessage != null &&
           (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
         throw new ConstrainException(e);
       else
         throw new PostgreSQLException(e, getSQL(), _params);
     } else if (e is Error) {
-      throw new Exception(e.toString() + ':\n' + getSQL() + ':\n' + _params.toString());
+      throw new Exception(
+          e.toString() + ':\n' + getSQL() + ':\n' + _params.toString());
     } else {
       throw new RandomException(e, getSQL(), _params);
     }

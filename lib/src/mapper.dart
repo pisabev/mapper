@@ -6,9 +6,11 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     A extends Application> {
   Manager<A> manager;
 
-  @virtual String table;
+  @virtual
+  String table;
 
-  @virtual dynamic pkey;
+  @virtual
+  dynamic pkey;
 
   static Map<String, Object> _ref = new Map();
 
@@ -27,24 +29,22 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
   Future<E> find(dynamic id, [no_cache = false]) {
     if (id is List) return findComposite(id);
     String cache_key = id.toString();
-    Future<E> f = _cacheGet(cache_key);
-    if (f != null) {
-      return f;
+    E e = _cacheGet(cache_key);
+    if (e != null) {
+      return new Future.value(e);
     } else {
-      return _cacheAdd(
-          cache_key,
-          selectBuilder()
-              .where(_escape(pkey) + ' = @pkey')
-              .setParameter('pkey', id)
-              .stream(_streamToEntityFind));
+      return selectBuilder()
+          .where(_escape(pkey) + ' = @pkey')
+          .setParameter('pkey', id)
+          .stream(_streamToEntity);
     }
   }
 
   Future<E> findComposite(List<dynamic> ids, [no_cache = false]) {
     String cache_key = ids.join(_SEP);
-    Future<E> f = _cacheGet(cache_key);
-    if (f != null) {
-      return f;
+    E e = _cacheGet(cache_key);
+    if (e != null) {
+      return new Future.value(e);
     } else {
       Builder q = selectBuilder();
       int i = 0;
@@ -53,7 +53,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
         q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
         i++;
       });
-      return _cacheAdd(cache_key, q.stream(_streamToEntityFind));
+      return q.stream(_streamToEntity);
     }
   }
 
@@ -80,12 +80,11 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
   Future<E> insert(E object) {
     Map data = readObject(object);
     return _setUpdateData(insertBuilder(), data, true).execute().then((result) {
-      setObject(object, result[0].toMap());
-      return _cacheAdd(_cacheKeyFromData(data), new Future.value(object))
-          .then((E obj) {
-        _notifyCreate(obj);
-        return obj;
-      });
+      var d = result[0].toMap();
+      setObject(object, d);
+      _cacheAdd(_cacheKeyFromData(data), object, notifier != null? d : null);
+      _notifyCreate(object);
+      return object;
     });
   }
 
@@ -98,7 +97,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     else
       q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
     return q.stream((stream) => stream.drain(object)).then((E obj) {
-      _notifyUpdate(obj);
+      _notifyUpdate(obj, data);
       return obj;
     });
   }
@@ -144,7 +143,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
       findComposite(ids).then((E object) => _deleteComposite(ids, object));
 
   Future<bool> _deleteById(dynamic id, E object) async {
-    _cacheAdd(id.toString(), new Future.value(null));
+    _cacheClean(id.toString());
     _notifyDelete(object);
     return deleteBuilder()
         .where(_escape(pkey) + ' = @' + pkey)
@@ -154,7 +153,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
 
   Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
     _notifyDelete(object);
-    _cacheAdd(ids.join(_SEP), new Future.value(null));
+    _cacheClean(ids.join(_SEP));
     Builder q = deleteBuilder();
     int i = 0;
     ids.forEach((k) {
@@ -165,30 +164,40 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return q.stream((Stream stream) => stream.drain(true));
   }
 
-  void _notifyUpdate(E obj) {
+  _notifyUpdate(E obj, Map newData) {
     if (notifier != null) {
+      var key = _cacheKeyFromData(newData);
+      var oldData = _cacheGetInitData(key);
+      var diffm = {};
+      newData.forEach((k, v) {
+        var oldValue = oldData[k];
+        if (oldValue != v) diffm[k] = oldValue;
+      });
+      var cont = new EntityContainer(obj, diffm);
       if (!manager.inTransaction)
-        notifier._addUpdate(obj);
+        notifier._addUpdate(cont);
       else
-        manager._unit._addNotifyUpdate(obj);
+        manager._unit._addNotifyUpdate(cont);
     }
   }
 
   void _notifyCreate(E obj) {
     if (notifier != null) {
+      var cont = new EntityContainer(obj, null);
       if (!manager.inTransaction)
-        notifier._addCreate(obj);
+        notifier._addCreate(cont);
       else
-        manager._unit._addNotifyCreate(obj);
+        manager._unit._addNotifyCreate(cont);
     }
   }
 
   void _notifyDelete(E obj) {
     if (notifier != null) {
+      var cont = new EntityContainer(obj, null);
       if (!manager.inTransaction)
-        notifier._addDelete(obj);
+        notifier._addDelete(cont);
       else
-        manager._unit._addNotifyDelete(obj);
+        manager._unit._addNotifyDelete(cont);
     }
   }
 
@@ -204,32 +213,25 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return builder;
   }
 
-  Future<E> _onStreamRow(row) {
+  E _onStreamRow(row) {
     Map data = row.toMap();
     String key = _cacheKeyFromData(data);
-    Future<E> f = _cacheGet(key);
-    return (f == null)
-        ? _cacheAdd(key, new Future.value(createObject(data)))
-        : f;
-  }
-
-  Future<E> _streamToEntityFind(Stream stream) {
-    return stream
-        .map((row) => createObject(row.toMap()))
-        .toList()
-        .then((list) => (list.length > 0) ? list[0] : null);
+    E object = _cacheGet(key);
+    if (object != null) return object;
+    object = createObject(data);
+    _cacheAdd(key, object, notifier != null? data : null);
+    return object;
   }
 
   Future<E> _streamToEntity(Stream stream) {
     return stream
         .map(_onStreamRow)
         .toList()
-        .then(Future.wait)
         .then((list) => (list.length > 0) ? list[0] : null);
   }
 
   Future<C> _streamToCollection(Stream stream) {
-    return stream.map(_onStreamRow).toList().then(Future.wait).then((list) {
+    return stream.map(_onStreamRow).toList().then((list) {
       C col = createCollection();
       col.addAll(list);
       return col;
@@ -241,19 +243,22 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     return object;
   }
 
-  String _cacheKeyFromData(Map data) {
-    return (pkey is List)
-        ? pkey.map((k) => data[k]).join(_SEP)
-        : data[pkey].toString();
+  String _cacheKeyFromData(Map data) => (pkey is List)
+      ? pkey.map((k) => data[k]).join(_SEP)
+      : data[pkey].toString();
+
+  void _cacheAdd(String k, E e, Map initData) {
+    manager.cacheAdd(runtimeType.toString() + k, e, initData);
   }
 
-  Future<E> _cacheAdd(String k, Future<E> f) {
-    manager.cacheAdd(this.runtimeType.toString() + k, f);
-    return f;
+  void _cacheClean(String k) {
+    manager.cacheClean(runtimeType.toString() + k);
   }
 
-  Future<E> _cacheGet(String k) =>
-      manager.cacheGet(this.runtimeType.toString() + k);
+  E _cacheGet(String k) => manager.cacheGet(runtimeType.toString() + k);
+
+  Map _cacheGetInitData(String k) =>
+      manager.cacheGetInitData(runtimeType.toString() + k);
 
   CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
     if (q == null) q = selectBuilder();
