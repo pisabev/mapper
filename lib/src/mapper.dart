@@ -81,7 +81,8 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     Map data = readObject(object);
     return _setUpdateData(insertBuilder(), data, true).execute().then((result) {
       setObject(object, result[0].toMap());
-      _cacheAdd(_cacheKeyFromData(data), object, notifier != null? readObject(object) : null);
+      _cacheAdd(_cacheKeyFromData(data), object,
+          notifier != null ? readObject(object) : null);
       _notifyCreate(object);
       return object;
     });
@@ -172,7 +173,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
         var oldValue = oldData[k];
         if (oldValue != v) diffm[k] = oldValue;
       });
-      if(diffm.isEmpty) return;
+      if (diffm.isEmpty) return;
       var cont = new EntityContainer(obj, diffm);
       if (!manager.inTransaction)
         notifier._addUpdate(cont);
@@ -219,7 +220,7 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     E object = _cacheGet(key);
     if (object != null) return object;
     object = createObject(data);
-    _cacheAdd(key, object, notifier != null? readObject(object) : null);
+    _cacheAdd(key, object, notifier != null ? readObject(object) : null);
     return object;
   }
 
@@ -284,5 +285,20 @@ abstract class Mapper<E extends Entity<A>, C extends Collection<E>,
     m.addAll(data);
     setObject(object, m);
     return object;
+  }
+
+  Future<E> prepare(dynamic vpkey, Map data) async {
+    if (vpkey != null) {
+      E object =
+          (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
+      data[pkey] = vpkey;
+      mergeData(object, data);
+      manager.addDirty(object);
+      return object;
+    } else {
+      E object = createObject(data);
+      manager.addNew(object);
+      return object;
+    }
   }
 }

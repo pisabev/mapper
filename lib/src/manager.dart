@@ -45,11 +45,11 @@ class Manager<A extends Application> {
 
   cache() => _cache.toString();
 
-  addDirty(Entity object) => _unit.addDirty(object);
+  addDirty(Entity<A> object) => _unit.addDirty(object);
 
-  addNew(Entity object) => _unit.addNew(object);
+  addNew(Entity<A> object) => _unit.addNew(object);
 
-  addDelete(Entity object) => _unit.addDelete(object);
+  addDelete(Entity<A> object) => _unit.addDelete(object);
 
   Future persist() => _unit.persist();
 
@@ -67,5 +67,5 @@ class Manager<A extends Application> {
     return connection.close();
   }
 
-  Mapper _mapper(Entity object) => Mapper._ref[object.runtimeType.toString()];
+  Mapper _mapper(Entity<A> object) => Mapper._ref[object.runtimeType.toString()];
 }
