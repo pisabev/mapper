@@ -459,7 +459,7 @@ class Builder<T> {
   }
 }
 
-class CollectionBuilder<E extends Entity<A>, C extends Collection<E>,
+class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   static int _unique = 0;
 
