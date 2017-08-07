@@ -9,13 +9,13 @@ class Application {
 
   set data(Map data) => _data = data;
 
-  void noSuchMethod(Invocation invocation) {
+  Mapper noSuchMethod(Invocation invocation) {
     var key = invocation.memberName;
     if (invocation.isGetter)
       return (_cache.containsKey(key))
           ? _cache[key]
           : _cache[key] = _data[key]()
         ..manager = m;
-    super.noSuchMethod(invocation);
+    return super.noSuchMethod(invocation);
   }
 }
