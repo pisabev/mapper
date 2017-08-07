@@ -3,7 +3,7 @@ part of mapper_server;
 class Manager<A extends Application> {
   A app;
 
-  Unit<A> _unit;
+  Unit<Application> _unit;
 
   Cache _cache;
 
@@ -34,22 +34,22 @@ class Manager<A extends Application> {
 
   builder() => new Builder(connection);
 
-  cacheAdd(String key, Entity<A> object, Map initData) =>
+  cacheAdd(String key, Entity<Application> object, Map initData) =>
       _cache.add(key, object, initData);
 
   cacheClean(String key) => _cache.delete(key);
 
-  Entity<A> cacheGet(String key) => _cache.get(key);
+  Entity<Application> cacheGet(String key) => _cache.get(key);
 
   Map cacheGetInitData(String key) => _cache.getInitData(key);
 
   cache() => _cache.toString();
 
-  addDirty(Entity<A> object) => _unit.addDirty(object);
+  addDirty(Entity<Application> object) => _unit.addDirty(object);
 
-  addNew(Entity<A> object) => _unit.addNew(object);
+  addNew(Entity<Application> object) => _unit.addNew(object);
 
-  addDelete(Entity<A> object) => _unit.addDelete(object);
+  addDelete(Entity<Application> object) => _unit.addDelete(object);
 
   Future persist() => _unit.persist();
 
@@ -67,5 +67,5 @@ class Manager<A extends Application> {
     return connection.close();
   }
 
-  Mapper _mapper(Entity<A> object) => Mapper._ref[object.runtimeType.toString()];
+  Mapper _mapper(Entity<Application> object) => Mapper._ref[object.runtimeType.toString()];
 }
