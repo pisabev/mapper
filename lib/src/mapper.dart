@@ -170,10 +170,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       var key = _cacheKeyFromData(newData);
       var oldData = _cacheGetInitData(key);
       var diffm = {};
-      newData.forEach((k, v) {
-        var oldValue = oldData[k];
-        if (oldValue != v) diffm[k] = oldValue;
-      });
+      if(oldData != null) {
+        newData.forEach((k, v) {
+          var oldValue = oldData[k];
+          if (oldValue != v) diffm[k] = oldValue;
+        });
+      }
       if (diffm.isEmpty) return;
       var cont = new EntityContainer(obj, diffm);
       if (!manager.inTransaction)
