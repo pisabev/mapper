@@ -81,8 +81,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     Map data = readObject(object);
     return _setUpdateData(insertBuilder(), data, true).execute().then((result) {
       setObject(object, result[0].toMap());
-      _cacheAdd(_cacheKeyFromData(data), object,
-          notifier != null ? readObject(object) : null);
+      var d = readObject(object);
+      _cacheAdd(_cacheKeyFromData(d), object,
+          notifier != null ? d : null);
       _notifyCreate(object);
       return object;
     });
