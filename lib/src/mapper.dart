@@ -180,32 +180,21 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   void _notifyUpdate(E obj) {
-    if (notifier != null) {
-      if (!manager.inTransaction) {
-        var diffm = _readDiff(obj);
-        if (diffm.isNotEmpty)
-          notifier._addUpdate(new EntityContainer(obj, diffm));
-      } else
-        manager._unit._addNotifyUpdate(obj);
+    if (notifier != null && !manager.inTransaction) {
+      var diffm = _readDiff(obj);
+      if (diffm.isNotEmpty)
+        notifier._addUpdate(new EntityContainer(obj, diffm));
     }
   }
 
   void _notifyCreate(E obj) {
-    if (notifier != null) {
-      if (!manager.inTransaction)
-        notifier._addCreate(new EntityContainer(obj, null));
-      else
-        manager._unit._addNotifyCreate(obj);
-    }
+    if (notifier != null && !manager.inTransaction)
+      notifier._addCreate(new EntityContainer(obj, null));
   }
 
   void _notifyDelete(E obj) {
-    if (notifier != null) {
-      if (!manager.inTransaction)
-        notifier._addDelete(new EntityContainer(obj, null));
-      else
-        manager._unit._addNotifyDelete(obj);
-    }
+    if (notifier != null && !manager.inTransaction)
+      notifier._addDelete(new EntityContainer(obj, null));
   }
 
   Builder _setUpdateData(Builder builder, data, [bool insert = false]) {

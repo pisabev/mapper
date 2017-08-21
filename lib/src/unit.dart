@@ -9,30 +9,17 @@ class Unit<A extends Application> {
 
   List<Entity> _delete;
 
-  List<Entity> _on_create;
-
-  List<Entity> _on_update;
-
-  List<Entity> _on_delete;
-
   bool _started = false;
 
   Unit(Manager manager) {
     _manager = manager;
     _resetEntities();
-    _resetNotifies();
   }
 
   _resetEntities() {
     _dirty = new List<Entity<A>>();
     _new = new List<Entity<A>>();
     _delete = new List<Entity<A>>();
-  }
-
-  _resetNotifies() {
-    _on_create = new List<Entity<A>>();
-    _on_update = new List<Entity<A>>();
-    _on_delete = new List<Entity<A>>();
   }
 
   void addDirty(Entity<A> object) =>
@@ -47,37 +34,31 @@ class Unit<A extends Application> {
       (!_delete.contains(object)) ? _delete.add(object) : null;
 
   Future _doUpdates() =>
-      Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
+      Future.wait(_dirty.map((o) async {
+        var m = _manager._mapper(o);
+        await m.update(o);
+        if(m.notifier != null) {
+          var diffm = m._readDiff(o);
+          if (diffm.isNotEmpty)
+            m.notifier._addUpdate(new EntityContainer(o, diffm));
+        }
+      }));
 
   Future _doInserts() =>
-      Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
+      Future.wait(_new.map((o) async {
+        var m = _manager._mapper(o);
+        await m.insert(o);
+        if(m.notifier != null)
+          m.notifier._addCreate(new EntityContainer(o, null));
+      }));
 
   Future _doDeletes() =>
-      Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
-
-  void _addNotifyUpdate(Entity<A> object) =>
-      (!_on_create.contains(object) && !_on_update.contains(object))
-          ? _on_update.add(object)
-          : null;
-
-  void _addNotifyCreate(Entity<A> object) =>
-      !_on_create.contains(object) ? _on_create.add(object) : null;
-
-  void _addNotifyDelete(Entity<A> object) =>
-      !_on_delete.contains(object) ? _on_delete.add(object) : null;
-
-  void _doUpdateNotifies() => _on_update.forEach((o) {
+      Future.wait(_delete.map((o) async {
         var m = _manager._mapper(o);
-        var diffm = m._readDiff(o);
-        if (diffm.isNotEmpty)
-          m.notifier._addUpdate(new EntityContainer(o, diffm));
-      });
-
-  void _doCreateNotifies() => _on_create.forEach((o) =>
-      _manager._mapper(o).notifier._addCreate(new EntityContainer(o, null)));
-
-  void _doDeleteNotifies() => _on_delete.forEach((o) =>
-      _manager._mapper(o).notifier._addDelete(new EntityContainer(o, null)));
+        await m.delete(o);
+        if(m.notifier != null)
+          m.notifier._addDelete(new EntityContainer(o, null));
+      }));
 
   Future _begin() => !_started
       ? _manager.connection.execute('BEGIN').then((_) => _started = true)
@@ -101,10 +82,6 @@ class Unit<A extends Application> {
   Future commit() {
     return persist()
         .then((_) => _commit())
-        .then((_) => _doDeleteNotifies())
-        .then((_) => _doUpdateNotifies())
-        .then((_) => _doCreateNotifies())
-        .then((_) => _resetNotifies())
         .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
   }
 }
