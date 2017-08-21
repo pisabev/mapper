@@ -98,7 +98,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     else
       q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
     return q.stream((stream) => stream.drain(object)).then((E obj) {
-      _notifyUpdate(obj, data);
+      _notifyUpdate(obj);
       return obj;
     });
   }
@@ -165,43 +165,46 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return q.stream((Stream stream) => stream.drain(true));
   }
 
-  _notifyUpdate(E obj, Map newData) {
+  Map _readDiff(E obj) {
+    var newData = readObject(obj);
+    var key = _cacheKeyFromData(newData);
+    var oldData = _cacheGetInitData(key);
+    var diffm = {};
+    if(oldData != null) {
+      newData.forEach((k, v) {
+        var oldValue = oldData[k];
+        if (oldValue != v) diffm[k] = oldValue;
+      });
+    }
+    return diffm;
+  }
+
+  void _notifyUpdate(E obj) {
     if (notifier != null) {
-      var key = _cacheKeyFromData(newData);
-      var oldData = _cacheGetInitData(key);
-      var diffm = {};
-      if(oldData != null) {
-        newData.forEach((k, v) {
-          var oldValue = oldData[k];
-          if (oldValue != v) diffm[k] = oldValue;
-        });
-      }
-      if (diffm.isEmpty) return;
-      var cont = new EntityContainer(obj, diffm);
-      if (!manager.inTransaction)
-        notifier._addUpdate(cont);
-      else
-        manager._unit._addNotifyUpdate(cont);
+      if (!manager.inTransaction) {
+        var diffm = _readDiff(obj);
+        if (diffm.isNotEmpty)
+          notifier._addUpdate(new EntityContainer(obj, diffm));
+      } else
+        manager._unit._addNotifyUpdate(obj);
     }
   }
 
   void _notifyCreate(E obj) {
     if (notifier != null) {
-      var cont = new EntityContainer(obj, null);
       if (!manager.inTransaction)
-        notifier._addCreate(cont);
+        notifier._addCreate(new EntityContainer(obj, null));
       else
-        manager._unit._addNotifyCreate(cont);
+        manager._unit._addNotifyCreate(obj);
     }
   }
 
   void _notifyDelete(E obj) {
     if (notifier != null) {
-      var cont = new EntityContainer(obj, null);
       if (!manager.inTransaction)
-        notifier._addDelete(cont);
+        notifier._addDelete(new EntityContainer(obj, null));
       else
-        manager._unit._addNotifyDelete(cont);
+        manager._unit._addNotifyDelete(obj);
     }
   }
 
