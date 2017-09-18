@@ -551,7 +551,22 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     String ph = _cleanPlaceHolder(key);
     switch (way) {
       case 'eq':
-        query.andWhere(key + ' = @' + ph).setParameter(ph, value);
+        if (value is List) {
+          var q = value.map((v) {
+            if (v == 'null') {
+              return key + ' IS NULL';
+            } else {
+              ph = _cleanPlaceHolder(key);
+              query.setParameter(ph, v);
+              return key + ' = @' + ph;
+            }
+          });
+          query.andWhere(q.join(' OR '));
+        } else if(value == 'null') {
+          query.andWhere(key + ' IS NULL');
+        } else {
+          query.andWhere(key + ' = @' + ph).setParameter(ph, value);
+        }
         break;
       case 'gt':
         query.andWhere(key + ' > @' + ph).setParameter(ph, value);
