@@ -467,11 +467,11 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   Mapper<E, C, A> mapper;
 
-  Map filter = new Map();
+  Map<String, dynamic> filter = new Map();
 
-  Map filter_way = new Map();
+  Map<String, List<String>> filter_way = new Map();
 
-  Map filter_map = new Map();
+  Map<String, String> filter_map = new Map();
 
   String order_field = '';
 
@@ -554,58 +554,63 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
         if (value is List) {
           var q = value.map((v) {
             if (v == 'null') {
-              return key + ' IS NULL';
+              return '$key IS NULL';
             } else {
               ph = _cleanPlaceHolder(key);
               query.setParameter(ph, v);
-              return key + ' = @' + ph;
+              return '$key = @$ph';
             }
           });
           query.andWhere(q.join(' OR '));
         } else if(value == 'null') {
-          query.andWhere(key + ' IS NULL');
+          query.andWhere('$key IS NULL');
         } else {
-          query.andWhere(key + ' = @' + ph).setParameter(ph, value);
+          query.andWhere('$key = @$ph').setParameter(ph, value);
         }
         break;
       case 'gt':
-        query.andWhere(key + ' > @' + ph).setParameter(ph, value);
+        query.andWhere('$key > @$ph').setParameter(ph, value);
         break;
       case 'lt':
-        query.andWhere(key + ' < @' + ph).setParameter(ph, value);
+        query.andWhere('$key < @$ph').setParameter(ph, value);
         break;
       case 'gte':
-        query.andWhere(key + ' >= @' + ph).setParameter(ph, value);
+        query.andWhere('$key >= @$ph').setParameter(ph, value);
         break;
       case 'lte':
-        query.andWhere(key + ' <= @' + ph).setParameter(ph, value);
+        query.andWhere('$key <= @$ph').setParameter(ph, value);
         break;
       case 'like':
         query
-            .andWhere('CAST($key AS text) ILIKE @' + ph)
+            .andWhere('CAST($key AS text) ILIKE @$ph')
             .setParameter(ph, '%$value%');
         break;
       case 'rlike':
         query
-            .andWhere('CAST($key AS text) ILIKE @' + ph)
+            .andWhere('CAST($key AS text) ILIKE @$ph')
             .setParameter(ph, '%$value');
         break;
       case 'llike':
         query
-            .andWhere('CAST($key AS text) ILIKE @' + ph)
+            .andWhere('CAST($key AS text) ILIKE @$ph')
             .setParameter(ph, '$value%');
+        break;
+      case 'tsquery':
+        query
+            .andWhere('to_tsvector($key) @@@@ to_tsquery(@$ph)')
+            .setParameter(ph, new TSquery(value).toString());
         break;
       case 'date':
         if (value is List) {
           if (value[0] != null) {
             DateTime from = DateTime.parse(value[0]);
             query
-                .andWhere(key + ' >= @date_from')
+                .andWhere('$key >= @date_from')
                 .setParameter('date_from', from);
           }
           if (value[1] != null) {
             DateTime to = DateTime.parse(value[1]);
-            query.andWhere(key + ' <= @date_to').setParameter('date_to', to);
+            query.andWhere('$key <= @date_to').setParameter('date_to', to);
           }
         }
         break;
