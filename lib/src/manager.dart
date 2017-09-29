@@ -67,5 +67,6 @@ class Manager<A extends Application> {
     return connection.close();
   }
 
-  Mapper _mapper(Entity<Application> object) => Mapper._ref[object.runtimeType.toString()];
+  Mapper _mapper(Entity<Application> object) =>
+      Mapper._ref[object.runtimeType.toString()];
 }

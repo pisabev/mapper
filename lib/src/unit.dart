@@ -33,30 +33,27 @@ class Unit<A extends Application> {
   void addDelete(Entity<A> object) =>
       (!_delete.contains(object)) ? _delete.add(object) : null;
 
-  Future _doUpdates() =>
-      Future.wait(_dirty.map((o) async {
+  Future _doUpdates() => Future.wait(_dirty.map((o) async {
         var m = _manager._mapper(o);
         await m.update(o);
-        if(m.notifier != null) {
+        if (m.notifier != null) {
           var diffm = m._readDiff(o);
           if (diffm.isNotEmpty)
             m.notifier._addUpdate(new EntityContainer(o, diffm));
         }
       }));
 
-  Future _doInserts() =>
-      Future.wait(_new.map((o) async {
+  Future _doInserts() => Future.wait(_new.map((o) async {
         var m = _manager._mapper(o);
         await m.insert(o);
-        if(m.notifier != null)
+        if (m.notifier != null)
           m.notifier._addCreate(new EntityContainer(o, null));
       }));
 
-  Future _doDeletes() =>
-      Future.wait(_delete.map((o) async {
+  Future _doDeletes() => Future.wait(_delete.map((o) async {
         var m = _manager._mapper(o);
         await m.delete(o);
-        if(m.notifier != null)
+        if (m.notifier != null)
           m.notifier._addDelete(new EntityContainer(o, null));
       }));
 
