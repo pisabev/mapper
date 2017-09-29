@@ -562,7 +562,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
             }
           });
           query.andWhere(q.join(' OR '));
-        } else if(value == 'null') {
+        } else if (value == 'null') {
           query.andWhere('$key IS NULL');
         } else {
           query.andWhere('$key = @$ph').setParameter(ph, value);

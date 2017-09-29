@@ -82,8 +82,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return _setUpdateData(insertBuilder(), data, true).execute().then((result) {
       setObject(object, result[0].toMap());
       var d = readObject(object);
-      _cacheAdd(_cacheKeyFromData(d), object,
-          notifier != null ? d : null);
+      _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
       _notifyCreate(object);
       return object;
     });
@@ -170,7 +169,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     var key = _cacheKeyFromData(newData);
     var oldData = _cacheGetInitData(key);
     var diffm = {};
-    if(oldData != null) {
+    if (oldData != null) {
       newData.forEach((k, v) {
         var oldValue = oldData[k];
         if (oldValue != v) diffm[k] = oldValue;
