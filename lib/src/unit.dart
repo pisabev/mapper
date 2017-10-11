@@ -85,11 +85,11 @@ class Unit<A extends Application> {
           _addNotifyDelete(o, () => m.notifier._addDelete(new EntityContainer(o, null)));
       }));
 
-  void _doNotifyUpdates() {}
+  void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
 
-  void _doNotifyInserts() {}
+  void _doNotifyInserts() => _notifyInsert.forEach((k, v) => v());
 
-  void _doNotifyDeletes() {}
+  void _doNotifyDeletes() => _notifyDelete.forEach((k, v) => v());
 
   Future _begin() => !_started
       ? _manager.connection.execute('BEGIN').then((_) => _started = true)
