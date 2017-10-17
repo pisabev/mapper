@@ -61,29 +61,11 @@ class Unit<A extends Application> {
     if(_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
 
-  Future _doUpdates() => Future.wait(_dirty.map((o) async {
-        var m = _manager._mapper(o);
-        await m.update(o);
-        if (m.notifier != null) {
-          var diffm = m._readDiff(o);
-          if (diffm.isNotEmpty)
-            _addNotifyUpdate(o, () => m.notifier._addUpdate(new EntityContainer(o, diffm)));
-        }
-      }));
+  Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
 
-  Future _doInserts() => Future.wait(_new.map((o) async {
-        var m = _manager._mapper(o);
-        await m.insert(o);
-        if (m.notifier != null)
-          _addNotifyInsert(o, () => m.notifier._addCreate(new EntityContainer(o, null)));
-      }));
+  Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
 
-  Future _doDeletes() => Future.wait(_delete.map((o) async {
-        var m = _manager._mapper(o);
-        await m.delete(o);
-        if (m.notifier != null)
-          _addNotifyDelete(o, () => m.notifier._addDelete(new EntityContainer(o, null)));
-      }));
+  Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
 
   void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
 

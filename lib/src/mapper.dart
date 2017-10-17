@@ -179,21 +179,33 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   void _notifyUpdate(E obj) {
-    if (notifier != null && !manager.inTransaction) {
+    if (notifier != null) {
       var diffm = _readDiff(obj);
-      if (diffm.isNotEmpty)
-        notifier._addUpdate(new EntityContainer(obj, diffm));
+      if (diffm.isNotEmpty) {
+        if(!manager.inTransaction)
+          notifier._addUpdate(new EntityContainer(obj, diffm));
+        else
+          manager._unit._addNotifyUpdate(obj, () => notifier._addUpdate(new EntityContainer(obj, diffm)));
+      }
     }
   }
 
   void _notifyCreate(E obj) {
-    if (notifier != null && !manager.inTransaction)
-      notifier._addCreate(new EntityContainer(obj, null));
+    if (notifier != null) {
+      if(!manager.inTransaction)
+        notifier._addCreate(new EntityContainer(obj, null));
+      else
+        manager._unit._addNotifyInsert(obj, () => notifier._addCreate(new EntityContainer(obj, null)));
+    }
   }
 
   void _notifyDelete(E obj) {
-    if (notifier != null && !manager.inTransaction)
-      notifier._addDelete(new EntityContainer(obj, null));
+    if (notifier != null) {
+      if(!manager.inTransaction)
+        notifier._addDelete(new EntityContainer(obj, null));
+      else
+        manager._unit._addNotifyDelete(obj, () => notifier._addDelete(new EntityContainer(obj, null)));
+    }
   }
 
   Builder _setUpdateData(Builder builder, data, [bool insert = false]) {
