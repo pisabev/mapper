@@ -87,11 +87,13 @@ class Builder<T> {
     if (e is PostgresqlException) {
       if (e.serverMessage != null &&
           (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
-        throw new ConstrainException(e.toString(), getSQL(), _params);
+        throw new PostgreConstraintException(
+            e.toString(), getSQL(), _params.toString(), e.serverMessage);
       else
-        throw new PostgreSQLException(e.toString(), getSQL(), _params);
+        throw new PostgreQueryException(
+            e.toString(), getSQL(), _params.toString(), e.serverMessage);
     } else {
-      throw new MapperException(e.toString(), getSQL(), _params);
+      throw new MapperException(e.toString(), getSQL(), _params.toString());
     }
   }
 
