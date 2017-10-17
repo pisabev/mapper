@@ -11,7 +11,9 @@ class MapperException implements Exception {
 
   MapperException(this.message, this.query, this.params, [this.serverMessage]);
 
-  String toString() => message + ':\n' + query + ':\n' + params;
+  String get details => query + ':\n' + params;
+
+  String toString() => message;
 }
 
 class PostgreQueryException extends MapperException {
