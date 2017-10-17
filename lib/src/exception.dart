@@ -1,41 +1,25 @@
 part of mapper_server;
 
-class PostgreSQLException implements Exception {
-  PostgresqlException _e;
+class MapperException implements Exception {
+  String _m;
 
   String _q;
 
   Map _p;
 
-  PostgreSQLException(this._e, this._q, this._p);
+  MapperException(this._m, this._q, this._p);
 
-  String get code => _e.serverMessage.code;
-
-  String get severity => _e.serverMessage.severity;
-
-  String toString() => _e.toString() + ':\n' + _q + ':\n' + _p.toString();
+  String toString() => _m + ':\n' + _q + ':\n' + _p.toString();
 }
 
-class ConstrainException implements Exception {
-  PostgresqlException _e;
+class PostgreSQLException extends MapperException {
 
-  ConstrainException(this._e);
+  PostgreSQLException(m, q, p) : super(m, q, p);
 
-  String get code => _e.serverMessage.code;
-
-  String get severity => _e.serverMessage.severity;
-
-  String toString() => _e.message.toString();
 }
 
-class RandomException implements Exception {
-  Exception _e;
+class ConstrainException extends MapperException {
 
-  String _q;
+  ConstrainException(e, q, p) : super(e, q, p);
 
-  Map _p;
-
-  RandomException(this._e, this._q, this._p);
-
-  String toString() => _e.toString() + ':\n' + _q + ':\n' + _p.toString();
 }
