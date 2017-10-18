@@ -223,6 +223,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   E _onStreamRow(row) {
     Map data = row.toMap();
     String key = _cacheKeyFromData(data);
+    if(key == null) throw new Exception('Pkey value not found!');
     E object = _cacheGet(key);
     if (object != null) return object;
     object = createObject(data);
