@@ -28,10 +28,28 @@ class Manager<A extends Application> {
 
   //Future destroy() => _pool.stop();
 
-  Future query(query, [params]) {
-    if(query is Builder)
-      query = query.toString();
-    return _connection.query(query, params).toList();
+  Future<List> query(String query, [Map params]) => _connection
+      .query(query, params)
+      .toList()
+      .catchError((e) => _error(e, query, params));
+
+  Future<List> execute(Builder builder) => _connection
+      .query(builder.getSQL(), builder._params)
+      .toList()
+      .catchError((e) => _error(e, builder.getSQL(), builder._params));
+
+  _error(e, [String query, Map params]) {
+    if (e is drv.PostgresqlException) {
+      if (e.serverMessage != null &&
+          (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
+        throw new PostgreConstraintException(
+            e.toString(), query, params?.toString(), e.serverMessage);
+      else
+        throw new PostgreQueryException(
+            e.toString(), query, params?.toString(), e.serverMessage);
+    } else {
+      throw new MapperException(e.toString(), query, params?.toString());
+    }
   }
 
   cacheAdd(String key, Entity<Application> object, Map initData) =>
