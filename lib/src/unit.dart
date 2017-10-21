@@ -74,14 +74,14 @@ class Unit<A extends Application> {
   void _doNotifyDeletes() => _notifyDelete.forEach((k, v) => v());
 
   Future _begin() => !_started
-      ? _manager.connection.execute('BEGIN').then((_) => _started = true)
+      ? _manager._connection.execute('BEGIN').then((_) => _started = true)
       : new Future.value();
 
   Future _commit() =>
-      _manager.connection.execute('COMMIT').then((_) => _started = false);
+      _manager._connection.execute('COMMIT').then((_) => _started = false);
 
   Future _rollback() =>
-      _manager.connection.execute('ROLLBACK').then((_) => _started = false);
+      _manager._connection.execute('ROLLBACK').then((_) => _started = false);
 
   Future persist() async {
     return _begin()

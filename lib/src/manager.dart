@@ -7,32 +7,32 @@ class Manager<A extends Application> {
 
   Cache _cache;
 
-  Connection _connection;
+  Pool _pool;
 
-  var connection;
+  drv.Connection _connection;
 
   Map session;
 
-  Manager(Connection conn, A application) {
+  Manager(Pool pool, A application) {
     _unit = new Unit(this);
     _cache = new Cache();
-    _connection = conn;
+    _pool = pool;
     app = application;
     app.m = this;
   }
 
-  Future<Manager> init([String debugId]) {
-    return _connection.connect(debugId).then((c) {
-      connection = c;
-      return this;
-    });
+  Future<Manager> init() async {
+    _connection = await _pool.obtain();
+    return this;
   }
 
-  Future destroy() => _connection._pool.stop();
+  //Future destroy() => _pool.stop();
 
-  Future query(query, [params]) => connection.query(query, params).toList();
-
-  builder() => new Builder(connection);
+  Future query(query, [params]) {
+    if(query is Builder)
+      query = query.toString();
+    return _connection.query(query, params).toList();
+  }
 
   cacheAdd(String key, Entity<Application> object, Map initData) =>
       _cache.add(key, object, initData);
@@ -64,7 +64,7 @@ class Manager<A extends Application> {
   Future close() async {
     _cache = new Cache();
     if (_unit._started) await _unit._rollback();
-    return connection.close();
+    return _pool.release(_connection);
   }
 
   Mapper _mapper(Entity<Application> object) =>
