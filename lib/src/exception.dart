@@ -7,7 +7,7 @@ class MapperException implements Exception {
 
   String params;
 
-  ServerMessage serverMessage;
+  drv.ServerMessage serverMessage;
 
   MapperException(this.message, this.query, this.params, [this.serverMessage]);
 
@@ -17,11 +17,11 @@ class MapperException implements Exception {
 }
 
 class PostgreQueryException extends MapperException {
-  PostgreQueryException(String m, String q, String p, ServerMessage s)
+  PostgreQueryException(String m, String q, String p, drv.ServerMessage s)
       : super(m, q, p, s);
 }
 
 class PostgreConstraintException extends MapperException {
-  PostgreConstraintException(String e, String q, String p, ServerMessage s)
+  PostgreConstraintException(String e, String q, String p, drv.ServerMessage s)
       : super(e, q, p, s);
 }

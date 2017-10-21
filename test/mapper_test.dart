@@ -1,114 +1,82 @@
-part of test;
+import 'package:mapper/mapper.dart';
+import 'package:mapper/client.dart';
+import 'package:test/test.dart';
 
-class Field {
-  final String name;
-  final dynamic def;
-  final String type;
-  const Field({this.name: null, this.def: 'DEFAULT', this.type: null});
+import 'common.dart';
+
+Manager<App> manager;
+
+class App extends Application {
+  Test1Mapper test1;
 }
 
-class Table {
-  final String name;
-  const Table(this.name);
-}
-
-@Table('product')
-class Product {
-  @Field()
-  var title;
-
-  @Field()
-  var price;
-
-  Product();
-}
-
-class ProductExt extends Product {}
-
-ttt() {
-  var obj = new Product();
-  obj.title = 'ssss';
-  var data = readClassData();
-  var date = new DateTime.now();
-  for (int i = 0; i < 1000000; i++) {
-    //readObject(obj, data);
-    //readObject2(obj);
-    setObject(obj, data, {'title': 'dddd'});
-    //setObject2(obj, {'title':'dddd'});
-    //print(data);
-  }
-  print(new DateTime.now().difference(date).inMilliseconds);
-}
-
-readClassData() {
-  Map field_map = new Map();
-  var classMirror = reflectClass(ProductExt);
-  //var metadata = classMirror.superclass.metadata;
-  classMirror.superclass.declarations.forEach((k, v) {
-    var f =
-        v.metadata.firstWhere((e) => e.reflectee is Field, orElse: () => null);
-    if (f != null) {
-      Field field = f.reflectee;
-      var name = MirrorSystem.getName(k);
-      field_map[name] = {
-        'symbol': k,
-        'db': field.name != null ? field.name : name,
-        'default': field.def
-      };
-    }
+main() {
+  test('', () async {
+    var app = {};
+    app[#test1] = () => new Test1Mapper()
+      ..entity = (() => new Test1())
+      ..collection = () => new Test1Collection();
+    manager = await set(app, sql);
   });
-  return field_map;
+  test('Mapper Basics', () async {
+    Test1 t = manager.app.test1.createObject();
+    t.field_int = 10;
+    var res = await manager.app.test1.insert(t);
+    expect(res, t);
+
+    var res2 = await manager.app.test1.find(1);
+    expect(res2.field_int, 10);
+
+    Test1 t2 = manager.app.test1.createObject();
+    t2.field_int = 11;
+    await manager.app.test1.insert(t2);
+    var all = await manager.app.test1.findAll();
+    expect(all.length, 2);
+
+    expect(await manager.app.test1.delete(t2), true);
+  });
 }
 
-readObject(obj, Map field_map) {
-  var refl = reflect(obj);
-  Map data = new Map();
-  field_map
-      .forEach((k, v) => data[v['db']] = refl.getField(v['symbol']).reflectee);
-  return data;
+
+
+var sql = '''
+CREATE TABLE IF NOT EXISTS "test1" (
+    "test1_id"        serial     NOT NULL PRIMARY KEY,
+    "field_string"    text       ,
+    "field_int"       integer    
+);
+''';
+
+class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
+  String table = 'test1';
 }
 
-setObject(obj, Map field_map, Map data) {
-  var refl = reflect(obj);
-  data.forEach((k, v) => refl.setField(field_map[k]['symbol'], v));
-}
+class Test1 extends Entity {
+  int test1_id;
+  String field_string;
+  int field_int;
 
-class Product2 {
-  var title;
-  var price;
+  Test1();
 
-  Product2();
-
-  Product2.fromMap(Map data) {
+  Test1.fromMap(Map data) {
     init(data);
   }
 
   init(Map data) {
-    title = data['title'];
-    price = data['price'];
+    test1_id = data['test1_id'];
+    field_string = data['field_string'];
+    field_int = data['field_int'];
   }
 
   toMap() => {
-        'title': title,
-        'price': price,
-      };
+    'test1_id': test1_id,
+    'field_string': field_string,
+    'field_int': field_int,
+  };
+
+  toJson() => toMap();
 }
 
-productToDb(Product2 product) => product.toMap();
+class Test1Collection extends Collection<Test1> {
 
-class Product2ext extends Product2 {}
-
-readObject2(obj) {
-  return obj.toMap();
-}
-
-setObject2(obj, Map data) {
-  obj.init(data);
-}
-
-productToMap(a) => {"title": a.title, "price": a.price};
-createProduct(Map m) => new Product2.fromMap(m);
-fillInProduct(Product a, Map m) {
-  a.title = m["title"];
-  a.price = m['price'];
 }

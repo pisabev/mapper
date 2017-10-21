@@ -1,6 +1,6 @@
 part of mapper_server;
 
-class Connection {
+/*class Connection {
   String _uri;
 
   int _min, _max;
@@ -24,3 +24,4 @@ class Connection {
     return _pool.connect(debugName: debugId).catchError((e) => _log.severe(e));
   }
 }
+*/
