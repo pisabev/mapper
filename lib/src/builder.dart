@@ -81,29 +81,7 @@ class Builder<T> {
     'orderBy': new List()
   };
 
-  Builder(this.connection);
-
-  _error(e) {
-    if (e is PostgresqlException) {
-      if (e.serverMessage != null &&
-          (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
-        throw new PostgreConstraintException(
-            e.toString(), getSQL(), _params.toString(), e.serverMessage);
-      else
-        throw new PostgreQueryException(
-            e.toString(), getSQL(), _params.toString(), e.serverMessage);
-    } else {
-      throw new MapperException(e.toString(), getSQL(), _params.toString());
-    }
-  }
-
-  Future execute() {
-    return connection.query(getSQL(), _params).toList().catchError(_error);
-  }
-
-  Future<T> stream<T>(Future<T> handler(a)) {
-    return handler(connection.query(getSQL(), _params)).catchError(_error);
-  }
+  Builder();
 
   getType() {
     return _type;
@@ -427,7 +405,7 @@ class Builder<T> {
   }
 
   Builder clone() {
-    Builder clone = new Builder(connection);
+    Builder clone = new Builder();
     _sqlParts.forEach((k, v) {
       if (v is List)
         v.forEach((s) => clone._sqlParts[k].add(s));
@@ -441,7 +419,7 @@ class Builder<T> {
   }
 
   Builder cloneFilter() {
-    Builder clone = new Builder(connection);
+    Builder clone = new Builder();
     ['join', 'where', 'having'].forEach((k) {
       var v = _sqlParts[k];
       if (v is List)
@@ -453,9 +431,7 @@ class Builder<T> {
     return clone;
   }
 
-  toString() {
-    return getSQL();
-  }
+  toString() => getSQL();
 }
 
 class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
@@ -536,11 +512,10 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future _total() {
-    return new Builder(query.connection)
+    return mapper.execute(new Builder()
         .select('COUNT(*) AS total')
         .from('(' + query._getSQLForSelect() + ') c')
-        .setParameters(query.getParameters())
-        .execute()
+        .setParameters(query.getParameters()))
         .then((result) => total = result[0].total);
   }
 

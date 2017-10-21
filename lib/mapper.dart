@@ -2,8 +2,8 @@ library mapper_server;
 
 import 'dart:async';
 import 'package:logging/logging.dart';
-import 'package:postgresql/pool.dart';
-import 'package:postgresql/postgresql.dart';
+import 'package:postgresql/pool.dart' as drv_pool;
+import 'package:postgresql/postgresql.dart' as drv;
 import 'package:meta/meta.dart';
 import 'client.dart';
 
@@ -15,6 +15,7 @@ part 'src/manager.dart';
 part 'src/unit.dart';
 part 'src/entity.dart';
 part 'src/cache.dart';
+part 'src/pool.dart';
 part 'src/exception.dart';
 
 final Logger _log = new Logger('Mapper');
@@ -65,7 +66,7 @@ class EntityNotifier<E> {
   }
 }
 
-typedef Future<Manager> LoadFunction(String debug);
+typedef Future<Manager> LoadFunction();
 
 class Database<A extends Application> {
   static const String _base = '_';
@@ -84,7 +85,7 @@ class Database<A extends Application> {
     _managers[namespace] = f;
   }
 
-  Future<Manager<A>> init([String debugId, String namespace = _base]) {
-    return _managers[namespace](debugId);
+  Future<Manager<A>> init([String namespace = _base]) {
+    return _managers[namespace]();
   }
 }
