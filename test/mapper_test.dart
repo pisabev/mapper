@@ -43,7 +43,7 @@ var sql = '''
 CREATE TABLE IF NOT EXISTS "test1" (
     "test1_id"        serial     NOT NULL PRIMARY KEY,
     "field_string"    text       ,
-    "field_int"       integer    
+    "field_int"       decimal(10,2)     
 );
 ''';
 
@@ -54,7 +54,7 @@ class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
 class Test1 extends Entity {
   int test1_id;
   String field_string;
-  int field_int;
+  double field_int;
 
   Test1();
 

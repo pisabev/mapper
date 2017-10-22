@@ -69,14 +69,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Builder updateBuilder() => new Builder().update(_escape(table));
 
-  Future<E> loadE(Builder builder) => _streamToEntity(builder);
+  Future<E> loadE(Builder builder) => _streamToEntity(builder).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder) => _streamToCollection(builder);
+  Future<C> loadC(Builder builder) => _streamToCollection(builder).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) {
     Map data = readObject(object);
     return execute(_setUpdateData(insertBuilder(), data, true)).then((result) {
-      setObject(object, result[0].toMap());
+      setObject(object, result[0]);
       var d = readObject(object);
       _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
       _notifyCreate(object);
@@ -192,8 +192,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return builder;
   }
 
-  E _onStreamRow(row) {
-    Map data = row.toMap();
+  E _onStreamRow(Map data) {
     String key = _cacheKeyFromData(data);
     if (key == null) throw new Exception('Pkey value not found!');
     E object = _cacheGet(key);
@@ -204,29 +203,22 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<List> execute(Builder builder) => manager._connection
-      .query(builder.getSQL(), builder._params)
-      .toList()
+      .query(builder.getSQL(), substitutionValues: builder._params)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<E> _streamToEntity(Builder builder) {
-    return manager._connection
-        .query(builder.getSQL(), builder._params)
-        .map(_onStreamRow)
-        .toList()
-        .then((list) => (list.length > 0) ? list[0] : null)
+  Future<E> _streamToEntity(Builder builder) async {
+    var res = await manager._connection
+        .query(builder.getSQL(), substitutionValues: builder._params)
         .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+    return res.map(_onStreamRow)?.first;
   }
 
-  Future<C> _streamToCollection(Builder builder) {
-    return manager._connection
-        .query(builder.getSQL(), builder._params)
-        .map(_onStreamRow)
-        .toList()
-        .then((list) {
-      C col = createCollection();
-      col.addAll(list);
-      return col;
-    }).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Future<C> _streamToCollection(Builder builder) async {
+    var res = await manager._connection
+        .query(builder.getSQL(), substitutionValues: builder._params);
+    C col = createCollection();
+    return col..addAll(res
+        .map(_onStreamRow));
   }
 
   E _markObject(E object) {

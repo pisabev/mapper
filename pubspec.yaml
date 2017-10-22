@@ -2,7 +2,8 @@ name: mapper
 description: Centryl Mapper
 version: 1.0.0
 dependencies:
-  postgresql: '>=0.3.3'
+  #postgresql: '>=0.3.3'
+  postgres: any
   logging: any
   meta: any
 dev_dependencies:
