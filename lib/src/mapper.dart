@@ -69,9 +69,11 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Builder updateBuilder() => new Builder().update(_escape(table));
 
-  Future<E> loadE(Builder builder) => _streamToEntity(builder).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Future<E> loadE(Builder builder) => _streamToEntity(builder)
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder) => _streamToCollection(builder).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Future<C> loadC(Builder builder) => _streamToCollection(builder)
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) {
     Map data = readObject(object);
@@ -203,23 +205,34 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<List> execute(Builder builder) => manager._connection
-      .query(builder.getSQL(), substitutionValues: builder._params)
-      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+          .query(builder.getSQL(), substitutionValues: builder._params)
+          .then((rows) {
+        if (rows.isEmpty) return [];
+        return rows.map(rowToMap);
+      }).catchError(
+              (e) => manager._error(e, builder.getSQL(), builder._params));
+
+  Map rowToMap(Iterable row) {
+    var m = {};
+    row.forEach((r) => m[r[0]] = r[1]);
+    return m;
+  }
 
   Future<E> _streamToEntity(Builder builder) async {
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params)
-        .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
-    if(res.isEmpty) return null;
-    return res.map(_onStreamRow)?.first;
+        .catchError(
+            (e) => manager._error(e, builder.getSQL(), builder._params));
+    if (res.isEmpty) return null;
+    return res.map((row) => _onStreamRow(rowToMap(row))).first;
   }
 
   Future<C> _streamToCollection(Builder builder) async {
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params);
     C col = createCollection();
-    return col..addAll(res
-        .map(_onStreamRow));
+    return col
+      ..addAll(res.map((row) => _onStreamRow(rowToMap(row))));
   }
 
   E _markObject(E object) {

@@ -146,11 +146,7 @@ class Query<T> {
       return;
     }
 
-    _onComplete.complete(rows.map((row) {
-      var m = {};
-      row.forEach((r) => m[r[0]] = r[1]);
-      return m;
-    }).toList());
+    _onComplete.complete(rows);
   }
 
   void completeError(dynamic error) {

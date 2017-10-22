@@ -28,18 +28,28 @@ class Manager<A extends Application> {
 
   //Future destroy() => _pool.stop();
 
-  Future<List> query(String query, [Map params]) => _connection
-      .query(query, substitutionValues: params)
-      .catchError((e) => _error(e, query, params));
+  Map _rowToMap(Iterable row) {
+    var m = {};
+    row.forEach((r) => m[r[0]] = r[1]);
+    return m;
+  }
+
+  Future<List> query(String query, [Map params]) =>
+      _connection.query(query, substitutionValues: params).then((rows) {
+        if (rows.isEmpty) return [];
+        return rows.map(_rowToMap).toList();
+      }).catchError((e) => _error(e, query, params));
 
   Future<List> execute(Builder builder) => _connection
-      .query(builder.getSQL(), substitutionValues: builder._params)
-      .catchError((e) => _error(e, builder.getSQL(), builder._params));
+          .query(builder.getSQL(), substitutionValues: builder._params)
+          .then((rows) {
+        if (rows.isEmpty) return [];
+        return rows.map(_rowToMap).toList();
+      }).catchError((e) => _error(e, builder.getSQL(), builder._params));
 
   _error(e, [String query, Map params]) {
     if (e is drv.PostgreSQLException) {
-      if (e.code != null &&
-          (e.code == '23503' || e.code == '23514'))
+      if (e.code != null && (e.code == '23503' || e.code == '23514'))
         throw new PostgreConstraintException(
             e.toString(), query, params?.toString(), e);
       else
