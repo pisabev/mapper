@@ -34,18 +34,15 @@ class Manager<A extends Application> {
     return m;
   }
 
-  Future<List> query(String query, [Map params]) =>
-      _connection.query(query, substitutionValues: params).then((rows) {
-        if (rows.isEmpty) return [];
-        return rows.map(_rowToMap).toList();
-      }).catchError((e) => _error(e, query, params));
+  Future<List> query(String query, [Map params]) => _connection
+      .query(query, substitutionValues: params)
+      .then((rows) => rows.map(_rowToMap).toList())
+      .catchError((e) => _error(e, query, params));
 
   Future<List> execute(Builder builder) => _connection
-          .query(builder.getSQL(), substitutionValues: builder._params)
-          .then((rows) {
-        if (rows.isEmpty) return [];
-        return rows.map(_rowToMap).toList();
-      }).catchError((e) => _error(e, builder.getSQL(), builder._params));
+      .query(builder.getSQL(), substitutionValues: builder._params)
+      .then((rows) => rows.map(_rowToMap).toList())
+      .catchError((e) => _error(e, builder.getSQL(), builder._params));
 
   _error(e, [String query, Map params]) {
     if (e is drv.PostgreSQLException) {
