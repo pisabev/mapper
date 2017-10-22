@@ -29,7 +29,7 @@ main() {
     t.field_list = [1,2,3];
 
     var res = await manager.app.test1.insert(t);
-    expect(res.field_int, test);
+    expect(res.test1_id, 1);
 
     //await manager.init();
     var res2 = await manager.app.test1.find(1);
