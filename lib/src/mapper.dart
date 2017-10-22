@@ -76,7 +76,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<E> insert(E object) {
     Map data = readObject(object);
     return execute(_setUpdateData(insertBuilder(), data, true)).then((result) {
-      setObject(object, result[0].toMap());
+      setObject(object, result[0]);
       var d = readObject(object);
       _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
       _notifyCreate(object);
@@ -203,8 +203,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<List> execute(Builder builder) => manager._connection
+  Future<List<Map>> execute(Builder builder) => manager._connection
       .query(builder.getSQL(), builder._params)
+      .map((r) => r.toMap())
       .toList()
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 

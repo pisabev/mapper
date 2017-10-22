@@ -516,7 +516,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
         .select('COUNT(*) AS total')
         .from('(' + query._getSQLForSelect() + ') c')
         .setParameters(query.getParameters()))
-        .then((result) => total = result[0].total);
+        .then((result) => total = result[0]['total']);
   }
 
   Future _execute() => mapper.loadC(query).then((col) => collection = col);
