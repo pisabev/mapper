@@ -28,13 +28,15 @@ class Manager<A extends Application> {
 
   //Future destroy() => _pool.stop();
 
-  Future<List> query(String query, [Map params]) => _connection
+  Future<List<Map>> query(String query, [Map params]) => _connection
       .query(query, params)
+      .map((r) => r.toMap())
       .toList()
       .catchError((e) => _error(e, query, params));
 
-  Future<List> execute(Builder builder) => _connection
+  Future<List<Map>> execute(Builder builder) => _connection
       .query(builder.getSQL(), builder._params)
+      .map((r) => r.toMap())
       .toList()
       .catchError((e) => _error(e, builder.getSQL(), builder._params));
 
