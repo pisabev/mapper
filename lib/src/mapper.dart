@@ -192,7 +192,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return builder;
   }
 
-  E _onStreamRow(Map data) {
+  E _onStreamRow(data) {
     String key = _cacheKeyFromData(data);
     if (key == null) throw new Exception('Pkey value not found!');
     E object = _cacheGet(key);

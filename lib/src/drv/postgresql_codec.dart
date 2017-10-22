@@ -61,6 +61,7 @@ abstract class PostgreSQLCodec {
   static const int TypeNumeric = 1700;
   static const int TypeJSON = 114;
   static const int TypeJSONB = 3802;
+  static const int TypeTSVector = 3614;
 
   static String encode(dynamic value,
       {PostgreSQLDataType dataType: null, bool escapeStrings: true}) {
@@ -464,9 +465,13 @@ abstract class PostgreSQLCodec {
         return JSON.decode(string);
       }
 
+      case TypeTSVector:
+        return null;
+
       default:
-        return UTF8.decode(
-            value.buffer.asUint8List(value.offsetInBytes, value.lengthInBytes));
+          return UTF8.decode(
+              value.buffer.asUint8List(
+                  value.offsetInBytes, value.lengthInBytes));
     }
   }
 }

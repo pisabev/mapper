@@ -257,9 +257,12 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
         } else {
           query.complete(rowsAffected);
         }
-
-        return new _PostgreSQLConnectionStateReadyInTransaction(
-            query.transaction);
+        // Not using transaction block implemented here but Unit Object
+        if(query.transaction == null)
+          return new _PostgreSQLConnectionStateIdle();
+        else
+          return new _PostgreSQLConnectionStateReadyInTransaction(
+              query.transaction);
       } else if (message.state == ReadyForQueryMessage.StateTransactionError) {
         // This should cancel the transaction, we may have to send a commit here
         query.completeError(returningException);

@@ -36,6 +36,11 @@ class Pool {
   }
 
   _onConnectionReady(drv.PostgreSQLConnection conn) {
+    if (conn.isClosed) {
+      connectionsIdle.remove(conn);
+      connections.remove(conn);
+      return;
+    }
     if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       _waitQueue.removeAt(0).complete(conn);
