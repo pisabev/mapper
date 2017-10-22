@@ -210,6 +210,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params)
         .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+    if(res.isEmpty) return null;
     return res.map(_onStreamRow)?.first;
   }
 

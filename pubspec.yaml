@@ -2,9 +2,8 @@ name: mapper
 description: Centryl Mapper
 version: 1.0.0
 dependencies:
-  postgres:
-    path: /home/user/Work/dart/postgresql-dart-master
   logging: any
   meta: any
+  crypto: ^2.0.0
 dev_dependencies:
   test: any

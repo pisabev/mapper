@@ -2,7 +2,7 @@ library mapper_server;
 
 import 'dart:async';
 import 'package:logging/logging.dart';
-import 'package:postgres/postgres.dart' as drv;
+import 'src/postgres.dart' as drv;
 import 'package:meta/meta.dart';
 import 'client.dart';
 
