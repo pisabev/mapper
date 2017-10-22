@@ -205,14 +205,11 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<List> execute(Builder builder) => manager._connection
-          .query(builder.getSQL(), substitutionValues: builder._params)
-          .then((rows) {
-        if (rows.isEmpty) return [];
-        return rows.map(rowToMap);
-      }).catchError(
-              (e) => manager._error(e, builder.getSQL(), builder._params));
+      .query(builder.getSQL(), substitutionValues: builder._params)
+      .then((rows) => rows.map(_rowToMap).toList())
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Map rowToMap(Iterable row) {
+  Map _rowToMap(Iterable row) {
     var m = {};
     row.forEach((r) => m[r[0]] = r[1]);
     return m;
@@ -224,15 +221,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         .catchError(
             (e) => manager._error(e, builder.getSQL(), builder._params));
     if (res.isEmpty) return null;
-    return res.map((row) => _onStreamRow(rowToMap(row))).first;
+    return res.map((row) => _onStreamRow(_rowToMap(row))).first;
   }
 
   Future<C> _streamToCollection(Builder builder) async {
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params);
     C col = createCollection();
-    return col
-      ..addAll(res.map((row) => _onStreamRow(rowToMap(row))));
+    return col..addAll(res.map((row) => _onStreamRow(_rowToMap(row))));
   }
 
   E _markObject(E object) {
