@@ -206,7 +206,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<List> execute(Builder builder) => manager._connection
       .query(builder.getSQL(), builder._params)
       .toList()
-      .catchError((e) => _error(builder, e));
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> _streamToEntity(Builder builder) {
     return manager._connection
@@ -214,7 +214,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         .map(_onStreamRow)
         .toList()
         .then((list) => (list.length > 0) ? list[0] : null)
-        .catchError((e) => _error(builder, e));
+        .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
   }
 
   Future<C> _streamToCollection(Builder builder) {
@@ -226,22 +226,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       C col = createCollection();
       col.addAll(list);
       return col;
-    }).catchError((e) => _error(builder, e));
-  }
-
-  _error(Builder builder, e) {
-    if (e is drv.PostgresqlException) {
-      if (e.serverMessage != null &&
-          (e.serverMessage.code == '23503' || e.serverMessage.code == '23514'))
-        throw new PostgreConstraintException(e.toString(), builder.getSQL(),
-            builder._params.toString(), e.serverMessage);
-      else
-        throw new PostgreQueryException(e.toString(), builder.getSQL(),
-            builder._params.toString(), e.serverMessage);
-    } else {
-      throw new MapperException(
-          e.toString(), builder.getSQL(), builder._params.toString());
-    }
+    }).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
   }
 
   E _markObject(E object) {
