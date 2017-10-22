@@ -206,7 +206,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<List> execute(Builder builder) => manager._connection
       .query(builder.getSQL(), builder._params)
       .toList()
-      .catchError((e) => manager._error(builder, e));
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> _streamToEntity(Builder builder) {
     return manager._connection
@@ -214,7 +214,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         .map(_onStreamRow)
         .toList()
         .then((list) => (list.length > 0) ? list[0] : null)
-        .catchError((e) => manager._error(builder, e));
+        .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
   }
 
   Future<C> _streamToCollection(Builder builder) {
@@ -226,7 +226,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       C col = createCollection();
       col.addAll(list);
       return col;
-    }).catchError((e) => manager._error(builder, e));
+    }).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
   }
 
   E _markObject(E object) {
