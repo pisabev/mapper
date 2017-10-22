@@ -3,7 +3,6 @@ description: Centryl Mapper
 version: 1.0.0
 dependencies:
   logging: any
-  meta: any
   crypto: ^2.0.0
 dev_dependencies:
   test: any
