@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'src/postgres.dart' as drv;
 import 'package:meta/meta.dart';
 import 'client.dart';
+export 'client.dart';
 
 part 'src/application.dart';
 part 'src/builder.dart';
