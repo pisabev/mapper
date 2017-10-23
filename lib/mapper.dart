@@ -6,6 +6,7 @@ import 'package:postgresql/pool.dart' as drv_pool;
 import 'package:postgresql/postgresql.dart' as drv;
 import 'package:meta/meta.dart';
 import 'client.dart';
+export 'client.dart';
 
 part 'src/application.dart';
 part 'src/builder.dart';
