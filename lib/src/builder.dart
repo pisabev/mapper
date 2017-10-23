@@ -448,15 +448,13 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   Map<String, String> filter_map = new Map();
 
-  String order_field = '';
+  String order_field;
 
-  String order_way = '';
+  String order_way;
 
   int _page = 0;
 
   int _limit = 0;
-
-  int total;
 
   C collection;
 
@@ -469,21 +467,21 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   set page(int page) => _page = (page > 0) ? page : 0;
 
-  order(String order, [String way = 'ASC']) {
+  void order(String order, [String way = 'ASC']) {
     if (order != null) {
       order_field = order;
       order_way = way;
     }
   }
 
-  Future process([total = false]) {
+  Future<CollectionBuilder<E, C, A>> process([total = false]) async {
     _queryFilter();
-    List<Future> list = new List();
-    if (total) list.add(_total());
     _queryResult();
-    list.add(_execute());
-    return Future.wait(list).then((_) => this);
+    collection = await mapper.loadC(query, total);
+    return this;
   }
+
+  int get total => collection.totalResults;
 
   void _queryFilter() {
     filter.forEach((k, value) {
@@ -504,24 +502,14 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
       query.limit(_limit);
       if (_page > 0) query.offset((_page - 1) * _limit);
     }
-    if (order_field != '') {
+    if (order_field != null) {
       String k = order_field;
       if (filter_map[k] != null) k = filter_map[k];
       query.orderBy(k, order_way);
     }
   }
 
-  Future _total() {
-    return mapper.execute(new Builder()
-        .select('COUNT(*) AS total')
-        .from('(' + query._getSQLForSelect() + ') c')
-        .setParameters(query.getParameters()))
-        .then((result) => total = result[0]['total']);
-  }
-
-  Future _execute() => mapper.loadC(query).then((col) => collection = col);
-
-  _set(String way, String key, dynamic value) {
+  void _set(String way, String key, dynamic value) {
     String ph = _cleanPlaceHolder(key);
     switch (way) {
       case 'eq':
@@ -571,7 +559,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
         break;
       case 'tsquery':
         query
-            .andWhere('to_tsvector($key) @@@@ to_tsquery(@$ph)')
+            .andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
             .setParameter(ph, new TSquery(value).toString());
         break;
       case 'date':
@@ -591,7 +579,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  _cleanPlaceHolder(String key) {
+  String _cleanPlaceHolder(String key) {
     return key.replaceAll(new RegExp(r'\.'), '_') + (++_unique).toString();
   }
 }

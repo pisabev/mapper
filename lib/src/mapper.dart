@@ -69,9 +69,11 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Builder updateBuilder() => new Builder().update(_escape(table));
 
-  Future<E> loadE(Builder builder) => _streamToEntity(builder);
+  Future<E> loadE(Builder builder) => _streamToEntity(builder)
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder) => _streamToCollection(builder);
+  Future<C> loadC(Builder builder, [calcTotal = false]) => _streamToCollection(builder, calcTotal)
+      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) {
     Map data = readObject(object);
@@ -192,8 +194,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return builder;
   }
 
-  E _onStreamRow(row) {
-    Map data = row.toMap();
+  E _onStreamRow(data) {
     String key = _cacheKeyFromData(data);
     if (key == null) throw new Exception('Pkey value not found!');
     E object = _cacheGet(key);
@@ -203,31 +204,36 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<List<Map>> execute(Builder builder) => manager._connection
-      .query(builder.getSQL(), builder._params)
-      .map((r) => r.toMap())
-      .toList()
+  Future<List> execute(Builder builder) => manager._connection
+      .query(builder.getSQL(), substitutionValues: builder._params)
+      .then((rows) => rows.map(_rowToMap).toList())
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<E> _streamToEntity(Builder builder) {
-    return manager._connection
-        .query(builder.getSQL(), builder._params)
-        .map(_onStreamRow)
-        .toList()
-        .then((list) => (list.length > 0) ? list[0] : null)
-        .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Map _rowToMap(Iterable row) {
+    var m = {};
+    row.forEach((r) => m[r[0]] = r[1]);
+    return m;
   }
 
-  Future<C> _streamToCollection(Builder builder) {
-    return manager._connection
-        .query(builder.getSQL(), builder._params)
-        .map(_onStreamRow)
-        .toList()
-        .then((list) {
-      C col = createCollection();
-      col.addAll(list);
-      return col;
-    }).catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Future<E> _streamToEntity(Builder builder) async {
+    var res = await manager._connection
+        .query(builder.getSQL(), substitutionValues: builder._params)
+        .catchError(
+            (e) => manager._error(e, builder.getSQL(), builder._params));
+    if (res.isEmpty) return null;
+    return res.map((row) => _onStreamRow(_rowToMap(row))).first;
+  }
+
+  Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
+    if(calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
+    var res = await manager._connection
+        .query(builder.getSQL(), substitutionValues: builder._params);
+    C col = createCollection();
+    return col..addAll(res.map((row) {
+      var r = _rowToMap(row);
+      if(calcTotal) col.totalResults = r['__total__'];
+      return _onStreamRow(r);
+    }));
   }
 
   E _markObject(E object) {

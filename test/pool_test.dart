@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 main() {
   test('Pool 1', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     connection.obtain();
     connection.obtain();
@@ -18,7 +18,7 @@ main() {
 
   });
   test('Pool 2', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     connection.obtain().then((conn) async {
       await new Future.delayed(new Duration(seconds: 1));
@@ -33,7 +33,7 @@ main() {
 
   }, skip: false);
   test('Pool 3', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     var con1 = await connection.obtain();
     var con2 = await connection.obtain();
@@ -45,7 +45,7 @@ main() {
     }).timeout(new Duration(seconds: 2)), throwsA(new isInstanceOf<TimeoutException>()));
   }, skip: false);
   test('Pool 4', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     var con1 = await connection.obtain().then((conn) async {
       await new Future.delayed(new Duration(seconds: 1));
@@ -59,22 +59,22 @@ main() {
     expect(con != null, true);
   }, skip: false);
   test('Pool 5', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     expect(connection.connectionsIdle.length, 1);
   }, skip: false);
   test('Pool 6', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test', 2, 5);
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user', 2, 5);
     await connection.start();
     expect(connection.connectionsIdle.length, 2);
   }, skip: false);
   test('Pool 7', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test', 6, 5);
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user', 6, 5);
     await connection.start();
     expect(connection.connectionsIdle.length, 6);
   }, skip: false);
   test('Pool 8', () async {
-    var connection = new Pool('postgres://user:user@localhost:5432/test');
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
     var con1 = await connection.obtain();
     var con2 = await connection.obtain();
