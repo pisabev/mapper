@@ -72,7 +72,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<E> loadE(Builder builder) => _streamToEntity(builder)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder) => _streamToCollection(builder)
+  Future<C> loadC(Builder builder, [calcTotal = false]) => _streamToCollection(builder, calcTotal)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) {
@@ -224,11 +224,16 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return res.map((row) => _onStreamRow(_rowToMap(row))).first;
   }
 
-  Future<C> _streamToCollection(Builder builder) async {
+  Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
+    if(calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params);
     C col = createCollection();
-    return col..addAll(res.map((row) => _onStreamRow(_rowToMap(row))));
+    return col..addAll(res.map((row) {
+      var r = _rowToMap(row);
+      if(calcTotal) col.totalResults = r['__total__'];
+      return _onStreamRow(r);
+    }));
   }
 
   E _markObject(E object) {

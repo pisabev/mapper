@@ -3,6 +3,8 @@ part of mapper_shared;
 class Collection<E> extends ListBase<E> {
   List<E> innerList = new List();
 
+  int totalResults;
+
   int get length => innerList.length;
 
   void set length(int length) {
