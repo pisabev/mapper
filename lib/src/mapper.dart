@@ -6,10 +6,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   Manager<A> manager;
 
-  @virtual
   String table;
 
-  @virtual
   dynamic pkey;
 
   static Map<String, Object> _ref = new Map();
