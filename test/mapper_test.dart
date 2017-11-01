@@ -19,7 +19,7 @@ main() {
     manager = await set(app, sql);
   });
   test('Mapper Basics', () async {
-    double test = 122.0;
+    double test = 10000.00;
     Test1 t = manager.app.test1.createObject();
     t.field_string = 'test';
     t.field_int = test;

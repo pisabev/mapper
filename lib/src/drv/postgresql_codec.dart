@@ -423,7 +423,6 @@ abstract class PostgreSQLCodec {
 
       case TypeNumeric: {
         ByteData e = value.buffer.asByteData(value.offsetInBytes, value.lengthInBytes);
-
         int offset = 0;
 
         int allWords = e.getInt16(offset);
@@ -435,15 +434,16 @@ abstract class PostgreSQLCodec {
         offset += 2; //int precision = e.readInt16();
 
         int beforeDigit = 0;
-        for (int i = 0; i < beforeWords; i++)
-          beforeDigit = beforeDigit * 10000 + e.getInt16(offset += 2);
-        //beforeDigit = (beforeDigit << 16) | e.readInt16();
+        for (int i = 0; i < beforeWords; i++) {
+          beforeDigit = beforeDigit * 10000;
+          if(offset < e.lengthInBytes - 2)
+            beforeDigit += e.getInt16(offset += 2);
+        }
 
         int afterDigit = 0;
         if (allWords > beforeWords)
           for (int i = 0; i < allWords-beforeWords; i++)
             afterDigit = afterDigit * 10000 + e.getInt16(offset += 2);
-        //afterDigit = (afterDigit << 16) | e.readInt16();
 
         double allDigit = afterDigit.toDouble();
         while (allDigit > 1) allDigit = allDigit / 10; //Move to after dot.
