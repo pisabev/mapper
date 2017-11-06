@@ -423,36 +423,42 @@ abstract class PostgreSQLCodec {
             .add(new Duration(days: value.getInt32(0)));
 
       case TypeNumeric: {
-        ByteData e = value.buffer.asByteData(value.offsetInBytes, value.lengthInBytes);
-        int offset = 0;
-        int allWords = e.getInt16(offset);
-        if (allWords == 0) return 0.0;
-        int beforeWords = e.getInt16(offset += 2);
-        beforeWords++;
-        int thirdGroup = e.getInt16(offset += 2);
-        bool minus = ((thirdGroup >> 14) & 1) == 1;
-        int precision = e.getInt16(offset += 2);
+        var e = value.buffer.asByteData(value.offsetInBytes, value.lengthInBytes);
 
-        int beforeDigit = 0;
-        for (int i = 0; i < beforeWords; i++) {
+        var allWords = e.getInt16(0);
+        if (allWords == 0) return 0.0;
+        var beforeWords = e.getInt16(2) + 1;
+        var isNegative = ((e.getInt16(4) >> 14) & 1) == 1;
+        var afterWords = allWords - beforeWords;
+        //var precision = e.getInt16(6);
+
+        var offset = 8;
+        var beforeDigit = 0;
+        for (var i = 0; i < beforeWords; i++) {
           beforeDigit = beforeDigit * 10000;
-          if(offset < e.lengthInBytes - 2)
-            beforeDigit += e.getInt16(offset += 2);
+          if (offset < e.lengthInBytes) {
+            beforeDigit += e.getInt16(offset);
+            offset += 2;
+          } else {
+            break;
+          }
         }
 
-        int afterDigit = 0;
-        if (allWords > beforeWords)
-          for (int i = 0; i < allWords-beforeWords; i++)
-            afterDigit = afterDigit * 10000 + e.getInt16(offset += 2);
+        var afterDigit = 0;
+        if (allWords > beforeWords) {
+          for (int i = 0; i < afterWords; i++) {
+            if (offset < e.lengthInBytes) {
+              afterDigit = afterDigit * 10000 + e.getInt16(offset);
+              offset += 2;
+            } else {
+              break;
+            }
+          }
+        }
 
-        double allDigit = afterDigit.toDouble();
-        allDigit = beforeDigit + allDigit / pow(10, precision);
-        //while (allDigit > 1) allDigit = allDigit / 10; //Move to after dot.
-        //allDigit = allDigit + beforeDigit; //Add before digits
+        var result = afterDigit / pow(10000, afterWords) + beforeDigit;
 
-        if (minus) allDigit = -allDigit; //Sign
-
-        return allDigit;
+        return isNegative ? -result : result;
       }
 
       case TypeJSON: {
