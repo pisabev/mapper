@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:math';
 import 'dart:convert';
 import 'connection.dart';
 
@@ -424,14 +425,13 @@ abstract class PostgreSQLCodec {
       case TypeNumeric: {
         ByteData e = value.buffer.asByteData(value.offsetInBytes, value.lengthInBytes);
         int offset = 0;
-
         int allWords = e.getInt16(offset);
         if (allWords == 0) return 0.0;
         int beforeWords = e.getInt16(offset += 2);
         beforeWords++;
         int thirdGroup = e.getInt16(offset += 2);
         bool minus = ((thirdGroup >> 14) & 1) == 1;
-        offset += 2; //int precision = e.readInt16();
+        int precision = e.getInt16(offset += 2);
 
         int beforeDigit = 0;
         for (int i = 0; i < beforeWords; i++) {
@@ -446,8 +446,9 @@ abstract class PostgreSQLCodec {
             afterDigit = afterDigit * 10000 + e.getInt16(offset += 2);
 
         double allDigit = afterDigit.toDouble();
-        while (allDigit > 1) allDigit = allDigit / 10; //Move to after dot.
-        allDigit = allDigit + beforeDigit; //Add before digits
+        allDigit = beforeDigit + allDigit / pow(10, precision);
+        //while (allDigit > 1) allDigit = allDigit / 10; //Move to after dot.
+        //allDigit = allDigit + beforeDigit; //Add before digits
 
         if (minus) allDigit = -allDigit; //Sign
 

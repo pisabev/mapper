@@ -19,7 +19,7 @@ main() {
     manager = await set(app, sql);
   });
   test('Mapper Basics', () async {
-    double test = 10000.00;
+    double test = 0.00145;
     Test1 t = manager.app.test1.createObject();
     t.field_string = 'test';
     t.field_int = test;
@@ -34,6 +34,7 @@ main() {
     //await manager.init();
     var res2 = await manager.app.test1.find(1);
     expect(res2.field_list is List, true);
+    expect(res2.field_int, test);
 
     Test1 t2 = manager.app.test1.createObject();
     //t2.field_int = 11.3;
@@ -51,7 +52,7 @@ var sql = '''
 CREATE TABLE IF NOT EXISTS "test1" (
     "test1_id"        serial     NOT NULL PRIMARY KEY,
     "field_string"    text       ,
-    "field_int"       decimal(12,2),
+    "field_int"       decimal(12,5),
     "field_json"      json       ,
     "field_jsonb"     jsonb      ,
     "field_date"      timestamptz,
