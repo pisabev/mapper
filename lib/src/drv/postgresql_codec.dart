@@ -428,7 +428,7 @@ abstract class PostgreSQLCodec {
         var allWords = e.getInt16(0);
         if (allWords == 0) return 0.0;
         var beforeWords = e.getInt16(2) + 1;
-        var isNegative = ((e.getInt16(4) >> 14) & 1) == 1;
+        var isNegative = (e.getInt16(4) & 16384) == 16384;
         var afterWords = allWords - beforeWords;
         //var precision = e.getInt16(6);
 
@@ -445,14 +445,12 @@ abstract class PostgreSQLCodec {
         }
 
         var afterDigit = 0;
-        if (allWords > beforeWords) {
-          for (int i = 0; i < afterWords; i++) {
-            if (offset < e.lengthInBytes) {
-              afterDigit = afterDigit * 10000 + e.getInt16(offset);
-              offset += 2;
-            } else {
-              break;
-            }
+        for (var i = 0; i < afterWords; i++) {
+          if (offset < e.lengthInBytes) {
+            afterDigit = afterDigit * 10000 + e.getInt16(offset);
+            offset += 2;
+          } else {
+            break;
           }
         }
 
