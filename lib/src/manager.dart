@@ -86,7 +86,8 @@ class Manager<A extends Application> {
   Future close() async {
     _cache = new Cache();
     if (_unit._started) await _unit._rollback();
-    return _pool.release(_connection);
+    _pool.release(_connection);
+    _connection = null;
   }
 
   Mapper _mapper(Entity<Application> object) =>
