@@ -101,9 +101,7 @@ class PostgreSQLFormat {
 
       iterator.moveNext();
     }
-items.forEach((f) {
-   print(f.buffer.toString());
-});
+
     var idx = 1;
     return items.map((t) {
       if (t.type == PostgreSQLFormatTokenType.text) {
