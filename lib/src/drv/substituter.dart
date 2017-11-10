@@ -3,6 +3,8 @@ import 'query.dart';
 
 class PostgreSQLFormat {
   static int _AtSignCodeUnit = "@".codeUnitAt(0);
+  static int _AtGreaterThanCodeUnit = ">".codeUnitAt(0);
+  static int _AtLessThanCodeUnit = "<".codeUnitAt(0);
 
   static String id(String name, {PostgreSQLDataType type: null}) {
     if (type != null) {
@@ -75,9 +77,10 @@ class PostgreSQLFormat {
           currentPtr.buffer.writeCharCode(iterator.current);
         }
       } else if (currentPtr.type == PostgreSQLFormatTokenType.variable) {
-        if (iterator.current == _AtSignCodeUnit) {
+        if (iterator.current == _AtSignCodeUnit || iterator.current == _AtGreaterThanCodeUnit) {
           iterator.movePrevious();
           if (iterator.current == _AtSignCodeUnit) {
+            iterator.moveNext();
             currentPtr.buffer.writeCharCode(iterator.current);
             currentPtr.type = PostgreSQLFormatTokenType.text;
           } else {
@@ -85,8 +88,8 @@ class PostgreSQLFormat {
                 new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
             currentPtr.buffer.writeCharCode(iterator.current);
             items.add(currentPtr);
+            iterator.moveNext();
           }
-          iterator.moveNext();
         } else if (_isIdentifier(iterator.current)) {
           currentPtr.buffer.writeCharCode(iterator.current);
         } else {
@@ -98,7 +101,9 @@ class PostgreSQLFormat {
 
       iterator.moveNext();
     }
-
+items.forEach((f) {
+   print(f.buffer.toString());
+});
     var idx = 1;
     return items.map((t) {
       if (t.type == PostgreSQLFormatTokenType.text) {

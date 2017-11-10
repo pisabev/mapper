@@ -18,6 +18,9 @@ main() {
   test('', () async {
     manager = await set(app, sql);
   });
+  test('Mapper', () async {
+    try {await manager.query('Select where nesto @@ sds');} catch(e){print(e);};
+  });
   test('Mapper Basics', () async {
     double test = 320000.000032;
     Test1 t = manager.app.test1.createObject();
@@ -44,7 +47,7 @@ main() {
     expect(all.length, 2);
 
     expect(await manager.app.test1.delete(t2), true);
-  });
+  }, skip: true);
 }
 
 
