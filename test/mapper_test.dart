@@ -28,6 +28,7 @@ main() {
       Test1 t = manager.app.test1.createObject();
       t.field_string = 'test';
       t.field_int = test;
+      t.field_bool = true;
       t.field_json = {'t': 1212,'t2': 'string'};
       t.field_jsonb = {'t': 1212,'t2': 'string'};
       t.field_date = new DateTime.now();
@@ -35,12 +36,14 @@ main() {
 
       var res = await manager.app.test1.insert(t);
       expect(res.test1_id, 1);
+      expect(res.field_bool, true);
 
       //await manager.init();
       var res2 = await manager.app.test1.find(1);
       expect(res2.field_list is List, true);
       //print('got ${res2.field_int} expected: $test');
       expect(res2.field_int, test);
+      expect(res2.field_bool, true);
 
       Test1 t2 = manager.app.test1.createObject();
       //t2.field_int = 11.3;
@@ -57,6 +60,7 @@ main() {
 var sql = '''
 CREATE TEMPORARY TABLE "test1" (
     "test1_id"        serial     NOT NULL PRIMARY KEY,
+    "field_bool"      bool       ,
     "field_string"    text       ,
     "field_int"       decimal(12,6),
     "field_json"      json       ,
@@ -72,6 +76,7 @@ class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
 
 class Test1 extends Entity {
   int test1_id;
+  bool field_bool;
   String field_string;
   double field_int;
   Map field_json;
