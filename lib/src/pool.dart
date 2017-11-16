@@ -35,13 +35,11 @@ class Pool {
     _onConnectionReady(conn);
   }
 
-  _onConnectionReady(drv.PostgreSQLConnection conn) {
+  void _onConnectionReady(drv.PostgreSQLConnection conn) {
     if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
       connectionsIdle.remove(conn);
       connections.remove(conn);
-      return;
-    }
-    if (_waitQueue.isNotEmpty) {
+    } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       _waitQueue.removeAt(0).complete(conn);
     } else {
@@ -49,7 +47,7 @@ class Pool {
     }
   }
 
-  release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
+  void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
 
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     var completer = new Completer();
