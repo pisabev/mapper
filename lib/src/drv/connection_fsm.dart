@@ -257,21 +257,14 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
         } else {
           query.complete(rowsAffected);
         }
-        // Not using transaction block implemented here but Unit Object
-        if(query.transaction == null)
-          return new _PostgreSQLConnectionStateIdle();
-        else
-          return new _PostgreSQLConnectionStateReadyInTransaction(
-              query.transaction);
+
+        return new _PostgreSQLConnectionStateReadyInTransaction(
+            query.transaction);
       } else if (message.state == ReadyForQueryMessage.StateTransactionError) {
         // This should cancel the transaction, we may have to send a commit here
         query.completeError(returningException);
-        // Not using transaction block implemented here but Unit Object
-        if(query.transaction == null)
-          return new _PostgreSQLConnectionStateIdle();
-        else
-          return new _PostgreSQLConnectionStateTransactionFailure(
-              query.transaction);
+        return new _PostgreSQLConnectionStateTransactionFailure(
+            query.transaction);
       }
     } else if (message is CommandCompleteMessage) {
       rowsAffected = message.rowsAffected;
@@ -305,7 +298,9 @@ class _PostgreSQLConnectionStateReadyInTransaction
   }
 
   _PostgreSQLConnectionState awake() {
-    var pendingQuery = transaction.pendingQuery;
+    var pendingQuery = transaction == null
+        ? connection._pendingQuery
+        : transaction.pendingQuery;
     if (pendingQuery != null) {
       return processQuery(pendingQuery);
     }

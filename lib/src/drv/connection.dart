@@ -123,6 +123,10 @@ class PostgreSQLConnection implements PostgreSQLExecutionContext {
   /// must be created.
   bool get isClosed => _connectionState is _PostgreSQLConnectionStateClosed;
 
+  bool get isInTransaction => _connectionState is _PostgreSQLConnectionStateReadyInTransaction;
+
+  bool get isInTransactionError => _connectionState is _PostgreSQLConnectionStateTransactionFailure;
+
   /// Settings values from the connected database.
   ///
   /// After connecting to a database, this map will contain the settings values that the database returns.
