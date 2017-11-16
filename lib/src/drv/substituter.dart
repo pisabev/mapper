@@ -42,6 +42,8 @@ class PostgreSQLFormat {
         return "date";
       case PostgreSQLDataType.json:
         return "jsonb";
+      case PostgreSQLDataType.numeric:
+        return "numeric";
     }
 
     return null;

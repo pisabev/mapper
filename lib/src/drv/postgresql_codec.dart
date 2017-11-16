@@ -44,7 +44,10 @@ enum PostgreSQLDataType {
   /// Must be encodable via [JSON.encode].
   ///
   /// Values will be encoded via [JSON.encode] before being sent to the database.
-  json
+  json,
+
+  /// Must be a [double]
+  numeric,
 }
 
 /// A namespace for data encoding and decoding operations for PostgreSQL data.
@@ -95,6 +98,9 @@ abstract class PostgreSQLCodec {
 
       case PostgreSQLDataType.json:
         return encodeJSON(value);
+
+      case PostgreSQLDataType.numeric:
+        return encodeDefault(value, escapeStrings: escapeStrings);
 
       default:
         return encodeDefault(value, escapeStrings: escapeStrings);

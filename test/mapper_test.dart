@@ -11,49 +11,51 @@ class App extends Application {
 }
 
 main() {
-  var app = {};
-  app[#test1] = () => new Test1Mapper()
-    ..entity = (() => new Test1())
-    ..collection = () => new Test1Collection();
-  test('', () async {
-    manager = await set(app, sql);
+  group('Mapper', () {
+    setUp(() async {
+      var app = {};
+      app[#test1] = () => new Test1Mapper()
+        ..entity = (() => new Test1())
+        ..collection = () => new Test1Collection();
+      manager = await set(app, sql);
+    });
+    tearDown(() {
+
+    });
+
+    test('Basics', () async {
+      double test = 320000.000032;
+      Test1 t = manager.app.test1.createObject();
+      t.field_string = 'test';
+      t.field_int = test;
+      t.field_json = {'t': 1212,'t2': 'string'};
+      t.field_jsonb = {'t': 1212,'t2': 'string'};
+      t.field_date = new DateTime.now();
+      t.field_list = [1,2,3];
+
+      var res = await manager.app.test1.insert(t);
+      expect(res.test1_id, 1);
+
+      //await manager.init();
+      var res2 = await manager.app.test1.find(1);
+      expect(res2.field_list is List, true);
+      //print('got ${res2.field_int} expected: $test');
+      expect(res2.field_int, test);
+
+      Test1 t2 = manager.app.test1.createObject();
+      //t2.field_int = 11.3;
+      await manager.app.test1.insert(t2);
+      var all = await manager.app.test1.findAll();
+      expect(all.length, 2);
+
+      expect(await manager.app.test1.delete(t2), true);
+    }, skip: false);
   });
-  test('Mapper', () async {
-    try {await manager.query('Select where nesto @@ sds');} catch(e){print(e);};
-  });
-  test('Mapper Basics', () async {
-    double test = 320000.000032;
-    Test1 t = manager.app.test1.createObject();
-    t.field_string = 'test';
-    t.field_int = test;
-    t.field_json = {'t': 1212,'t2': 'string'};
-    t.field_jsonb = {'t': 1212,'t2': 'string'};
-    t.field_date = new DateTime.now();
-    t.field_list = [1,2,3];
 
-    var res = await manager.app.test1.insert(t);
-    expect(res.test1_id, 1);
-
-    //await manager.init();
-    var res2 = await manager.app.test1.find(1);
-    expect(res2.field_list is List, true);
-    //print('got ${res2.field_int} expected: $test');
-    expect(res2.field_int, test);
-
-    Test1 t2 = manager.app.test1.createObject();
-    //t2.field_int = 11.3;
-    await manager.app.test1.insert(t2);
-    var all = await manager.app.test1.findAll();
-    expect(all.length, 2);
-
-    expect(await manager.app.test1.delete(t2), true);
-  }, skip: true);
 }
 
-
-
 var sql = '''
-CREATE TABLE IF NOT EXISTS "test1" (
+CREATE TEMPORARY TABLE "test1" (
     "test1_id"        serial     NOT NULL PRIMARY KEY,
     "field_string"    text       ,
     "field_int"       decimal(12,6),
