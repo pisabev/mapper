@@ -35,6 +35,7 @@ class TSquery {
   TSquery(this.query);
 
   String toString() {
+    if(query == null) return null;
     var search = query.trim();
     if (search.length < 2) return null;
     var parts = search.split(new RegExp(r'\s+')).map((e) => e
