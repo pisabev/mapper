@@ -61,11 +61,11 @@ class Unit<A extends Application> {
     if(_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
 
-  Future _doUpdates() => Future.wait(_dirty.map((o) => _manager._mapper(o).update(o)));
+  Future _doUpdates() => Future.forEach(_dirty, ((o) => _manager._mapper(o).update(o)));
 
-  Future _doInserts() => Future.wait(_new.map((o) => _manager._mapper(o).insert(o)));
+  Future _doInserts() => Future.forEach(_new, ((o) => _manager._mapper(o).insert(o)));
 
-  Future _doDeletes() => Future.wait(_delete.map((o) => _manager._mapper(o).delete(o)));
+  Future _doDeletes() => Future.forEach(_delete, ((o) => _manager._mapper(o).delete(o)));
 
   void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
 
@@ -83,7 +83,7 @@ class Unit<A extends Application> {
   Future _rollback() =>
       _manager._connection.execute('ROLLBACK').then((_) => _started = false);
 
-  Future persist() async {
+  Future persist() {
     return _begin()
         .then((_) => _doDeletes())
         .then((_) => _doUpdates())
