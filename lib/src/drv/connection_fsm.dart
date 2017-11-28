@@ -343,6 +343,14 @@ class _PostgreSQLConnectionStateTransactionFailure
   _PostgreSQLConnectionState awake() {
     return new _PostgreSQLConnectionStateReadyInTransaction(transaction);
   }
+
+  // Prevent Future.wait leak
+  _PostgreSQLConnectionState onEnter() {
+    if (transaction == null && connection._pendingQuery != null)
+      connection._pendingQuery.completeError(null);
+    return this;
+  }
+
 }
 
 /*
