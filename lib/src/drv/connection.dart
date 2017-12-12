@@ -77,9 +77,11 @@ class PostgreSQLConnection implements PostgreSQLExecutionContext {
       this.useSSL: false}) {
     _connectionState = new _PostgreSQLConnectionStateClosed();
     _connectionState.connection = this;
-    connId++;
+    _connId++;
+    connId = _connId;
   }
-static int connId = 0;
+  int connId;
+static int _connId = 0;
   final StreamController<Notification> _notifications = new StreamController<Notification>.broadcast();
 
   /// Hostname of database this connection refers to.

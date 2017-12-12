@@ -68,7 +68,7 @@ class Pool {
     _createIfNeeded();
 
     return completer.future.then((conn) {
-      print(drv.PostgreSQLConnection.connId);
+      print(conn.connId);
       return conn;
     });
   }
