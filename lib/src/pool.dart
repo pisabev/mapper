@@ -55,7 +55,7 @@ class Pool {
       completer.future.timeout(timeout);
     _waitQueue.add(completer);
 
-    if (connectionsIdle.isNotEmpty && _waitQueue.length == 1)
+    if (connectionsIdle.isNotEmpty)
       _onConnectionReady(connectionsIdle.first);
     else if (connections.length + _inCreateProcess < _max) {
       _inCreateProcess++;

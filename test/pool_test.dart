@@ -58,6 +58,21 @@ main() {
     var con = await connection.obtain(timeout: new Duration(seconds: 2));
     expect(con != null, true);
   }, skip: false);
+  test('Pool 4.2', () async {
+    var connection = new Pool('localhost', 5432, 'test', 'user', 'user', 2, 2);
+    await connection.start();
+    var con1 = await connection.obtain().then((conn) async {
+      await new Future.delayed(new Duration(seconds: 1));
+      connection.release(conn);
+    });
+    var con2 = await connection.obtain().then((conn) async {
+      await new Future.delayed(new Duration(seconds: 3));
+      connection.release(conn);
+    });
+    await new Future.delayed(new Duration(seconds: 2));
+    var con = await connection.obtain(timeout: new Duration(seconds: 2));
+    expect(con != null, true);
+  }, skip: false);
   test('Pool 5', () async {
     var connection = new Pool('localhost', 5432, 'test', 'user', 'user');
     await connection.start();
