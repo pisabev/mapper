@@ -10,8 +10,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   dynamic pkey;
 
-  static Map<String, Object> _ref = new Map();
-
   static const String _SEP = '.';
 
   EntityFunction<E> entity;
@@ -235,7 +233,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   E _markObject(E object) {
-    _ref[object.runtimeType.toString()] = this;
+    object._mapper = this;
     return object;
   }
 

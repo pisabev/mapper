@@ -61,11 +61,11 @@ class Unit<A extends Application> {
     if(_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
 
-  Future _doUpdates() => Future.forEach(_dirty, ((o) => _manager._mapper(o).update(o)));
+  Future _doUpdates() => Future.forEach(_dirty, ((o) => o._mapper.update(o)));
 
-  Future _doInserts() => Future.forEach(_new, ((o) => _manager._mapper(o).insert(o)));
+  Future _doInserts() => Future.forEach(_new, ((o) => o._mapper.insert(o)));
 
-  Future _doDeletes() => Future.forEach(_delete, ((o) => _manager._mapper(o).delete(o)));
+  Future _doDeletes() => Future.forEach(_delete, ((o) => o._mapper.delete(o)));
 
   void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
 
