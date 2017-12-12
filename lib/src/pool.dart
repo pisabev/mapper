@@ -35,7 +35,7 @@ class Pool {
     _onConnectionReady(conn);
   }
 
-  void _createIfNeeded() {
+  void _createProvide() {
     if (connectionsIdle.isNotEmpty)
       _onConnectionReady(connectionsIdle.first);
     else if (connections.length + _inCreateProcess < _max) {
@@ -48,7 +48,7 @@ class Pool {
     if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
       connectionsIdle.remove(conn);
       connections.remove(conn);
-      _createIfNeeded();
+      _createProvide();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       _waitQueue.removeAt(0).complete(conn);
@@ -65,7 +65,7 @@ class Pool {
       completer.future.timeout(timeout);
     _waitQueue.add(completer);
 
-    _createIfNeeded();
+    _createProvide();
 
     return completer.future;
   }
