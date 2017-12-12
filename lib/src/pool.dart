@@ -67,9 +67,6 @@ class Pool {
 
     _createIfNeeded();
 
-    return completer.future.then((conn) {
-      print(conn.connId);
-      return conn;
-    });
+    return completer.future;
   }
 }
