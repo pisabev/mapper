@@ -90,6 +90,4 @@ class Manager<A extends Application> {
     _connection = null;
   }
 
-  //Mapper _mapper(Entity<Application> object) =>
-    //  Mapper._ref[object.runtimeType.toString()];
 }
