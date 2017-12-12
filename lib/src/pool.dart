@@ -48,8 +48,7 @@ class Pool {
     if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
       connectionsIdle.remove(conn);
       connections.remove(conn);
-      if (connectionsIdle.isNotEmpty && connections.length < _min)
-        _createIfNeeded();
+      _createIfNeeded();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       _waitQueue.removeAt(0).complete(conn);
@@ -68,6 +67,9 @@ class Pool {
 
     _createIfNeeded();
 
-    return completer.future;
+    return completer.future.then((conn) {
+      print(drv.PostgreSQLConnection.connId);
+      return conn;
+    });
   }
 }
