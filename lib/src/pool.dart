@@ -35,10 +35,21 @@ class Pool {
     _onConnectionReady(conn);
   }
 
+  void _createIfNeeded() {
+    if (connectionsIdle.isNotEmpty)
+      _onConnectionReady(connectionsIdle.first);
+    else if (connections.length + _inCreateProcess < _max) {
+      _inCreateProcess++;
+      _createConnection();
+    }
+  }
+
   void _onConnectionReady(drv.PostgreSQLConnection conn) {
     if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
       connectionsIdle.remove(conn);
       connections.remove(conn);
+      if (connectionsIdle.isNotEmpty && connections.length < _min)
+        _createIfNeeded();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       _waitQueue.removeAt(0).complete(conn);
@@ -55,12 +66,7 @@ class Pool {
       completer.future.timeout(timeout);
     _waitQueue.add(completer);
 
-    if (connectionsIdle.isNotEmpty)
-      _onConnectionReady(connectionsIdle.first);
-    else if (connections.length + _inCreateProcess < _max) {
-      _inCreateProcess++;
-      _createConnection();
-    }
+    _createIfNeeded();
 
     return completer.future;
   }
