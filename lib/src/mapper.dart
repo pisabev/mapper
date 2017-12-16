@@ -232,11 +232,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }));
   }
 
-  E _markObject(E object) {
-    object._mapper = this;
-    return object;
-  }
-
   String _cacheKeyFromData(Map data) => (pkey is List)
       ? pkey.map((k) => data[k]).join(_SEP)
       : data[pkey].toString();
@@ -262,9 +257,11 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   String _escape(String string) => '"$string"';
 
   E createObject([dynamic data]) {
-    E object = entity()..manager = manager;
+    E object = entity()
+      ..manager = manager
+      .._mapper = this;
     if (data != null) object.init(data);
-    return _markObject(object);
+    return object;
   }
 
   C createCollection() => collection();
