@@ -281,7 +281,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     if (vpkey != null) {
       E object =
           (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
-      data[pkey] = vpkey;
+      data[pkey] = data[pkey] ?? vpkey;
       mergeData(object, data);
       manager.addDirty(object);
       return object;
