@@ -469,10 +469,10 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   set page(int page) => _page = (page > 0) ? page : 0;
 
-  void order(String order, [String way = 'ASC']) {
+  void order(String order, String way) {
     if (order != null) {
       order_field = order;
-      order_way = way;
+      order_way = way ?? 'ASC';
     }
   }
 
