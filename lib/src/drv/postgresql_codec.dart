@@ -436,7 +436,7 @@ abstract class PostgreSQLCodec {
         var beforeWords = e.getInt16(2) + 1;
         var isNegative = (e.getInt16(4) & 16384) == 16384;
         var afterWords = allWords - beforeWords;
-        //var precision = e.getInt16(6);
+        var precision = e.getInt16(6);
 
         var offset = 8;
         var beforeDigit = 0;
@@ -461,6 +461,9 @@ abstract class PostgreSQLCodec {
         }
 
         var result = afterDigit / pow(10000, afterWords) + beforeDigit;
+
+        var fac = pow(10, precision);
+        result = (result * fac).round() / fac;
 
         return isNegative ? -result : result;
       }
