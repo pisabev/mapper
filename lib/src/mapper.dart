@@ -71,18 +71,17 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<C> loadC(Builder builder, [calcTotal = false]) => _streamToCollection(builder, calcTotal)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<E> insert(E object) {
+  Future<E> insert(E object) async {
     Map data = readObject(object);
-    return execute(_setUpdateData(insertBuilder(), data, true)).then((result) {
-      setObject(object, result[0]);
-      var d = readObject(object);
-      _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
-      _notifyCreate(object);
-      return object;
-    });
+    var result = await execute(_setUpdateData(insertBuilder(), data, true));
+    setObject(object, result[0]);
+    var d = readObject(object);
+    _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
+    await _notifyCreate(object);
+    return object;
   }
 
-  Future<E> update(E object) {
+  Future<E> update(E object) async {
     Map data = readObject(object);
     Builder q = _setUpdateData(updateBuilder(), data);
     if (pkey is List)
@@ -90,10 +89,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
           (k) => q.andWhere(_escape(k) + ' = @' + k).setParameter(k, data[k]));
     else
       q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
-    return execute(q).then((_) {
-      _notifyUpdate(object);
-      return object;
-    });
+    await execute(q);
+    await _notifyUpdate(object);
+    return object;
   }
 
   Future<bool> delete(E object) {
@@ -111,15 +109,15 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future<bool> _deleteById(dynamic id, E object) async {
     _cacheClean(id.toString());
-    _notifyDelete(object);
-    return execute(deleteBuilder()
+    await _notifyDelete(object);
+    await execute(deleteBuilder()
             .where(_escape(pkey) + ' = @' + pkey)
-            .setParameter(pkey, id))
-        .then((_) => true);
+            .setParameter(pkey, id));
+    return true;
   }
 
   Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
-    _notifyDelete(object);
+    await _notifyDelete(object);
     _cacheClean(ids.join(_SEP));
     Builder q = deleteBuilder();
     int i = 0;
@@ -128,7 +126,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
       i++;
     });
-    return execute(q).then((_) => true);
+    await execute(q);
+    return true;
   }
 
   Map _readDiff(E obj) {
@@ -145,12 +144,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return diffm;
   }
 
-  void _notifyUpdate(E obj) {
+  Future _notifyUpdate(E obj) async {
     if (notifier != null) {
       var diffm = _readDiff(obj);
       if (diffm.isNotEmpty) {
         if (!manager.inTransaction)
-          notifier._addUpdate(new EntityContainer(obj, diffm));
+          await notifier._addUpdate(new EntityContainer(obj, diffm));
         else
           manager._unit._addNotifyUpdate(
               obj, () => notifier._addUpdate(new EntityContainer(obj, diffm)));
@@ -158,20 +157,20 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  void _notifyCreate(E obj) {
+  Future _notifyCreate(E obj) async {
     if (notifier != null) {
       if (!manager.inTransaction)
-        notifier._addCreate(new EntityContainer(obj, null));
+        await notifier._addCreate(new EntityContainer(obj, null));
       else
         manager._unit._addNotifyInsert(
             obj, () => notifier._addCreate(new EntityContainer(obj, null)));
     }
   }
 
-  void _notifyDelete(E obj) {
+  Future _notifyDelete(E obj) async {
     if (notifier != null) {
       if (!manager.inTransaction)
-        notifier._addDelete(new EntityContainer(obj, null));
+        await notifier._addDelete(new EntityContainer(obj, null));
       else
         manager._unit._addNotifyDelete(
             obj, () => notifier._addDelete(new EntityContainer(obj, null)));

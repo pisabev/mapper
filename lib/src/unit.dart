@@ -67,11 +67,11 @@ class Unit<A extends Application> {
 
   Future _doDeletes() => Future.forEach(_delete, ((o) => o._mapper.delete(o)));
 
-  void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
+  Future _doNotifyUpdates() => Future.forEach(_notifyUpdate.values, (v) => v());
 
-  void _doNotifyInserts() => _notifyInsert.forEach((k, v) => v());
+  Future _doNotifyInserts() => Future.forEach(_notifyInsert.values, (v) => v());
 
-  void _doNotifyDeletes() => _notifyDelete.forEach((k, v) => v());
+  Future _doNotifyDeletes() => Future.forEach(_notifyDelete.values, (v) => v());
 
   Future _begin() => !_started
       ? _manager._connection.execute('BEGIN').then((_) => _started = true)

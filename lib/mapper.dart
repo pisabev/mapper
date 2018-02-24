@@ -16,6 +16,7 @@ part 'src/entity.dart';
 part 'src/cache.dart';
 part 'src/pool.dart';
 part 'src/exception.dart';
+part 'src/observer.dart';
 
 final Logger _log = new Logger('Mapper');
 
@@ -27,41 +28,43 @@ class EntityContainer<E> {
   bool isUpdated() => diff != null;
 }
 
-class EntityNotifier<E> {
-  StreamController<EntityContainer<E>> _contr_change =
-      new StreamController.broadcast();
-  StreamController<EntityContainer<E>> _contr_update =
-      new StreamController.broadcast();
-  StreamController<EntityContainer<E>> _contr_create =
-      new StreamController.broadcast();
-  StreamController<EntityContainer<E>> _contr_delete =
-      new StreamController.broadcast();
+class StreamObserver<E> {
+  final MEvent scope;
+  final Observer observer;
 
-  Stream<EntityContainer<E>> onChange;
-  Stream<EntityContainer<E>> onUpdate;
-  Stream<EntityContainer<E>> onCreate;
-  Stream<EntityContainer<E>> onDelete;
+  const StreamObserver(this.scope, this.observer);
 
-  EntityNotifier() {
-    onChange = _contr_change.stream;
-    onUpdate = _contr_update.stream;
-    onCreate = _contr_create.stream;
-    onDelete = _contr_delete.stream;
+  void listen(ObserverFunction<E> f) => observer.addHook(scope, f);
+}
+
+class EntityNotifier<E extends Entity<Application>> {
+  Observer<E> _observer = new Observer<E>();
+
+  StreamObserver<E> get onCreate =>
+      new StreamObserver(MEvent.create, _observer);
+
+  StreamObserver<E> get onUpdate =>
+      new StreamObserver(MEvent.update, _observer);
+
+  StreamObserver<E> get onDelete =>
+      new StreamObserver(MEvent.delete, _observer);
+
+  StreamObserver<E> get onChange =>
+      new StreamObserver(MEvent.change, _observer);
+
+  Future _addUpdate(EntityContainer<E> o) async {
+    await _observer.execHooksAsync(MEvent.update, o);
+    await _observer.execHooksAsync(MEvent.change, o);
   }
 
-  _addUpdate(EntityContainer<E> o) {
-    _contr_update.add(o);
-    _contr_change.add(o);
+  Future _addCreate(EntityContainer<E> o) async {
+    await _observer.execHooksAsync(MEvent.create, o);
+    await _observer.execHooksAsync(MEvent.change, o);
   }
 
-  _addCreate(EntityContainer<E> o) {
-    _contr_create.add(o);
-    _contr_change.add(o);
-  }
-
-  _addDelete(EntityContainer<E> o) {
-    _contr_delete.add(o);
-    _contr_change.add(o);
+  Future _addDelete(EntityContainer<E> o) async {
+    await _observer.execHooksAsync(MEvent.delete, o);
+    await _observer.execHooksAsync(MEvent.change, o);
   }
 }
 
