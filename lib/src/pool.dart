@@ -25,10 +25,10 @@ class Pool {
     }
   }
 
-  Future close() async {
+  Future destroy() async {
     if(connectionsIdle.length == _max) return null;
     else
-      return new Future.delayed(new Duration(milliseconds: 20), close);
+      return new Future.delayed(new Duration(milliseconds: 20), destroy);
   }
 
   Future _createConnection() async {
