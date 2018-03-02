@@ -6,7 +6,7 @@ class Pool {
   String database;
   String user;
   String password;
-  bool _closing;
+  bool _closing = false;
 
   int _min, _max;
 
