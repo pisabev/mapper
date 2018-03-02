@@ -6,6 +6,7 @@ class Pool {
   String database;
   String user;
   String password;
+  bool _closing;
 
   int _min, _max;
 
@@ -17,7 +18,8 @@ class Pool {
 
   final List<Completer> _waitQueue = new List();
 
-  Pool(this.host, this.port, this.database, [this.user, this.password, this._min = 1, this._max = 5]);
+  Pool(this.host, this.port, this.database,
+      [this.user, this.password, this._min = 1, this._max = 5]);
 
   Future start() async {
     for (int i = 0; i < _min; i++) {
@@ -27,13 +29,18 @@ class Pool {
   }
 
   Future destroy() async {
-    if(connectionsBusy.isEmpty) return null;
-    else
+    _closing = true;
+    if (connectionsBusy.isEmpty) {
+      await Future.wait(connections.map((conn) => conn.close()));
+      return null;
+    } else
       return new Future.delayed(new Duration(milliseconds: 20), destroy);
   }
 
   Future _createConnection() async {
-    var conn = new drv.PostgreSQLConnection(host, port, database, username: user, password: password);
+    if (_closing) return;
+    var conn = new drv.PostgreSQLConnection(host, port, database,
+        username: user, password: password);
     await conn.open();
     _inCreateProcess--;
     connections.add(conn);
@@ -55,11 +62,11 @@ class Pool {
       connectionsBusy.remove(conn);
       connections.remove(conn);
       _createProvide();
-    } else if (_waitQueue.isNotEmpty) {
+    } else if (_waitQueue.isNotEmpty && !_closing) {
       connectionsIdle.remove(conn);
       connectionsBusy.add(conn);
       _waitQueue.removeAt(0).complete(conn);
-    } else {
+    } else if (!_closing) {
       connectionsIdle.add(conn);
       connectionsBusy.remove(conn);
     }
@@ -69,8 +76,7 @@ class Pool {
 
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     var completer = new Completer();
-    if(timeout != null)
-      completer.future.timeout(timeout);
+    if (timeout != null) completer.future.timeout(timeout);
     _waitQueue.add(completer);
 
     _createProvide();
