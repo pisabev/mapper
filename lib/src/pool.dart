@@ -25,7 +25,11 @@ class Pool {
     }
   }
 
-  close(drv.PostgreSQLConnection conn) {}
+  Future close() async {
+    if(connectionsIdle.length == _max) return null;
+    else
+      return new Future.delayed(new Duration(milliseconds: 20), close);
+  }
 
   Future _createConnection() async {
     var conn = new drv.PostgreSQLConnection(host, port, database, username: user, password: password);
