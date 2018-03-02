@@ -11,6 +11,7 @@ class Pool {
 
   final List<drv.PostgreSQLConnection> connections = new List();
   final List<drv.PostgreSQLConnection> connectionsIdle = new List();
+  final List<drv.PostgreSQLConnection> connectionsBusy = new List();
 
   int _inCreateProcess = 0;
 
@@ -26,7 +27,7 @@ class Pool {
   }
 
   Future destroy() async {
-    if(connectionsIdle.length == _max) return null;
+    if(connectionsBusy.isEmpty) return null;
     else
       return new Future.delayed(new Duration(milliseconds: 20), destroy);
   }
@@ -51,13 +52,16 @@ class Pool {
   void _onConnectionReady(drv.PostgreSQLConnection conn) {
     if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
       connectionsIdle.remove(conn);
+      connectionsBusy.remove(conn);
       connections.remove(conn);
       _createProvide();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
+      connectionsBusy.add(conn);
       _waitQueue.removeAt(0).complete(conn);
     } else {
       connectionsIdle.add(conn);
+      connectionsBusy.remove(conn);
     }
   }
 
