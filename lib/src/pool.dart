@@ -6,7 +6,6 @@ class Pool {
   String database;
   String user;
   String password;
-  bool _closing = false;
 
   int _min, _max;
 
@@ -29,16 +28,17 @@ class Pool {
   }
 
   Future destroy() async {
-    _closing = true;
     if (connectionsBusy.isEmpty) {
-      await Future.wait(connections.map((conn) => conn.close()));
-      return null;
-    } else
-      return new Future.delayed(new Duration(milliseconds: 20), destroy);
+      await new Future.delayed(new Duration(milliseconds: 5000));
+      if (connectionsBusy.isEmpty) {
+        await Future.wait(connections.map((conn) => conn.close()));
+        return null;
+      }
+    }
+    return new Future.delayed(new Duration(milliseconds: 20), destroy);
   }
 
   Future _createConnection() async {
-    if (_closing) return;
     var conn = new drv.PostgreSQLConnection(host, port, database,
         username: user, password: password);
     await conn.open();
@@ -62,18 +62,17 @@ class Pool {
       connectionsBusy.remove(conn);
       connections.remove(conn);
       _createProvide();
-    } else if (_waitQueue.isNotEmpty && !_closing) {
+    } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
-      connectionsBusy.add(conn);
+      if (!connectionsBusy.contains(conn)) connectionsBusy.add(conn);
       _waitQueue.removeAt(0).complete(conn);
-    } else if (!_closing) {
-      connectionsIdle.add(conn);
+    } else {
+      if (!connectionsIdle.contains(conn)) connectionsIdle.add(conn);
       connectionsBusy.remove(conn);
     }
   }
 
   void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
-
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     var completer = new Completer();
     if (timeout != null) completer.future.timeout(timeout);
