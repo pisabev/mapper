@@ -45,7 +45,7 @@ class Unit<A extends Application> {
 
   void addDelete(Entity<A> object) {
     (!_delete.contains(object)) ? _delete.add(object) : null;
-    if(_new.contains(object)) _new.remove(object);
+    if (_new.contains(object)) _new.remove(object);
   }
 
   void _addNotifyUpdate(Entity<A> object, Function f) =>
@@ -58,7 +58,7 @@ class Unit<A extends Application> {
 
   void _addNotifyDelete(Entity<A> object, Function f) {
     (!_notifyDelete.containsKey(object)) ? _notifyDelete[object] = f : null;
-    if(_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
+    if (_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
 
   Future _doUpdates() => Future.forEach(_dirty, ((o) => o._mapper.update(o)));
@@ -80,8 +80,12 @@ class Unit<A extends Application> {
   Future _commit() =>
       _manager._connection.execute('COMMIT').then((_) => _started = false);
 
-  Future _rollback() =>
-      _manager._connection.execute('ROLLBACK').then((_) => _started = false);
+  Future _savePoint(String savePoint) =>
+      _manager._connection.execute('SAVEPOINT $savePoint');
+
+  Future _rollBack([String savePoint]) => savePoint != null
+      ? _manager._connection.execute('ROLLBACK TO $savePoint')
+      : _manager._connection.execute('ROLLBACK').then((_) => _started = false);
 
   Future persist() {
     return _begin()
@@ -89,7 +93,7 @@ class Unit<A extends Application> {
         .then((_) => _doUpdates())
         .then((_) => _doInserts())
         .then((_) => _resetEntities())
-        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
+        .catchError((e, s) => _rollBack().then((_) => new Future.error(e, s)));
   }
 
   Future commit() {
@@ -99,6 +103,6 @@ class Unit<A extends Application> {
         .then((_) => _doNotifyUpdates())
         .then((_) => _doNotifyInserts())
         .then((_) => _resetNotifiers())
-        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
+        .catchError((e, s) => _rollBack().then((_) => new Future.error(e, s)));
   }
 }
