@@ -83,6 +83,9 @@ class Unit<A extends Application> {
   Future _savePoint(String savePoint) =>
       _manager._connection.execute('SAVEPOINT $savePoint');
 
+  Future _releaseSavePoint(String savePoint) =>
+      _manager._connection.execute('RELEASE SAVEPOINT $savePoint');
+
   Future _rollback([String savePoint]) => savePoint != null
       ? _manager._connection.execute('ROLLBACK TO $savePoint')
       : _manager._connection.execute('ROLLBACK').then((_) => _started = false);

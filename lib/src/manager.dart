@@ -81,6 +81,9 @@ class Manager<A extends Application> {
 
   Future savePoint(String savePoint) => _unit._savePoint(savePoint);
 
+  Future releaseSavePoint(String savePoint) =>
+      _unit._releaseSavePoint(savePoint);
+
   Future rollback([String savePoint]) => _unit._rollback(savePoint);
 
   bool get inTransaction => _unit._started;
@@ -91,5 +94,4 @@ class Manager<A extends Application> {
     _pool.release(_connection);
     _connection = null;
   }
-
 }
