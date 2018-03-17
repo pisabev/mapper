@@ -81,7 +81,7 @@ class Manager<A extends Application> {
 
   Future savePoint(String savePoint) => _unit._savePoint(savePoint);
 
-  Future _rollback([String savePoint]) => _unit._rollback();
+  Future _rollback([String savePoint]) => _unit._rollback(savePoint);
 
   bool get inTransaction => _unit._started;
 
