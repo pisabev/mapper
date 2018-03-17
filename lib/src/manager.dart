@@ -81,13 +81,13 @@ class Manager<A extends Application> {
 
   Future savePoint(String savePoint) => _unit._savePoint(savePoint);
 
-  Future rollBack([String savePoint]) => _unit._rollBack();
+  Future _rollback([String savePoint]) => _unit._rollback();
 
   bool get inTransaction => _unit._started;
 
   Future close() async {
     _cache = new Cache();
-    if (_unit._started) await _unit._rollBack();
+    if (_unit._started) await _unit._rollback();
     _pool.release(_connection);
     _connection = null;
   }

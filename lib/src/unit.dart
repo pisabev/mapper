@@ -83,7 +83,7 @@ class Unit<A extends Application> {
   Future _savePoint(String savePoint) =>
       _manager._connection.execute('SAVEPOINT $savePoint');
 
-  Future _rollBack([String savePoint]) => savePoint != null
+  Future _rollback([String savePoint]) => savePoint != null
       ? _manager._connection.execute('ROLLBACK TO $savePoint')
       : _manager._connection.execute('ROLLBACK').then((_) => _started = false);
 
@@ -93,7 +93,7 @@ class Unit<A extends Application> {
         .then((_) => _doUpdates())
         .then((_) => _doInserts())
         .then((_) => _resetEntities())
-        .catchError((e, s) => _rollBack().then((_) => new Future.error(e, s)));
+        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
   }
 
   Future commit() {
@@ -103,6 +103,6 @@ class Unit<A extends Application> {
         .then((_) => _doNotifyUpdates())
         .then((_) => _doNotifyInserts())
         .then((_) => _resetNotifiers())
-        .catchError((e, s) => _rollBack().then((_) => new Future.error(e, s)));
+        .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
   }
 }
