@@ -516,6 +516,8 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     switch (way) {
       case 'eq':
         if (value is List) {
+          value.removeWhere((v) => v == null);
+          if (value.isEmpty) return;
           var q = value.map((v) {
             if (v == 'null') {
               return '$key IS NULL';
