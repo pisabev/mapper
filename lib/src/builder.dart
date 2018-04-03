@@ -49,9 +49,7 @@ class TSquery {
   }
 }
 
-typedef T StreamFunction<T>();
-
-class Builder<T> {
+class Builder {
   static const int SELECT = 0;
 
   static const int DELETE = 1;
