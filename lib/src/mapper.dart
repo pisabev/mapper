@@ -276,14 +276,20 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<E> prepare(dynamic vpkey, Map data) async {
+  Future<E> prepare(dynamic vpkey, Map data, {forceInsert = false}) async {
     if (vpkey != null) {
       E object =
           (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
       data[pkey] = vpkey;
-      mergeData(object, data);
-      manager.addDirty(object);
-      return object;
+      if(object == null && forceInsert) {
+        E object = createObject(data);
+        manager.addNew(object);
+        return object;
+      } else {
+        mergeData(object, data);
+        manager.addDirty(object);
+        return object;
+      }
     } else {
       E object = createObject(data);
       manager.addNew(object);
