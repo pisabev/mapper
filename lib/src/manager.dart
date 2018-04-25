@@ -45,7 +45,13 @@ class Manager<A extends Application> {
 
   _error(e, [String query, Map params]) {
     if (e is drv.PostgreSQLException) {
-      if (e.code != null && (e.code == '23503' || e.code == '23514'))
+      if (e.code != null &&
+          (e.code == '23500' ||
+              e.code == '23501' ||
+              e.code == '23502' ||
+              e.code == '23503' ||
+              e.code == '23505' ||
+              e.code == '23514'))
         throw new PostgreConstraintException(
             e.toString(), query, params?.toString(), e);
       else
