@@ -27,15 +27,19 @@ class Pool {
     }
   }
 
-  Future destroy() async {
-    if (connectionsBusy.isEmpty) {
-      await new Future.delayed(new Duration(milliseconds: 5000));
+  Future destroy({bool graceful = true}) async {
+    if(graceful) {
       if (connectionsBusy.isEmpty) {
-        await Future.wait(connections.map((conn) => conn.close()));
-        return null;
+        await new Future.delayed(new Duration(milliseconds: 5000));
+        if (connectionsBusy.isEmpty) {
+          await Future.wait(connections.map((conn) => conn.close()));
+          return null;
+        }
       }
+      return new Future.delayed(new Duration(milliseconds: 20), destroy);
+    } else {
+      await Future.wait(connections.map((conn) => conn.close()));
     }
-    return new Future.delayed(new Duration(milliseconds: 20), destroy);
   }
 
   Future _createConnection() async {
