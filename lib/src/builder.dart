@@ -574,7 +574,8 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
           }
           if (value[1] != null) {
             DateTime to = DateTime.parse(value[1]);
-            query.andWhere('$key <= @date_to').setParameter('date_to', to);
+            to = to.add(new Duration(seconds: 86400));
+            query.andWhere('$key < @date_to').setParameter('date_to', to);
           }
         }
         break;
