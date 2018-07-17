@@ -6,6 +6,7 @@ class Pool {
   String database;
   String user;
   String password;
+  String timezone;
 
   int _min, _max;
 
@@ -18,7 +19,11 @@ class Pool {
   final List<Completer> _waitQueue = new List();
 
   Pool(this.host, this.port, this.database,
-      [this.user, this.password, this._min = 1, this._max = 5]);
+      [this.user,
+      this.password,
+      this._min = 1,
+      this._max = 5,
+      this.timezone = 'UTC']);
 
   Future start() async {
     for (int i = 0; i < _min; i++) {
@@ -28,7 +33,7 @@ class Pool {
   }
 
   Future destroy({bool graceful = true}) async {
-    if(graceful) {
+    if (graceful) {
       if (connectionsBusy.isEmpty) {
         await new Future.delayed(new Duration(milliseconds: 5000));
         if (connectionsBusy.isEmpty) {
@@ -44,7 +49,7 @@ class Pool {
 
   Future _createConnection() async {
     var conn = new drv.PostgreSQLConnection(host, port, database,
-        username: user, password: password);
+        username: user, password: password, timeZone: timezone);
     await conn.open();
     _inCreateProcess--;
     connections.add(conn);
