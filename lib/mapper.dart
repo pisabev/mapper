@@ -53,19 +53,16 @@ class EntityNotifier<E extends Entity<Application>> {
       new StreamObserver(MEvent.change, _observer);
 
   Future _addUpdate(EntityContainer<E> o) async {
-    o.entity.manager = null;
     await _observer.execHooksAsync(MEvent.update, o);
     await _observer.execHooksAsync(MEvent.change, o);
   }
 
   Future _addCreate(EntityContainer<E> o) async {
-    o.entity.manager = null;
     await _observer.execHooksAsync(MEvent.create, o);
     await _observer.execHooksAsync(MEvent.change, o);
   }
 
   Future _addDelete(EntityContainer<E> o) async {
-    o.entity.manager = null;
     await _observer.execHooksAsync(MEvent.delete, o);
     await _observer.execHooksAsync(MEvent.change, o);
   }
