@@ -2,9 +2,8 @@ part of mapper_server;
 
 typedef T EntityFunction<T>();
 
-abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
-    A extends Application> {
-  Manager<A> manager;
+abstract class Mapper<E extends Entity, C extends Collection<E>> {
+  Manager manager;
 
   String table;
 
@@ -248,9 +247,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Map _cacheGetInitData(String k) =>
       manager.cacheGetInitData(runtimeType.toString() + k);
 
-  CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
     if (q == null) q = selectBuilder();
-    return new CollectionBuilder<E, C, A>(q, this);
+    return new CollectionBuilder<E, C>(q, this);
   }
 
   String _escape(String string) => '"$string"';

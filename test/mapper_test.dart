@@ -6,6 +6,10 @@ import 'common.dart';
 
 Manager<App> manager;
 
+class AppMixin {
+
+}
+
 class App extends Application {
   Test1Mapper test1;
 }
@@ -70,7 +74,7 @@ CREATE TEMPORARY TABLE "test1" (
 );
 ''';
 
-class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
+class Test1Mapper extends Mapper<Test1, Test1Collection> {
   String table = 'test1';
 }
 

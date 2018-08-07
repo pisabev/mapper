@@ -67,22 +67,22 @@ class Manager<A extends Application> {
     }
   }
 
-  cacheAdd(String key, Entity<Application> object, Map initData) =>
+  cacheAdd(String key, Entity object, Map initData) =>
       _cache.add(key, object, initData);
 
   cacheClean(String key) => _cache.delete(key);
 
-  Entity<Application> cacheGet(String key) => _cache.get(key);
+  Entity cacheGet(String key) => _cache.get(key);
 
   Map cacheGetInitData(String key) => _cache.getInitData(key);
 
   cache() => _cache.toString();
 
-  addDirty(Entity<Application> object) => _unit.addDirty(object);
+  addDirty(Entity object) => _unit.addDirty(object);
 
-  addNew(Entity<Application> object) => _unit.addNew(object);
+  addNew(Entity object) => _unit.addNew(object);
 
-  addDelete(Entity<Application> object) => _unit.addDelete(object);
+  addDelete(Entity object) => _unit.addDelete(object);
 
   Future persist() => _unit.persist();
 

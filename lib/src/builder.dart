@@ -434,13 +434,12 @@ class Builder {
   toString() => getSQL();
 }
 
-class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
-    A extends Application> {
+class CollectionBuilder<E extends Entity, C extends Collection<E>> {
   static int _unique = 0;
 
   Builder query;
 
-  Mapper<E, C, A> mapper;
+  Mapper<E, C> mapper;
 
   Map<String, dynamic> filter = new Map();
 
@@ -458,7 +457,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   C collection;
 
-  CollectionBuilder(Builder q, Mapper<E, C, A> m) {
+  CollectionBuilder(Builder q, Mapper<E, C> m) {
     query = q;
     mapper = m;
   }
@@ -474,7 +473,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  Future<CollectionBuilder<E, C, A>> process([total = false]) async {
+  Future<CollectionBuilder<E, C>> process([total = false]) async {
     _queryFilter();
     _queryResult();
     collection = await mapper.loadC(query, total);

@@ -1,6 +1,6 @@
 part of mapper_server;
 
-class Unit<A extends Application> {
+class Unit {
   Manager _manager;
 
   List<Entity> _dirty;
@@ -24,9 +24,9 @@ class Unit<A extends Application> {
   }
 
   _resetEntities() {
-    _dirty = new List<Entity<A>>();
-    _new = new List<Entity<A>>();
-    _delete = new List<Entity<A>>();
+    _dirty = new List<Entity>();
+    _new = new List<Entity>();
+    _delete = new List<Entity>();
   }
 
   _resetNotifiers() {
@@ -35,28 +35,28 @@ class Unit<A extends Application> {
     _notifyDelete = new Map();
   }
 
-  void addDirty(Entity<A> object) =>
+  void addDirty(Entity object) =>
       (!_new.contains(object) && !_dirty.contains(object))
           ? _dirty.add(object)
           : null;
 
-  void addNew(Entity<A> object) =>
+  void addNew(Entity object) =>
       (!_new.contains(object)) ? _new.add(object) : null;
 
-  void addDelete(Entity<A> object) {
+  void addDelete(Entity object) {
     (!_delete.contains(object)) ? _delete.add(object) : null;
     if (_new.contains(object)) _new.remove(object);
   }
 
-  void _addNotifyUpdate(Entity<A> object, Function f) =>
+  void _addNotifyUpdate(Entity object, Function f) =>
       (!_notifyInsert.containsKey(object) && !_notifyUpdate.containsKey(object))
           ? _notifyUpdate[object] = f
           : null;
 
-  void _addNotifyInsert(Entity<A> object, Function f) =>
+  void _addNotifyInsert(Entity object, Function f) =>
       (!_notifyInsert.containsKey(object)) ? _notifyInsert[object] = f : null;
 
-  void _addNotifyDelete(Entity<A> object, Function f) {
+  void _addNotifyDelete(Entity object, Function f) {
     (!_notifyDelete.containsKey(object)) ? _notifyDelete[object] = f : null;
     if (_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
