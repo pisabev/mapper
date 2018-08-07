@@ -7,20 +7,18 @@ import 'common.dart';
 Manager<App> manager;
 
 class AppMixin {
-
+  Manager m;
+  Test1Mapper get test1 => new Test1Mapper()
+    ..manager = m
+    ..entity = (() => new Test1())
+    ..collection = () => new Test1Collection();
 }
 
-class App extends Application {
-  Test1Mapper test1;
-}
+class App extends Application with AppMixin {}
 
 main() {
   group('Mapper', () {
     setUp(() async {
-      var app = {};
-      app[#test1] = () => new Test1Mapper()
-        ..entity = (() => new Test1())
-        ..collection = () => new Test1Collection();
       manager = await set(app, sql);
     });
     tearDown(() {
