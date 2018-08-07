@@ -2,8 +2,9 @@ part of mapper_server;
 
 typedef T EntityFunction<T>();
 
-abstract class Mapper<E extends Entity, C extends Collection<E>> {
-  Manager manager;
+abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
+    A extends Application> {
+  Manager<A> manager;
 
   String table;
 
@@ -67,8 +68,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>> {
   Future<E> loadE(Builder builder) => _streamToEntity(builder)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder, [calcTotal = false]) => _streamToCollection(builder, calcTotal)
-      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
+  Future<C> loadC(Builder builder, [calcTotal = false]) =>
+      _streamToCollection(builder, calcTotal).catchError(
+          (e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) async {
     Map data = readObject(object);
@@ -110,8 +112,8 @@ abstract class Mapper<E extends Entity, C extends Collection<E>> {
     _cacheClean(id.toString());
     await _notifyDelete(object);
     await execute(deleteBuilder()
-            .where(_escape(pkey) + ' = @' + pkey)
-            .setParameter(pkey, id));
+        .where(_escape(pkey) + ' = @' + pkey)
+        .setParameter(pkey, id));
     return true;
   }
 
@@ -219,15 +221,16 @@ abstract class Mapper<E extends Entity, C extends Collection<E>> {
   }
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
-    if(calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
+    if (calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
     var res = await manager._connection
         .query(builder.getSQL(), substitutionValues: builder._params);
     C col = createCollection();
-    return col..addAll(res.map((row) {
-      var r = _rowToMap(row);
-      if(calcTotal) col.totalResults = r['__total__'];
-      return _onStreamRow(r);
-    }));
+    return col
+      ..addAll(res.map((row) {
+        var r = _rowToMap(row);
+        if (calcTotal) col.totalResults = r['__total__'];
+        return _onStreamRow(r);
+      }));
   }
 
   String _cacheKeyFromData(Map data) => (pkey is List)
@@ -247,9 +250,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>> {
   Map _cacheGetInitData(String k) =>
       manager.cacheGetInitData(runtimeType.toString() + k);
 
-  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
     if (q == null) q = selectBuilder();
-    return new CollectionBuilder<E, C>(q, this);
+    return new CollectionBuilder<E, C, A>(q, this);
   }
 
   String _escape(String string) => '"$string"';
@@ -280,7 +283,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>> {
       E object =
           (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
       data[pkey] = vpkey;
-      if(object == null && forceInsert) {
+      if (object == null && forceInsert) {
         E object = createObject(data);
         manager.addNew(object);
         return object;

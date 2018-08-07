@@ -87,7 +87,7 @@ CREATE TEMPORARY TABLE "test1" (
 );
 ''';
 
-class Test1Mapper extends Mapper<Test1, Test1Collection> {
+class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   String table = 'test1';
 }
 
@@ -134,7 +134,7 @@ class Test1Collection extends Collection<Test1> {
 
 }
 
-class Test2Mapper extends Mapper<Test2, Test2Collection> {
+class Test2Mapper extends Mapper<Test2, Test2Collection, App2> {
   String table = 'test1';
 }
 

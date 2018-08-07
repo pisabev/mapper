@@ -9,7 +9,6 @@ export 'client.dart';
 part 'src/application.dart';
 part 'src/builder.dart';
 part 'src/mapper.dart';
-part 'src/connection.dart';
 part 'src/manager.dart';
 part 'src/unit.dart';
 part 'src/entity.dart';
@@ -37,7 +36,7 @@ class StreamObserver<E> {
   void listen(ObserverFunction<E> f) => observer.addHook(scope, f);
 }
 
-class EntityNotifier<E extends Entity> {
+class EntityNotifier<E extends Entity<Application>> {
   Observer<E> _observer = new Observer<E>();
 
   StreamObserver<E> get onCreate =>

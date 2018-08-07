@@ -35,7 +35,7 @@ class TSquery {
   TSquery(this.query);
 
   String toString() {
-    if(query == null) return null;
+    if (query == null) return null;
     var search = query.trim();
     if (search.length < 2) return null;
     var parts = search.split(new RegExp(r'\s+')).map((e) => e
@@ -434,12 +434,13 @@ class Builder {
   toString() => getSQL();
 }
 
-class CollectionBuilder<E extends Entity, C extends Collection<E>> {
+class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
+    A extends Application> {
   static int _unique = 0;
 
   Builder query;
 
-  Mapper<E, C> mapper;
+  Mapper<E, C, A> mapper;
 
   Map<String, dynamic> filter = new Map();
 
@@ -457,7 +458,7 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
 
   C collection;
 
-  CollectionBuilder(Builder q, Mapper<E, C> m) {
+  CollectionBuilder(Builder q, Mapper<E, C, A> m) {
     query = q;
     mapper = m;
   }
@@ -473,7 +474,7 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
     }
   }
 
-  Future<CollectionBuilder<E, C>> process([total = false]) async {
+  Future<CollectionBuilder<E, C, A>> process([total = false]) async {
     _queryFilter();
     _queryResult();
     collection = await mapper.loadC(query, total);
