@@ -6,18 +6,21 @@ import 'common.dart';
 
 Manager<App> manager;
 
-class App extends Application {
-  Test1Mapper test1;
+class AppMixin {
+  Manager m;
+  Test1Mapper get test1 => new Test1Mapper()
+    ..manager = m
+    ..entity = (() => new Test1())
+    ..collection = () => new Test1Collection();
 }
+
+class App extends Application with AppMixin {}
 
 main() {
   group('Unit of Work', () {
     setUp(() async {
-      var app = {};
-      app[#test1] = () => new Test1Mapper()
-        ..entity = (() => new Test1())
-        ..collection = () => new Test1Collection();
-      manager = await set(app, sql);
+      await initDb(new App(), sql);
+      manager = await new Database().init(new App());
     });
     tearDown(() {
 
@@ -57,7 +60,7 @@ CREATE TEMPORARY TABLE "test1" (
 );
 ''';
 
-class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
+class Test1Mapper extends Mapper<Test1, Test1Collection> {
   String table = 'test1';
 }
 

@@ -19,7 +19,8 @@ class App extends Application with AppMixin {}
 main() {
   group('Mapper', () {
     setUp(() async {
-      manager = await set(app, sql);
+      await initDb(new App(), sql);
+      manager = await new Database().init(new App());
     });
     tearDown(() {
 
