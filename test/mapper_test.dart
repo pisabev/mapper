@@ -14,13 +14,27 @@ class AppMixin {
     ..collection = () => new Test1Collection();
 }
 
+class AppMixin2 {
+  Manager m;
+  Test2Mapper get test2 => new Test2Mapper()
+    ..manager = m
+    ..entity = (() => new Test2())
+    ..collection = () => new Test2Collection();
+}
+
 class App extends Application with AppMixin {}
+
+class App2 extends Application with AppMixin, AppMixin2 {}
 
 main() {
   group('Mapper', () {
     setUp(() async {
       await initDb(new App(), sql);
       manager = await new Database().init(new App());
+//      var manager2 = manager.convert(new App2());
+//      print(manager2.app.test2);
+//      var manager3 = manager.convert(new App());
+//      print(manager3.app.test1);
     });
     tearDown(() {
 
@@ -117,5 +131,52 @@ class Test1 extends Entity {
 }
 
 class Test1Collection extends Collection<Test1> {
+
+}
+
+class Test2Mapper extends Mapper<Test2, Test2Collection> {
+  String table = 'test1';
+}
+
+class Test2 extends Entity {
+  int test1_id;
+  bool field_bool;
+  String field_string;
+  double field_int;
+  Map field_json;
+  Map field_jsonb;
+  DateTime field_date;
+  List field_list;
+
+  Test2();
+
+  Test2.fromMap(Map data) {
+    init(data);
+  }
+
+  init(Map data) {
+    test1_id = data['test1_id'];
+    field_string = data['field_string'];
+    field_int = data['field_int'];
+    field_json = data['field_json'];
+    field_jsonb = data['field_jsonb'];
+    field_date = data['field_data'];
+    field_list = data['field_list'];
+  }
+
+  toMap() => {
+    'test1_id': test1_id,
+    'field_string': field_string,
+    'field_int': field_int,
+    'field_json': field_json,
+    'field_jsonb': field_jsonb,
+    'field_date': field_date,
+    'field_list': field_list
+  };
+
+  toJson() => toMap();
+}
+
+class Test2Collection extends Collection<Test2> {
 
 }
