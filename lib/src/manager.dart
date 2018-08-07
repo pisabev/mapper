@@ -26,8 +26,9 @@ class Manager<A extends Application> {
     _connection = await _pool.obtain();
   }
 
-  Manager<T> convert<T extends Application>(T app) =>
-      new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
+  Manager<T> convert<T extends Application>(T app) => (app is Manager<A>)
+      ? this
+      : new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
   Map _rowToMap(Iterable row) {
     var m = {};
