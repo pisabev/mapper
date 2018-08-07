@@ -15,7 +15,8 @@ Future initDb<A extends Application>(A app, String sql,
       'GRANT ALL ON SCHEMA public TO "user" WITH GRANT OPTION'
     ]);
   }
-  var pool = new Pool('localhost', 5432, 'test', 'user', 'user');
+  var pool =
+      new Pool('localhost', 5432, 'test', user: 'user', password: 'user');
   await pool.start();
   new Database().registerPool(pool);
   await dbWrap(app, (manager) => manager.query(sql));

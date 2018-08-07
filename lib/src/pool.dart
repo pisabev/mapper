@@ -6,9 +6,9 @@ class Pool {
   String database;
   String user;
   String password;
-  String timezone;
+  String timeZone;
 
-  int _min, _max;
+  final int min, max;
 
   final List<drv.PostgreSQLConnection> connections = new List();
   final List<drv.PostgreSQLConnection> connectionsIdle = new List();
@@ -19,14 +19,14 @@ class Pool {
   final List<Completer> _waitQueue = new List();
 
   Pool(this.host, this.port, this.database,
-      [this.user,
+      {this.user,
       this.password,
-      this._min = 1,
-      this._max = 5,
-      this.timezone = 'UTC']);
+      this.min = 1,
+      this.max = 5,
+      this.timeZone = 'UTC'});
 
   Future start() async {
-    for (int i = 0; i < _min; i++) {
+    for (int i = 0; i < min; i++) {
       _inCreateProcess++;
       await _createConnection();
     }
@@ -49,7 +49,7 @@ class Pool {
 
   Future _createConnection() async {
     var conn = new drv.PostgreSQLConnection(host, port, database,
-        username: user, password: password, timeZone: timezone);
+        username: user, password: password, timeZone: timeZone);
     await conn.open();
     _inCreateProcess--;
     connections.add(conn);
@@ -59,7 +59,7 @@ class Pool {
   void _createProvide() {
     if (connectionsIdle.isNotEmpty)
       _onConnectionReady(connectionsIdle.first);
-    else if (connections.length + _inCreateProcess < _max) {
+    else if (connections.length + _inCreateProcess < max) {
       _inCreateProcess++;
       _createConnection();
     }
