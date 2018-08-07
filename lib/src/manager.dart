@@ -1,13 +1,13 @@
 part of mapper_server;
 
 class Manager<A extends Application> {
-  A app;
-
-  Unit<Application> _unit;
+  Unit _unit;
 
   Cache _cache;
 
   Pool _pool;
+
+  A app;
 
   drv.PostgreSQLConnection _connection;
 
@@ -19,13 +19,17 @@ class Manager<A extends Application> {
     app.m = this;
   }
 
-  Manager._convert();
-
-
-  Future<Manager> init() async {
-    _connection = await _pool.obtain();
-    return this;
+  Manager._convert(
+      this._pool, this.app, this._connection, this._cache, this._unit) {
+    app.m = this;
   }
+
+  Future init() async {
+    _connection = await _pool.obtain();
+  }
+
+  Manager<T> convert<T extends Application>(T app) =>
+      new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
   //Future destroy() => _pool.stop();
 
