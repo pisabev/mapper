@@ -11,8 +11,6 @@ class Manager<A extends Application> {
 
   drv.PostgreSQLConnection _connection;
 
-  Map session;
-
   Manager(this._pool, this.app) {
     _unit = new Unit(this);
     _cache = new Cache();
