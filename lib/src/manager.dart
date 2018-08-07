@@ -13,13 +13,14 @@ class Manager<A extends Application> {
 
   Map session;
 
-  Manager(Pool pool, A application) {
+  Manager(this._pool, this.app) {
     _unit = new Unit(this);
     _cache = new Cache();
-    _pool = pool;
-    app = application;
     app.m = this;
   }
+
+  Manager._convert();
+
 
   Future<Manager> init() async {
     _connection = await _pool.obtain();

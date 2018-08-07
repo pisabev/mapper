@@ -68,13 +68,11 @@ class EntityNotifier<E extends Entity<Application>> {
   }
 }
 
-typedef Future<Manager> LoadFunction();
-
-class Database<A extends Application> {
+class Database {
   static const String _base = '_';
   static Database instance;
 
-  Map<String, LoadFunction> _managers = new Map();
+  Map<String, Pool> _pools = {};
 
   factory Database() {
     if (instance == null) instance = new Database._();
@@ -83,11 +81,14 @@ class Database<A extends Application> {
 
   Database._();
 
-  void add(LoadFunction f, [String namespace = _base]) {
-    _managers[namespace] = f;
+  void registerPool(Pool pool, [String namespace = _base]) {
+    _pools[namespace] = pool;
   }
 
-  Future<Manager<A>> init([String namespace = _base]) {
-    return _managers[namespace]();
+  Future<Manager<A>> init<A extends Application>(A app,
+      [String namespace = _base]) async {
+    final m = new Manager<A>(_pools[namespace], app);
+    await m.init();
+    return m;
   }
 }
