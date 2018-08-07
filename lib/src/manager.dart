@@ -31,8 +31,6 @@ class Manager<A extends Application> {
   Manager<T> convert<T extends Application>(T app) =>
       new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
-  //Future destroy() => _pool.stop();
-
   Map _rowToMap(Iterable row) {
     var m = {};
     row.forEach((r) => m[r[0]] = r[1]);
