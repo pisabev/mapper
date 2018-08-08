@@ -11,10 +11,10 @@ class Manager<A extends Application> {
 
   drv.PostgreSQLConnection _connection;
 
-  Manager(this._pool, this.app) {
+  Manager(this._pool, [this.app]) {
     _unit = new Unit(this);
     _cache = new Cache();
-    app.m = this;
+    app?.m = this;
   }
 
   Manager._convert(
