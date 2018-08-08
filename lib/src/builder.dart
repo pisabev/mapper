@@ -434,7 +434,7 @@ class Builder {
   toString() => getSQL();
 }
 
-class CollectionBuilder<E extends Entity, C extends Collection<E>,
+class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   static int _unique = 0;
 

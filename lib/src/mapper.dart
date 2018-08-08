@@ -2,7 +2,7 @@ part of mapper_server;
 
 typedef T EntityFunction<T>();
 
-abstract class Mapper<E extends Entity, C extends Collection<E>,
+abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   Manager<A> manager;
 
