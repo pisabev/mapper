@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:mapper/src/drv/binary_codec.dart';
 import 'package:mapper/src/drv/execution_context.dart';
+import 'package:mapper/mapper.dart';
 
 import 'package:mapper/src/drv/text_codec.dart';
 import 'types.dart';
@@ -153,6 +154,36 @@ class Query<T> {
   }
 
   String toString() => statement;
+}
+
+class QueryCollection<T> extends Query<T> {
+  Entity Function (Map<String, dynamic>) buildEntity;
+  Collection<Entity> collection;
+
+  QueryCollection(statement, substitutionValues, connection, transaction) : super (statement, substitutionValues, connection, transaction);
+
+  void addRow(List<ByteData> rawRowData) {
+    var iterator = fieldDescriptions.iterator;
+    var m = <String, dynamic>{};
+    rawRowData.forEach((bd) {
+      iterator.moveNext();
+      var value = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
+      if (iterator.current.fieldName == '__total__')
+        collection.totalResults = value;
+      else
+        m[iterator.current.fieldName] = value;
+    });
+
+    collection.add(buildEntity(m));
+  }
+
+  void complete(int rowsAffected) {
+    if (_onComplete.isCompleted) {
+      return;
+    }
+
+    _onComplete.complete(collection as T);
+  }
 }
 
 class CachedQuery {

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:mapper/src/drv/query_cache.dart';
 import 'package:mapper/src/drv/execution_context.dart';
 import 'package:mapper/src/drv/query_queue.dart';
+import 'package:mapper/mapper.dart';
 
 import 'message_window.dart';
 import 'query.dart';
@@ -311,6 +312,22 @@ abstract class _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionCo
     }
 
     var query = new Query<List<Map<String, dynamic>>>(fmtString, substitutionValues, _connection, _transaction);
+    if (allowReuse) {
+      query.statementIdentifier = _connection._cache.identifierForQuery(query);
+    }
+
+    return _enqueue(query, timeoutInSeconds: timeoutInSeconds);
+  }
+
+  Future<Collection> queryToEntityCollection(String fmtString, Entity Function (Map<String, dynamic>) build, Collection col,
+      {Map<String, dynamic> substitutionValues: null, bool allowReuse: true, int timeoutInSeconds: 30}) async {
+    if (_connection.isClosed) {
+      throw new PostgreSQLException("Attempting to execute query, but connection is not open.");
+    }
+
+    var query = new QueryCollection<Collection>(fmtString, substitutionValues, _connection, _transaction)
+      ..buildEntity = build
+      ..collection = col;
     if (allowReuse) {
       query.statementIdentifier = _connection._cache.identifierForQuery(query);
     }

@@ -206,23 +206,18 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future<E> _streamToEntity(Builder builder) async {
     var res = await manager._connection
-        .query(builder.getSQL(), substitutionValues: builder._params)
+        .queryToEntityCollection(builder.getSQL(), _onStreamRow, createCollection(),
+            substitutionValues: builder._params)
         .catchError(
             (e) => manager._error(e, builder.getSQL(), builder._params));
-    if (res.isEmpty) return null;
-    return res.map((row) => _onStreamRow(row)).first;
+    return res.isEmpty? null : res.first;
   }
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
     if (calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
-    var res = await manager._connection
-        .query(builder.getSQL(), substitutionValues: builder._params);
-    C col = createCollection();
-    return col
-      ..addAll(res.map((row) {
-        if (calcTotal) col.totalResults = row['__total__'];
-        return _onStreamRow(row);
-      }));
+    return manager._connection.queryToEntityCollection(
+        builder.getSQL(), _onStreamRow, createCollection(),
+        substitutionValues: builder._params);
   }
 
   String _cacheKeyFromData(Map data) => (pkey is List)
