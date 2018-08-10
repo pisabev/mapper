@@ -73,7 +73,7 @@ main() {
   });
 
   test('Performance', () async {
-    for(int i = 0; i < 10000; i++) {
+    for(int i = 0; i < 50000; i++) {
       Test1 t = manager.app.test1.createObject();
       t.field_string = 'test';
       t.field_int = 232.3;
