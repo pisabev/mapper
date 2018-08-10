@@ -18,8 +18,7 @@ abstract class _PostgreSQLConnectionState {
   _PostgreSQLConnectionState onErrorResponse(ErrorResponseMessage message) {
     var exception = new PostgreSQLException._(message.fields);
 
-    if (exception.severity == PostgreSQLSeverity.fatal ||
-        exception.severity == PostgreSQLSeverity.panic) {
+    if (exception.severity == PostgreSQLSeverity.fatal || exception.severity == PostgreSQLSeverity.panic) {
       return new _PostgreSQLConnectionStateClosed();
     }
 
@@ -39,16 +38,14 @@ class _PostgreSQLConnectionStateClosed extends _PostgreSQLConnectionState {}
   Socket connected, prior to any PostgreSQL handshaking - initiates that handshaking
  */
 
-class _PostgreSQLConnectionStateSocketConnected
-    extends _PostgreSQLConnectionState {
+class _PostgreSQLConnectionStateSocketConnected extends _PostgreSQLConnectionState {
   _PostgreSQLConnectionStateSocketConnected(this.completer);
 
   Completer completer;
 
   _PostgreSQLConnectionState onEnter() {
-    var startupMessage = new StartupMessage(
-        connection.databaseName, connection.timeZone,
-        username: connection.username);
+    var startupMessage =
+        new StartupMessage(connection.databaseName, connection.timeZone, username: connection.username);
 
     connection._socket.add(startupMessage.asBytes());
 
@@ -75,9 +72,8 @@ class _PostgreSQLConnectionStateSocketConnected
       return new _PostgreSQLConnectionStateAuthenticating(completer);
     }
 
-    completer.completeError(
-        new PostgreSQLException("Unsupported authentication type ${authMessage
-            .type}, closing connection."));
+    completer.completeError(new PostgreSQLException("Unsupported authentication type ${authMessage
+        .type}, closing connection."));
 
     return new _PostgreSQLConnectionStateClosed();
   }
@@ -87,15 +83,13 @@ class _PostgreSQLConnectionStateSocketConnected
   Authenticating state
  */
 
-class _PostgreSQLConnectionStateAuthenticating
-    extends _PostgreSQLConnectionState {
+class _PostgreSQLConnectionStateAuthenticating extends _PostgreSQLConnectionState {
   _PostgreSQLConnectionStateAuthenticating(this.completer);
 
   Completer completer;
 
   _PostgreSQLConnectionState onEnter() {
-    var authMessage = new AuthMD5Message(
-        connection.username, connection.password, connection._salt);
+    var authMessage = new AuthMD5Message(connection.username, connection.password, connection._salt);
 
     connection._socket.add(authMessage.asBytes());
 
@@ -130,8 +124,7 @@ class _PostgreSQLConnectionStateAuthenticating
   Authenticated state
  */
 
-class _PostgreSQLConnectionStateAuthenticated
-    extends _PostgreSQLConnectionState {
+class _PostgreSQLConnectionStateAuthenticated extends _PostgreSQLConnectionState {
   _PostgreSQLConnectionStateAuthenticated(this.completer);
 
   Completer completer;
@@ -170,7 +163,7 @@ class _PostgreSQLConnectionStateIdle extends _PostgreSQLConnectionState {
   Completer openCompleter;
 
   _PostgreSQLConnectionState awake() {
-    var pendingQuery = connection._pendingQuery;
+    var pendingQuery = connection._queue.pending;
     if (pendingQuery != null) {
       return processQuery(pendingQuery);
     }
@@ -178,20 +171,20 @@ class _PostgreSQLConnectionStateIdle extends _PostgreSQLConnectionState {
     return this;
   }
 
-  _PostgreSQLConnectionState processQuery(Query q) {
+  _PostgreSQLConnectionState processQuery(Query<dynamic> q) {
     try {
       if (q.onlyReturnAffectedRowCount) {
         q.sendSimple(connection._socket);
         return new _PostgreSQLConnectionStateBusy(q);
       }
 
-      var cached = connection._cachedQuery(q.statement);
+      final cached = connection._cache[q.statement];
       q.sendExtended(connection._socket, cacheQuery: cached);
 
       return new _PostgreSQLConnectionStateBusy(q);
-    } catch (e) {
+    } catch (e, st) {
       scheduleMicrotask(() {
-        q.completeError(e);
+        q.completeError(e, st);
         connection._transitionToState(new _PostgreSQLConnectionStateIdle());
       });
 
@@ -217,7 +210,7 @@ class _PostgreSQLConnectionStateIdle extends _PostgreSQLConnectionState {
 class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
   _PostgreSQLConnectionStateBusy(this.query);
 
-  Query query;
+  Query<dynamic> query;
   PostgreSQLException returningException = null;
   int rowsAffected = 0;
 
@@ -228,8 +221,7 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
     var exception = new PostgreSQLException._(message.fields);
     returningException ??= exception;
 
-    if (exception.severity == PostgreSQLSeverity.fatal ||
-        exception.severity == PostgreSQLSeverity.panic) {
+    if (exception.severity == PostgreSQLSeverity.fatal || exception.severity == PostgreSQLSeverity.panic) {
       return new _PostgreSQLConnectionStateClosed();
     }
 
@@ -240,32 +232,25 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
     // We ignore NoData, as it doesn't tell us anything we don't already know
     // or care about.
 
-    //print("(${query.statement}) -> $message");
+     // print("(${query.statement}) -> $message");
 
     if (message is ReadyForQueryMessage) {
-      if (message.state == ReadyForQueryMessage.StateIdle) {
-        if (returningException != null) {
-          query.completeError(returningException);
-        } else {
-          query.complete(rowsAffected);
-        }
-
-        return new _PostgreSQLConnectionStateIdle();
-      } else if (message.state == ReadyForQueryMessage.StateTransaction) {
-        if (returningException != null) {
-          query.completeError(returningException);
-        } else {
-          query.complete(rowsAffected);
-        }
-
-        return new _PostgreSQLConnectionStateReadyInTransaction(
-            query.transaction);
-      } else if (message.state == ReadyForQueryMessage.StateTransactionError) {
-        // This should cancel the transaction, we may have to send a commit here
+      if (message.state == ReadyForQueryMessage.StateTransactionError) {
         query.completeError(returningException);
-        return new _PostgreSQLConnectionStateTransactionFailure(
-            query.transaction);
+        return new _PostgreSQLConnectionStateReadyInTransaction(query.transaction);
       }
+
+      if (returningException != null) {
+        query.completeError(returningException);
+      } else {
+        query.complete(rowsAffected);
+      }
+
+      if (message.state == ReadyForQueryMessage.StateTransaction) {
+        return new _PostgreSQLConnectionStateReadyInTransaction(query.transaction);
+      }
+
+      return new _PostgreSQLConnectionStateIdle();
     } else if (message is CommandCompleteMessage) {
       rowsAffected = message.rowsAffected;
     } else if (message is RowDescriptionMessage) {
@@ -273,8 +258,7 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
     } else if (message is DataRowMessage) {
       query.addRow(message.values);
     } else if (message is ParameterDescriptionMessage) {
-      var validationException =
-          query.validateParameters(message.parameterTypeIDs);
+      var validationException = query.validateParameters(message.parameterTypeIDs);
       if (validationException != null) {
         query.cache = null;
       }
@@ -287,8 +271,7 @@ class _PostgreSQLConnectionStateBusy extends _PostgreSQLConnectionState {
 
 /* Idle Transaction State */
 
-class _PostgreSQLConnectionStateReadyInTransaction
-    extends _PostgreSQLConnectionState {
+class _PostgreSQLConnectionStateReadyInTransaction extends _PostgreSQLConnectionState {
   _PostgreSQLConnectionStateReadyInTransaction(this.transaction);
 
   _TransactionProxy transaction;
@@ -299,8 +282,8 @@ class _PostgreSQLConnectionStateReadyInTransaction
 
   _PostgreSQLConnectionState awake() {
     var pendingQuery = transaction == null
-        ? connection._pendingQuery
-        : transaction.pendingQuery;
+        ? connection._queue.pending
+        : transaction._queue.pending;
     if (pendingQuery != null) {
       return processQuery(pendingQuery);
     }
@@ -308,54 +291,30 @@ class _PostgreSQLConnectionStateReadyInTransaction
     return this;
   }
 
-  _PostgreSQLConnectionState processQuery(Query q) {
+
+  _PostgreSQLConnectionState processQuery(Query<dynamic> q) {
     try {
       if (q.onlyReturnAffectedRowCount) {
         q.sendSimple(connection._socket);
         return new _PostgreSQLConnectionStateBusy(q);
       }
 
-      var cached = connection._cachedQuery(q.statement);
+      final cached = connection._cache[q.statement];
       q.sendExtended(connection._socket, cacheQuery: cached);
 
       return new _PostgreSQLConnectionStateBusy(q);
-    } catch (e) {
+    } catch (e, st) {
       scheduleMicrotask(() {
-        q.completeError(e);
-        connection._transitionToState(new _PostgreSQLConnectionStateIdle());
+        q.completeError(e, st);
       });
 
-      return new _PostgreSQLConnectionStateDeferredFailure();
+      return this;
     }
   }
-}
-
-/*
-  Transaction error state
- */
-
-class _PostgreSQLConnectionStateTransactionFailure
-    extends _PostgreSQLConnectionState {
-  _PostgreSQLConnectionStateTransactionFailure(this.transaction);
-
-  _TransactionProxy transaction;
-
-  _PostgreSQLConnectionState awake() {
-    return new _PostgreSQLConnectionStateReadyInTransaction(transaction);
-  }
-
-  // Prevent Future.wait leak
-  _PostgreSQLConnectionState onEnter() {
-    if (transaction == null && connection._pendingQuery != null)
-      connection._pendingQuery.completeError(null);
-    return this;
-  }
-
 }
 
 /*
   Hack for deferred error
  */
 
-class _PostgreSQLConnectionStateDeferredFailure
-    extends _PostgreSQLConnectionState {}
+class _PostgreSQLConnectionStateDeferredFailure extends _PostgreSQLConnectionState {}

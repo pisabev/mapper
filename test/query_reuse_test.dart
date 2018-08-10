@@ -11,8 +11,8 @@ void main() {
     PostgreSQLConnection connection;
 
     setUp(() async {
-      connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-          username: "dart", password: "dart");
+      connection = new PostgreSQLConnection("localhost", 5432, "test",
+          username: "user", password: "user");
       await connection.open();
       await connection.execute(
           "CREATE TEMPORARY TABLE t (i int, s serial, bi bigint, bs bigserial, bl boolean, si smallint, t text, f real, d double precision, dt date, ts timestamp, tsz timestamptz)");
@@ -281,8 +281,8 @@ void main() {
     PostgreSQLConnection connection;
 
     setUp(() async {
-      connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-          username: "dart", password: "dart");
+      connection = new PostgreSQLConnection("localhost", 5432, "test",
+          username: "user", password: "user");
       await connection.open();
       await connection.execute(
           "CREATE TEMPORARY TABLE t (i1 int not null, i2 int not null)");
@@ -437,12 +437,12 @@ void main() {
   });
 
   group("Failure cases", () {
-    var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-        username: "dart", password: "dart");
+    var connection = new PostgreSQLConnection("localhost", 5432, "test",
+        username: "user", password: "user");
 
     setUp(() async {
-      connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-          username: "dart", password: "dart");
+      connection = new PostgreSQLConnection("localhost", 5432, "test",
+          username: "user", password: "user");
       await connection.open();
       await connection.execute(
           "CREATE TEMPORARY TABLE t (i int, s serial, bi bigint, bs bigserial, bl boolean, si smallint, t text, f real, d double precision, dt date, ts timestamp, tsz timestamptz)");
@@ -481,7 +481,7 @@ void main() {
         });
 
     test(
-        "A failed bind on initial query fails query, but cached query is available",
+        "A failed bind on initial query fails query, but can still make query later",
             () async {
           var string = "insert into u (i1, i2) values (@i1, @i2) returning i1, i2";
           try {
@@ -491,7 +491,7 @@ void main() {
             expect(true, false);
           } on PostgreSQLException {}
 
-          expect(hasCachedQueryNamed(connection, string), true);
+          expect(hasCachedQueryNamed(connection, string), false);
 
           var results = await connection.query("select i1, i2 from u");
           expect(results, []);
@@ -501,6 +501,7 @@ void main() {
           expect(results, [
             [1, 2]
           ]);
+          expect(hasCachedQueryNamed(connection, string), true);
         });
 
     test(
@@ -541,6 +542,7 @@ void main() {
               allowReuse: false);
 
           var string = "select i1, i2 from u where i1 = @i:int4";
+          // ignore: unawaited_futures
           connection
               .query(string, substitutionValues: {"i": "foo"}).catchError((e) {});
 
@@ -557,9 +559,9 @@ void main() {
 }
 
 Map<String, dynamic> cachedQueryMap(PostgreSQLConnection connection) {
-  var reuseMapMirror = reflect(connection).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) => dm.simpleName.toString().contains("_reuseMap"));
-  return reflect(connection).getField(reuseMapMirror.simpleName).reflectee
+  var cacheMirror = reflect(connection).type.declarations.values.firstWhere(
+          (DeclarationMirror dm) => dm.simpleName.toString().contains("_cache"));
+  return reflect(connection).getField(cacheMirror.simpleName).getField(#queries).reflectee
   as Map<String, dynamic>;
 }
 

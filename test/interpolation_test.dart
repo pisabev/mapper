@@ -1,8 +1,27 @@
 import 'dart:convert';
-import 'package:mapper/src/drv/substituter.dart';
+
+import 'package:mapper/src/postgres.dart';
+import 'package:mapper/src/drv/query.dart';
 import 'package:test/test.dart';
 
+
 void main() {
+  test("Ensure all types/format type mappings are available and accurate", () {
+    PostgreSQLDataType.values.where((t) => t != PostgreSQLDataType.bigSerial && t != PostgreSQLDataType.serial).forEach((t) {
+      expect(PostgreSQLFormatIdentifier.typeStringToCodeMap.values.contains(t), true);
+      final code = PostgreSQLFormat.dataTypeStringForDataType(t);
+      expect(PostgreSQLFormatIdentifier.typeStringToCodeMap[code], t);
+    });
+  });
+
+  test("Ensure bigserial gets translated to int8", () {
+    expect(PostgreSQLFormat.dataTypeStringForDataType(PostgreSQLDataType.serial), "int4");
+  });
+
+  test("Ensure serial gets translated to int4", () {
+    expect(PostgreSQLFormat.dataTypeStringForDataType(PostgreSQLDataType.bigSerial), "int8");
+  });
+
   test("Simple replacement", () {
     var result = PostgreSQLFormat.substitute("@id", {"id": 20});
     expect(result, equals("20"));
@@ -104,5 +123,12 @@ void main() {
       52,
       39
     ]);
+  });
+
+  test("JSONB operator does not throw", () {
+    final query = "SELECT id FROM table WHERE data @> '{\"key\": \"value\"}'";
+    final results = PostgreSQLFormat.substitute(query, {});
+
+    expect(results, query);
   });
 }

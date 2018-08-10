@@ -30,20 +30,14 @@ class Manager<A extends Application> {
       ? this
       : new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
-  Map _rowToMap(Iterable row) {
-    var m = {};
-    row.forEach((r) => m[r[0]] = r[1]);
-    return m;
-  }
+  Future<List<Map<String, dynamic>>> query(String query, [Map params]) =>
+      _connection
+          .query(query, substitutionValues: params)
+          .catchError((e) => _error(e, query, params));
 
-  Future<List> query(String query, [Map params]) => _connection
-      .query(query, substitutionValues: params)
-      .then((rows) => rows.map(_rowToMap).toList())
-      .catchError((e) => _error(e, query, params));
-
-  Future<List> execute(Builder builder) => _connection
+  Future<List<Map<String, dynamic>>> execute(Builder builder) => _connection
       .query(builder.getSQL(), substitutionValues: builder._params)
-      .then((rows) => rows.map(_rowToMap).toList());
+      .catchError((e) => _error(e, builder.getSQL(), builder._params));
 
   _error(e, [String query, Map params]) {
     if (e is drv.PostgreSQLException) {

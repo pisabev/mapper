@@ -1,10 +1,10 @@
-import 'postgresql_codec.dart';
+import 'package:mapper/src/drv/text_codec.dart';
+import 'types.dart';
 import 'query.dart';
 
 class PostgreSQLFormat {
   static int _AtSignCodeUnit = "@".codeUnitAt(0);
   static int _AtGreaterThanCodeUnit = ">".codeUnitAt(0);
-  static int _AtLessThanCodeUnit = "<".codeUnitAt(0);
 
   static String id(String name, {PostgreSQLDataType type: null}) {
     if (type != null) {
@@ -42,6 +42,12 @@ class PostgreSQLFormat {
         return "date";
       case PostgreSQLDataType.json:
         return "jsonb";
+      case PostgreSQLDataType.byteArray:
+        return "bytea";
+      case PostgreSQLDataType.name:
+        return "name";
+      case PostgreSQLDataType.uuid:
+        return "uuid";
       case PostgreSQLDataType.numeric:
         return "numeric";
     }
@@ -51,8 +57,9 @@ class PostgreSQLFormat {
 
   static String substitute(String fmtString, Map<String, dynamic> values,
       {SQLReplaceIdentifierFunction replace: null}) {
+    final converter = new PostgresTextEncoder(true);
     values ??= {};
-    replace ??= (spec, index) => PostgreSQLCodec.encode(values[spec.name]);
+    replace ??= (spec, index) => converter.convert(values[spec.name]);
 
     var items = <PostgreSQLFormatToken>[];
     PostgreSQLFormatToken currentPtr = null;
@@ -87,7 +94,7 @@ class PostgreSQLFormat {
             currentPtr.type = PostgreSQLFormatTokenType.text;
           } else {
             currentPtr =
-                new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
+            new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
             currentPtr.buffer.writeCharCode(iterator.current);
             items.add(currentPtr);
             iterator.moveNext();
@@ -107,6 +114,8 @@ class PostgreSQLFormat {
     var idx = 1;
     return items.map((t) {
       if (t.type == PostgreSQLFormatTokenType.text) {
+        return t.buffer;
+      } else if (t.buffer.length == 1 && t.buffer.toString() == '@') {
         return t.buffer;
       } else {
         var identifier = new PostgreSQLFormatIdentifier(t.buffer.toString());

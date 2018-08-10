@@ -66,7 +66,7 @@ class Pool {
   }
 
   void _onConnectionReady(drv.PostgreSQLConnection conn) {
-    if (conn.isClosed || conn.isInTransaction || conn.isInTransactionError) {
+    if (conn.isClosed || conn.isInTransaction) {
       connectionsIdle.remove(conn);
       connectionsBusy.remove(conn);
       connections.remove(conn);
