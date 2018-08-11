@@ -4,7 +4,7 @@ typedef T EntityFunction<T>();
 
 abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
-  Manager<A> manager;
+  final Manager<A> manager;
 
   String table;
 
@@ -18,7 +18,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   EntityNotifier<E> notifier;
 
-  Mapper() {
+  Mapper(this.manager) {
     if (pkey == null) pkey = table + '_id';
   }
 
@@ -251,7 +251,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   E createObject([dynamic data]) {
     E object = entity()
-      ..manager = manager
       .._mapper = this;
     if (data != null) object.init(data);
     return object;
