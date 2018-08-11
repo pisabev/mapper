@@ -167,12 +167,11 @@ class QueryCollection<T> extends Query<T> {
     var m = <String, dynamic>{};
     rawRowData.forEach((bd) {
       iterator.moveNext();
-      var value = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
-      if (iterator.current.fieldName == '__total__')
-        collection.totalResults = value;
-      else
-        m[iterator.current.fieldName] = value;
+      m[iterator.current.fieldName] = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
     });
+
+    if (m['__total__'] != null)
+      collection.totalResults = m['__total__'];
 
     collection.add(buildEntity(m));
   }
