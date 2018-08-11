@@ -86,6 +86,7 @@ main() {
     }
     var start = new DateTime.now();
     await manager.app.test1.findAll();
+    //await manager.query('select * from test1');
     var end = new DateTime.now();
     print('${end.difference(start).inMilliseconds} ms');
   });

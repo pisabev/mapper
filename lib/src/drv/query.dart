@@ -124,10 +124,10 @@ class Query<T> {
 
     var iterator = fieldDescriptions.iterator;
     var m = <String, dynamic>{};
-    rawRowData.forEach((bd) {
+    for (var bd in rawRowData) {
       iterator.moveNext();
       m[iterator.current.fieldName] = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
-    });
+    }
 
     rows.add(m);
   }
@@ -165,10 +165,10 @@ class QueryCollection<T> extends Query<T> {
   void addRow(List<ByteData> rawRowData) {
     var iterator = fieldDescriptions.iterator;
     var m = <String, dynamic>{};
-    rawRowData.forEach((bd) {
+    for (var bd in rawRowData) {
       iterator.moveNext();
       m[iterator.current.fieldName] = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
-    });
+    }
 
     if (m['__total__'] != null)
       collection.totalResults = m['__total__'];
