@@ -72,6 +72,24 @@ main() {
     }, skip: false);
   });
 
+  test('Performance', () async {
+    for(int i = 0; i < 50000; i++) {
+      Test1 t = manager.app.test1.createObject();
+      t.field_string = 'test';
+      t.field_int = 232.3;
+      t.field_bool = true;
+      t.field_json = {'t': 1212,'t2': 'string'};
+      t.field_jsonb = {'t': 1212,'t2': 'string'};
+      t.field_date = new DateTime.now();
+      t.field_list = [1,2,3];
+      await manager.app.test1.insert(t);
+    }
+    var start = new DateTime.now();
+    await manager.app.test1.findAll();
+    //await manager.query('select * from test1');
+    var end = new DateTime.now();
+    print('${end.difference(start).inMilliseconds} ms');
+  });
 }
 
 var sql = '''
