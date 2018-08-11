@@ -202,14 +202,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future<List> execute(Builder builder) => manager._connection
       .query(builder.getSQL(), substitutionValues: builder._params)
-      .then((rows) => rows.map(_rowToMap).toList())
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
-
-  Map _rowToMap(Iterable row) {
-    var m = {};
-    row.forEach((r) => m[r[0]] = r[1]);
-    return m;
-  }
 
   Future<E> _streamToEntity(Builder builder) async {
     var res = await manager._connection
@@ -217,7 +210,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         .catchError(
             (e) => manager._error(e, builder.getSQL(), builder._params));
     if (res.isEmpty) return null;
-    return res.map((row) => _onStreamRow(_rowToMap(row))).first;
+    return res.map(_onStreamRow).first;
   }
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
@@ -227,9 +220,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     C col = createCollection();
     return col
       ..addAll(res.map((row) {
-        var r = _rowToMap(row);
-        if (calcTotal) col.totalResults = r['__total__'];
-        return _onStreamRow(r);
+        if (calcTotal) col.totalResults = row['__total__'];
+        return _onStreamRow(row);
       }));
   }
 

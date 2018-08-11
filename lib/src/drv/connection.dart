@@ -35,7 +35,7 @@ abstract class PostgreSQLExecutionContext {
   /// By default, instances of this class will reuse queries. This allows significantly more efficient transport to and from the database. You do not have to do
   /// anything to opt in to this behavior, this connection will track the necessary information required to reuse queries without intervention. (The [fmtString] is
   /// the unique identifier to look up reuse information.) You can disable reuse by passing false for [allowReuse].
-  Future<List<List<dynamic>>> query(String fmtString,
+  Future<List<Map<String, dynamic>>> query(String fmtString,
       {Map<String, dynamic> substitutionValues: null, bool allowReuse: true});
 
   /// Executes a query on this context.
@@ -223,7 +223,7 @@ class PostgreSQLConnection implements PostgreSQLExecutionContext {
   /// anything to opt in to this behavior, this connection will track the necessary information required to reuse queries without intervention. (The [fmtString] is
   /// the unique identifier to look up reuse information.) You can disable reuse by passing false for [allowReuse].
   ///
-  Future<List<List<dynamic>>> query(String fmtString,
+  Future<List<Map<String, dynamic>>> query(String fmtString,
       {Map<String, dynamic> substitutionValues: null,
       bool allowReuse: true}) async {
     if (isClosed) {
@@ -231,7 +231,7 @@ class PostgreSQLConnection implements PostgreSQLExecutionContext {
           "Attempting to execute query, but connection is not open.");
     }
 
-    var query = new Query<List<List<dynamic>>>(
+    var query = new Query<List<Map<String, dynamic>>>(
         fmtString, substitutionValues, this, null);
     if (allowReuse) {
       query.statementIdentifier = _reuseIdentifierForQuery(query);

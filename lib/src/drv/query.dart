@@ -32,7 +32,7 @@ class Query<T> {
     cache?.fieldDescriptions = fds;
   }
 
-  List<Iterable<dynamic>> rows = [];
+  List<Map<String, dynamic>> rows = [];
 
   QueryCache cache;
 
@@ -131,13 +131,13 @@ class Query<T> {
     }
 
     var iterator = fieldDescriptions.iterator;
-    var lazyDecodedData = rawRowData.map((bd) {
+    var m = <String, dynamic>{};
+    rawRowData.forEach((bd) {
       iterator.moveNext();
-
-      return [iterator.current.fieldName, PostgreSQLCodec.decodeValue(bd, iterator.current.typeID)];
+      m[iterator.current.fieldName] = PostgreSQLCodec.decodeValue(bd, iterator.current.typeID);
     });
 
-    rows.add(lazyDecodedData);
+    rows.add(m);
   }
 
   void complete(int rowsAffected) {

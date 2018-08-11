@@ -34,7 +34,7 @@ class _TransactionProxy implements PostgreSQLExecutionContext {
     await execute("COMMIT");
   }
 
-  Future<List<List<dynamic>>> query(String fmtString,
+  Future<List<Map<String, dynamic>>> query(String fmtString,
       {Map<String, dynamic> substitutionValues: null,
       bool allowReuse: true}) async {
     if (connection.isClosed) {
@@ -42,7 +42,7 @@ class _TransactionProxy implements PostgreSQLExecutionContext {
           "Attempting to execute query, but connection is not open.");
     }
 
-    var query = new Query<List<List<dynamic>>>(
+    var query = new Query<List<Map<String, dynamic>>>(
         fmtString, substitutionValues, connection, this);
 
     if (allowReuse) {
