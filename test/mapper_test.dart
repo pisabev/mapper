@@ -8,16 +8,14 @@ Manager<App> manager;
 
 class AppMixin {
   Manager m;
-  Test1Mapper get test1 => new Test1Mapper()
-    ..manager = m
+  Test1Mapper get test1 => new Test1Mapper(m)
     ..entity = (() => new Test1())
     ..collection = () => new Test1Collection();
 }
 
 class AppMixin2 {
   Manager m;
-  Test2Mapper get test2 => new Test2Mapper()
-    ..manager = m
+  Test2Mapper get test2 => new Test2Mapper(m)
     ..entity = (() => new Test2())
     ..collection = () => new Test2Collection();
 }
@@ -108,6 +106,7 @@ CREATE TEMPORARY TABLE "test1" (
 
 class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   String table = 'test1';
+  Test1Mapper(m) : super(m);
 }
 
 class Test1 extends Entity {
@@ -155,6 +154,7 @@ class Test1Collection extends Collection<Test1> {
 
 class Test2Mapper extends Mapper<Test2, Test2Collection, App2> {
   String table = 'test1';
+  Test2Mapper(m) : super(m);
 }
 
 class Test2 extends Entity {

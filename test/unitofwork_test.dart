@@ -8,8 +8,7 @@ Manager<App> manager;
 
 class AppMixin {
   Manager m;
-  Test1Mapper get test1 => new Test1Mapper()
-    ..manager = m
+  Test1Mapper get test1 => new Test1Mapper(m)
     ..entity = (() => new Test1())
     ..collection = () => new Test1Collection();
 }
@@ -62,6 +61,8 @@ CREATE TEMPORARY TABLE "test1" (
 
 class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   String table = 'test1';
+
+  Test1Mapper(m) : super(m);
 }
 
 class Test1 extends Entity {
