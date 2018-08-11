@@ -35,9 +35,9 @@ void main() {
   test("Fetch em", () async {
     var res = await connection.query("select * from t");
 
-    var row1 = res[0].map((r) => r[1]).toList();
-    var row2 = res[1].map((r) => r[1]).toList();
-    var row3 = res[2].map((r) => r[1]).toList();
+    var row1 = res[0].values.toList();
+    var row2 = res[1].values.toList();
+    var row3 = res[2].values.toList();
 
     // lower bound row
     expect(row1[0], equals(-2147483648));
@@ -98,13 +98,13 @@ void main() {
     var results =
     await connection.query("INSERT INTO u (t) VALUES (@t:text) returning t", substitutionValues: {"t": ""});
     expect(results, [
-      [['t', ""]]
+      {'t': ""}
     ]);
 
     results = await connection.query("select * from u");
 
     expect(results, [
-      [['t', ""]]
+      {'t': ""}
     ]);
   });
 
@@ -113,12 +113,12 @@ void main() {
     var results =
     await connection.query("INSERT INTO u (t) VALUES (@t:text) returning t", substitutionValues: {"t": null});
     expect(results, [
-      [['t', null]]
+      {'t': null}
     ]);
 
     results = await connection.query("select * from u");
     expect(results, [
-      [['t', null]]
+      {'t': null}
     ]);
   });
   test("Timezone concerns", () {});

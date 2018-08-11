@@ -36,7 +36,7 @@ void main() {
             "t": "°∆",
           });
 
-      var expectedRow = [['t',"°∆"]];
+      var expectedRow = [{'t': "°∆"}];
       expect(result, [expectedRow]);
 
       result = await connection.query("select t from t");
@@ -133,7 +133,7 @@ void main() {
             "tsz": new DateTime.utc(2000, 3),
             "j": {"a":"b"}
           });
-      var r = [result.first.map((e) => e[1]).toList()];
+      var r = [result.first.values.toList()];
       var expectedRow = [
         1,
         1,
@@ -152,7 +152,7 @@ void main() {
       expect(r, [expectedRow]);
       result = await connection
           .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j from t");
-      r = [result.first.map((e) => e[1]).toList()];
+      r = [result.first.values.toList()];
       expect(r, [expectedRow]);
     });
 
@@ -183,7 +183,7 @@ void main() {
             "tsz": new DateTime.utc(2000, 3),
             "j": {"key": "value"}
           });
-      var r = [result.first.map((e) => e[1]).toList()];
+      var r = [result.first.values.toList()];
       var expectedRow = [
         1,
         1,
@@ -203,7 +203,7 @@ void main() {
 
       result = await connection
           .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j from t");
-      r = [result.first.map((e) => e[1]).toList()];
+      r = [result.first.values.toList()];
       expect(r, [expectedRow]);
     });
 
@@ -232,7 +232,7 @@ void main() {
             "ts": new DateTime.utc(2000, 2),
             "tsz": new DateTime.utc(2000, 3),
           });
-      var r = [result.first.map((e) => e[1]).toList()];
+      var r = [result.first.values.toList()];
       var expectedRow = [
         1,
         1,
@@ -250,7 +250,7 @@ void main() {
       expect(r, [expectedRow]);
       result = await connection
           .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz from t");
-      r = [result.first.map((e) => e[1]).toList()];
+      r = [result.first.values.toList()];
       expect(r, [expectedRow]);
     });
 
