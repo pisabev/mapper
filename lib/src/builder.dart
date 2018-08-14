@@ -485,7 +485,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     var q = query.clone();
     _queryFilter(q);
     _queryFinalize(q);
-    return q.getSQL();
+    return '$q\n${q._params}';
   }
 
   int get total => collection.totalResults;
