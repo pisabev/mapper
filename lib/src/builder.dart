@@ -475,29 +475,36 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<CollectionBuilder<E, C, A>> process([total = false]) async {
-    _queryFilter();
-    _queryResult();
+    _queryFilter(query);
+    _queryResult(query);
     collection = await mapper.loadC(query, total);
     return this;
   }
 
+  String queryToString() {
+    var q = query.clone();
+    _queryFilter(q);
+    _queryResult(q);
+    return q.getSQL();
+  }
+
   int get total => collection.totalResults;
 
-  void _queryFilter() {
+  void _queryFilter(Builder query) {
     filter.forEach((k, value) {
       if (value != null) {
         filter_way.forEach((way, List a) {
           if (a.contains(k)) {
             var key = k;
             if (filter_map[k] != null) key = filter_map[k];
-            _set(way, key, value);
+            _set(query, way, key, value);
           }
         });
       }
     });
   }
 
-  void _queryResult() {
+  void _queryResult(Builder query) {
     if (_limit != null) {
       query.limit(_limit);
       if (_page > 0) query.offset((_page - 1) * _limit);
@@ -509,7 +516,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  void _set(String way, String key, dynamic value) {
+  void _set(Builder query, String way, String key, dynamic value) {
     String ph = _cleanPlaceHolder(key);
     switch (way) {
       case 'eq':
