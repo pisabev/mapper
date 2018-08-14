@@ -83,9 +83,7 @@ class Builder {
 
   Builder();
 
-  getType() {
-    return _type;
-  }
+  int getType() => _type;
 
   Builder setParameter(String key, dynamic value) {
     _params[key] = value;
@@ -99,11 +97,9 @@ class Builder {
 
   Map<String, dynamic> getParameters() => _params;
 
-  getParameter(key) {
-    return (_params[key] != null) ? _params[key] : null;
-  }
+  dynamic getParameter(key) => _params[key];
 
-  getSQL() {
+  String getSQL() {
     if (_sql != '') {
       return _sql;
     }
@@ -134,18 +130,14 @@ class Builder {
     return this;
   }
 
-  getOffset() {
-    return _offset;
-  }
+  int getOffset() => _offset;
 
   Builder limit(int limit) {
     _limit = limit;
     return this;
   }
 
-  getLimit() {
-    return _limit;
-  }
+  int getLimit() => _limit;
 
   Builder add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
     if ((sqlPart is String && sqlPart == '') ||
@@ -277,11 +269,9 @@ class Builder {
     return this;
   }
 
-  getQueryPart(String queryPartName) {
-    return _sqlParts[queryPartName];
-  }
+  dynamic getQueryPart(String queryPartName) => _sqlParts[queryPartName];
 
-  getQueryParts() {
+  Map<String, dynamic> getQueryParts() {
     Map res = <String, dynamic>{};
     _sqlParts.forEach((k, v) => res[k] = v);
     return res;
@@ -302,7 +292,7 @@ class Builder {
     return this;
   }
 
-  isJoinPresent(String joinTable) {
+  bool isJoinPresent(String joinTable) {
     List joins = getQueryPart('join');
     for (int i = 0; i < joins.length; i++)
       if (joins[i]['joinTable'] == joinTable) return true;
@@ -315,7 +305,7 @@ class Builder {
     return this.add(key, expr, append);
   }
 
-  _getSQLForSelect() {
+  String _getSQLForSelect() {
     StringBuffer sb = new StringBuffer()
       ..write('SELECT ')
       ..writeAll(_sqlParts['select'], ', ')
@@ -354,7 +344,7 @@ class Builder {
     return sb.toString();
   }
 
-  _getSQLForUpdate() {
+  String _getSQLForUpdate() {
     List pairs = new List();
     _sqlParts['set'].forEach((s) {
       s.forEach((k, v) {
@@ -373,7 +363,7 @@ class Builder {
     return sb.toString();
   }
 
-  _getSQLForInsert() {
+  String _getSQLForInsert() {
     List columns = new List();
     List values = new List();
     _sqlParts['set'].forEach((s) {
@@ -393,7 +383,7 @@ class Builder {
     return sb.toString();
   }
 
-  _getSQLForDelete() {
+  String _getSQLForDelete() {
     StringBuffer sb = new StringBuffer()
       ..write('DELETE FROM ')
       ..write(_sqlParts['from'][0]);
@@ -431,7 +421,7 @@ class Builder {
     return clone;
   }
 
-  toString() => getSQL();
+  String toString() => getSQL();
 }
 
 class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
