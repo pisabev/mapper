@@ -476,7 +476,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   Future<CollectionBuilder<E, C, A>> process([total = false]) async {
     _queryFilter(query);
-    _queryResult(query);
+    _queryFinalize(query);
     collection = await mapper.loadC(query, total);
     return this;
   }
@@ -484,7 +484,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   String queryToString() {
     var q = query.clone();
     _queryFilter(q);
-    _queryResult(q);
+    _queryFinalize(q);
     return q.getSQL();
   }
 
@@ -504,7 +504,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     });
   }
 
-  void _queryResult(Builder query) {
+  void _queryFinalize(Builder query) {
     if (_limit != null) {
       query.limit(_limit);
       if (_page > 0) query.offset((_page - 1) * _limit);
