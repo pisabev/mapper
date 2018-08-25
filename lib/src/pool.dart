@@ -83,7 +83,7 @@ class Pool {
 
   void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
-    var completer = new Completer();
+    var completer = new Completer<drv.PostgreSQLConnection>();
     if (timeout != null) completer.future.timeout(timeout);
     _waitQueue.add(completer);
 

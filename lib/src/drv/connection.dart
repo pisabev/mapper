@@ -319,13 +319,13 @@ abstract class _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionCo
     return _enqueue(query, timeoutInSeconds: timeoutInSeconds);
   }
 
-  Future<Collection> queryToEntityCollection(String fmtString, Entity Function (Map<String, dynamic>) build, Collection col,
+  Future<C> queryToEntityCollection<C extends Collection>(String fmtString, Entity Function (Map<String, dynamic>) build, Collection col,
       {Map<String, dynamic> substitutionValues: null, bool allowReuse: true, int timeoutInSeconds: 30}) async {
     if (_connection.isClosed) {
       throw new PostgreSQLException("Attempting to execute query, but connection is not open.");
     }
 
-    var query = new QueryCollection<Collection>(fmtString, substitutionValues, _connection, _transaction)
+    var query = new QueryCollection<C>(fmtString, substitutionValues, _connection, _transaction)
       ..buildEntity = build
       ..collection = col;
     if (allowReuse) {

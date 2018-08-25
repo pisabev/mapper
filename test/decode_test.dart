@@ -36,9 +36,9 @@ void main() {
   test("Fetch em", () async {
     var res = await connection.query("select * from t");
 
-    var row1 = res[0];
-    var row2 = res[1];
-    var row3 = res[2];
+    var row1 = res[0].values.toList();
+    var row2 = res[1].values.toList();
+    var row3 = res[2].values.toList();
 
     // lower bound row
     expect(row1[0], equals(-2147483648));
@@ -106,12 +106,14 @@ void main() {
     await connection.execute("CREATE TEMPORARY TABLE u (t text)");
     var results =
     await connection.query("INSERT INTO u (t) VALUES (@t:text) returning t", substitutionValues: {"t": ""});
-    expect(results, [
+    var r = results.map((v) => v.values.toList()).toList();
+    expect(r, [
       [""]
     ]);
 
     results = await connection.query("select * from u");
-    expect(results, [
+    r = results.map((v) => v.values.toList()).toList();
+    expect(r, [
       [""]
     ]);
   });
@@ -120,12 +122,14 @@ void main() {
     await connection.execute("CREATE TEMPORARY TABLE u (t text)");
     var results =
     await connection.query("INSERT INTO u (t) VALUES (@t:text) returning t", substitutionValues: {"t": null});
-    expect(results, [
+    var r = results.map((v) => v.values.toList()).toList();
+    expect(r, [
       [null]
     ]);
 
     results = await connection.query("select * from u");
-    expect(results, [
+    r = results.map((v) => v.values.toList()).toList();
+    expect(r, [
       [null]
     ]);
   });

@@ -215,7 +215,7 @@ class ParameterValue {
   ParameterValue.text(dynamic value) : isBinary = false {
     if (value != null) {
       final converter = new PostgresTextEncoder(false);
-      bytes = UTF8.encode(converter.convert(value));
+      bytes = utf8.encode(converter.convert(value));
     }
     length = bytes?.length;
   }

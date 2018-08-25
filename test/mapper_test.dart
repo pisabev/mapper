@@ -44,7 +44,7 @@ main() {
       t.field_string = 'test';
       t.field_int = test;
       t.field_bool = true;
-      t.field_json = {'t': 1212,'t2': 'string'};
+//      t.field_json = {'t': 1212,'t2': 'string'};
       t.field_jsonb = {'t': 1212,'t2': 'string'};
       t.field_date = new DateTime.now();
       t.field_list = [1,2,3];
@@ -71,12 +71,12 @@ main() {
   });
 
   test('Performance', () async {
-    for(int i = 0; i < 50000; i++) {
+    for(int i = 0; i < 10000; i++) {
       Test1 t = manager.app.test1.createObject();
       t.field_string = 'test';
       t.field_int = 232.3;
       t.field_bool = true;
-      t.field_json = {'t': 1212,'t2': 'string'};
+//      t.field_json = {'t': 1212,'t2': 'string'};
       t.field_jsonb = {'t': 1212,'t2': 'string'};
       t.field_date = new DateTime.now();
       t.field_list = [1,2,3];
@@ -97,7 +97,7 @@ CREATE TEMPORARY TABLE "test1" (
     "field_bool"      bool       ,
     "field_string"    text       ,
     "field_int"       decimal(12,6),
-    "field_json"      json       ,
+--    "field_json"      json       ,
     "field_jsonb"     jsonb      ,
     "field_date"      timestamptz,
     "field_list"      jsonb                
@@ -114,7 +114,7 @@ class Test1 extends Entity {
   bool field_bool;
   String field_string;
   double field_int;
-  Map field_json;
+//  Map field_json;
   Map field_jsonb;
   DateTime field_date;
   List field_list;
@@ -129,7 +129,7 @@ class Test1 extends Entity {
     test1_id = data['test1_id'];
     field_string = data['field_string'];
     field_int = data['field_int'];
-    field_json = data['field_json'];
+//    field_json = data['field_json'];
     field_jsonb = data['field_jsonb'];
     field_date = data['field_date'];
     field_list = data['field_list'];
@@ -139,7 +139,7 @@ class Test1 extends Entity {
     'test1_id': test1_id,
     'field_string': field_string,
     'field_int': field_int,
-    'field_json': field_json,
+//    'field_json': field_json,
     'field_jsonb': field_jsonb,
     'field_date': field_date,
     'field_list': field_list

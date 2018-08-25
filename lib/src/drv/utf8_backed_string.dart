@@ -11,14 +11,14 @@ class UTF8BackedString {
 
   int get utf8Length {
     if (_cachedUTF8Bytes == null) {
-      _cachedUTF8Bytes = UTF8.encode(string);
+      _cachedUTF8Bytes = utf8.encode(string);
     }
     return _cachedUTF8Bytes.length;
   }
 
   List<int> get utf8Bytes {
     if (_cachedUTF8Bytes == null) {
-      _cachedUTF8Bytes = UTF8.encode(string);
+      _cachedUTF8Bytes = utf8.encode(string);
     }
     return _cachedUTF8Bytes;
   }

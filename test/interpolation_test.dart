@@ -100,7 +100,7 @@ void main() {
         .substitute("@id:text @foo", {"id": "1';select", "foo": "3\\4"});
 
     //                         '  1  '  '  ;  s   e   l   e   c  t   '  sp  sp  E  '  3  \  \  4  '
-    expect(UTF8.encode(result), [
+    expect(utf8.encode(result), [
       39,
       49,
       39,

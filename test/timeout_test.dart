@@ -60,8 +60,9 @@ void main() {
   test("Query times out, next query in the queue runs", () async {
     //ignore: unawaited_futures
     conn.query("SELECT pg_sleep(2)", timeoutInSeconds: 1).catchError((_) => null);
-
-    expect(await conn.query("SELECT 1"), [[1]]);
+    var res = await conn.query("SELECT 1");
+    var result = res.map((r) => r.values.toList()).toList();
+    expect(result, [[1]]);
   });
 
   test("Query that succeeds does not timeout", () async {
