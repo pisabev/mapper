@@ -20,66 +20,82 @@ void main() {
   group("Storage", () {
     test("Can store JSON String", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES ('\"xyz\"'::jsonb) RETURNING j");
-      expect(result, [["xyz"]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [["xyz"]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [["xyz"]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [["xyz"]]);
     });
 
     test("Can store JSON String with driver type annotation", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES (@a:jsonb) RETURNING j", substitutionValues: {
         "a" : "xyz"
       });
-      expect(result, [["xyz"]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [["xyz"]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [["xyz"]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [["xyz"]]);
     });
 
     test("Can store JSON Number", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES ('4'::jsonb) RETURNING j");
-      expect(result, [[4]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[4]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[4]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[4]]);
     });
 
     test("Can store JSON Number with driver type annotation", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES (@a:jsonb) RETURNING j", substitutionValues: {
         "a": 4
       });
-      expect(result, [[4]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[4]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[4]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[4]]);
     });
 
     test("Can store JSON map", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES ('{\"a\":4}') RETURNING j");
-      expect(result, [[{"a":4}]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[{"a":4}]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[{"a":4}]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[{"a":4}]]);
     });
 
     test("Can store JSON map with driver type annotation", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES (@a:jsonb) RETURNING j", substitutionValues: {
         "a": {"a":4}
       });
-      expect(result, [[{"a":4}]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[{"a":4}]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[{"a":4}]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[{"a":4}]]);
     });
 
     test("Can store JSON list", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES ('[{\"a\":4}]') RETURNING j");
-      expect(result, [[[{"a":4}]]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[[{"a":4}]]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[[{"a":4}]]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[[{"a":4}]]]);
     });
 
     test("Can store JSON list with driver type annotation", () async {
       var result = await connection.query("INSERT INTO t (j) VALUES (@a:jsonb) RETURNING j", substitutionValues: {
         "a": [{"a":4}]
       });
-      expect(result, [[[{"a":4}]]]);
+      var r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[[{"a":4}]]]);
       result = await connection.query("SELECT j FROM t");
-      expect(result, [[[{"a":4}]]]);
+      r = result.map((v) => v.values.toList()).toList();
+      expect(r, [[[{"a":4}]]]);
     });
   });
 }
