@@ -38,16 +38,16 @@ class EntityNotifier<E extends Entity> {
   Observer<E> _observer = new Observer<E>();
 
   StreamObserver<E> get onCreate =>
-      new StreamObserver(MEvent.create, _observer);
+      new StreamObserver<E>(MEvent.create, _observer);
 
   StreamObserver<E> get onUpdate =>
-      new StreamObserver(MEvent.update, _observer);
+      new StreamObserver<E>(MEvent.update, _observer);
 
   StreamObserver<E> get onDelete =>
-      new StreamObserver(MEvent.delete, _observer);
+      new StreamObserver<E>(MEvent.delete, _observer);
 
   StreamObserver<E> get onChange =>
-      new StreamObserver(MEvent.change, _observer);
+      new StreamObserver<E>(MEvent.change, _observer);
 
   Future _addUpdate(EntityContainer<E> o) async {
     await _observer.execHooksAsync(MEvent.update, o);
