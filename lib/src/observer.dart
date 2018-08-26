@@ -1,10 +1,10 @@
 part of mapper_server;
 
-typedef ObserverFunction<E> = FutureOr Function(EntityContainer<E>);
+typedef ObserverFunction<E extends Entity> = FutureOr Function(EntityContainer<E>);
 
 enum MEvent { update, create, delete, change }
 
-class Observer<E> {
+class Observer<E extends Entity> {
   Map<MEvent, List<ObserverFunction>> _hook =
   new Map<MEvent, List<ObserverFunction>>();
 

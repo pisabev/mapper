@@ -17,9 +17,7 @@ part 'src/pool.dart';
 part 'src/exception.dart';
 part 'src/observer.dart';
 
-final Logger _log = new Logger('Mapper');
-
-class EntityContainer<E> {
+class EntityContainer<E extends Entity> {
   final E entity;
   final Map<String, dynamic> diff;
   const EntityContainer(this.entity, this.diff);
@@ -27,7 +25,7 @@ class EntityContainer<E> {
   bool isUpdated() => diff != null;
 }
 
-class StreamObserver<E> {
+class StreamObserver<E extends Entity> {
   final MEvent scope;
   final Observer observer;
 
