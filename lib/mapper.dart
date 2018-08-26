@@ -27,7 +27,7 @@ class EntityContainer<E extends Entity> {
 
 class StreamObserver<E extends Entity> {
   final MEvent scope;
-  final Observer observer;
+  final Observer<E> observer;
 
   const StreamObserver(this.scope, this.observer);
 
