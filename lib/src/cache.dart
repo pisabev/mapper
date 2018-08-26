@@ -1,8 +1,8 @@
 part of mapper_server;
 
 class Cache {
-  Map<String, Entity> _cache = new Map();
-  Map<String, Map> _cache_init = new Map();
+  final Map<String, Entity> _cache = {};
+  final Map<String, Map> _cache_init = {};
 
   void add(String key, Entity object, Map initData) {
     _cache[key] = object;

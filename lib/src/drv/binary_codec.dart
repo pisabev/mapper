@@ -11,143 +11,131 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
   final PostgreSQLDataType dataType;
 
   @override
-  Uint8List convert(dynamic value) {
-    if (value == null) {
+  Uint8List convert(dynamic input) {
+    if (input == null) {
       return null;
     }
 
     switch (dataType) {
       case PostgreSQLDataType.boolean:
         {
-          if (value is! bool) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: bool Got: ${value
-              .runtimeType}");
+          if (input is! bool) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: bool Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(1);
-          bd.setUint8(0, value ? 1 : 0);
+          final bd = new ByteData(1)..setUint8(0, input ? 1 : 0);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.bigSerial:
       case PostgreSQLDataType.bigInteger:
         {
-          if (value is! int) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: int Got: ${value
-              .runtimeType}");
+          if (input is! int) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: int Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(8);
-          bd.setInt64(0, value);
+          final bd = new ByteData(8)..setInt64(0, input);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.serial:
       case PostgreSQLDataType.integer:
         {
-          if (value is! int) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: int Got: ${value
-              .runtimeType}");
+          if (input is! int) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: int Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(4);
-          bd.setInt32(0, value);
+          final bd = new ByteData(4)..setInt32(0, input);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.smallInteger:
         {
-          if (value is! int) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: int Got: ${value
-              .runtimeType}");
+          if (input is! int) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: int Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(2);
-          bd.setInt16(0, value);
+          final bd = new ByteData(2)..setInt16(0, input);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.name:
       case PostgreSQLDataType.text:
         {
-          if (value is! String) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: String Got: ${value
-              .runtimeType}");
+          if (input is! String) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: String Got: ${input.runtimeType}');
           }
 
-          return utf8.encode(value);
+          return utf8.encode(input);
         }
       case PostgreSQLDataType.real:
         {
-          if (value is! double) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: double Got: ${value
-              .runtimeType}");
+          if (input is! double) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: double Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(4);
-          bd.setFloat32(0, value);
+          final bd = new ByteData(4)..setFloat32(0, input);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.numeric:
       case PostgreSQLDataType.double:
         {
-          if (value is! double) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: double Got: ${value
-              .runtimeType}");
+          if (input is! double) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: double Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(8);
-          bd.setFloat64(0, value);
+          final bd = new ByteData(8)..setFloat64(0, input);
           return bd.buffer.asUint8List();
         }
       case PostgreSQLDataType.date:
         {
-          if (value is! DateTime) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: DateTime Got: ${value
-              .runtimeType}");
+          if (input is! DateTime) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: DateTime Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(4);
-          bd.setInt32(
-              0, value.toUtc().difference(new DateTime.utc(2000)).inDays);
+          final bd = new ByteData(4)
+            ..setInt32(
+                0, input.toUtc().difference(new DateTime.utc(2000)).inDays);
           return bd.buffer.asUint8List();
         }
 
       case PostgreSQLDataType.timestampWithoutTimezone:
         {
-          if (value is! DateTime) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: DateTime Got: ${value
-              .runtimeType}");
+          if (input is! DateTime) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: DateTime Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(8);
-          var diff = value.toUtc().difference(new DateTime.utc(2000));
+          final bd = new ByteData(8);
+          final diff = input.toUtc().difference(new DateTime.utc(2000));
           bd.setInt64(0, diff.inMicroseconds);
           return bd.buffer.asUint8List();
         }
 
       case PostgreSQLDataType.timestampWithTimezone:
         {
-          if (value is! DateTime) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: DateTime Got: ${value
-              .runtimeType}");
+          if (input is! DateTime) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: DateTime Got: ${input.runtimeType}');
           }
 
-          var bd = new ByteData(8);
-          bd.setInt64(0,
-              value.toUtc().difference(new DateTime.utc(2000)).inMicroseconds);
+          final bd = new ByteData(8)
+            ..setInt64(
+                0,
+                input
+                    .toUtc()
+                    .difference(new DateTime.utc(2000))
+                    .inMicroseconds);
           return bd.buffer.asUint8List();
         }
 
       case PostgreSQLDataType.json:
         {
-          var jsonBytes = utf8.encode(json.encode(value));
+          final jsonBytes = utf8.encode(json.encode(input));
           final outBuffer = new Uint8List(jsonBytes.length + 1);
           outBuffer[0] = 1;
           for (var i = 0; i < jsonBytes.length; i++) {
@@ -159,42 +147,43 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
 
       case PostgreSQLDataType.byteArray:
         {
-          if (value is! List) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: List<int> Got: ${value
-              .runtimeType}");
+          if (input is! List) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: List<int> Got: ${input.runtimeType}');
           }
-          return new Uint8List.fromList(value);
+          return new Uint8List.fromList(input);
         }
 
       case PostgreSQLDataType.uuid:
         {
-          if (value is! String) {
-            throw new FormatException(
-                "Invalid type for parameter value. Expected: String Got: ${value
-              .runtimeType}");
+          if (input is! String) {
+            throw new FormatException('Invalid type for parameter value. '
+                'Expected: String Got: ${input.runtimeType}');
           }
 
-          final dashUnit = "-".codeUnits.first;
-          final hexBytes = (value as String)
+          final dashUnit = '-'.codeUnits.first;
+          final hexBytes = (input as String)
               .toLowerCase()
               .codeUnits
               .where((c) => c != dashUnit)
               .toList();
           if (hexBytes.length != 32) {
-            throw new FormatException(
-                "Invalid UUID string. There must be exactly 32 hexadecimal (0-9 and a-f) characters and any number of '-' characters.");
+            throw const FormatException(
+                'Invalid UUID string. There must be exactly 32 hexadecimal '
+                '(0-9 and a-f) characters and any number of "-" '
+                'characters.');
           }
 
-          final byteConvert = (int charCode) {
+          final byteConvert = (charCode) {
             if (charCode >= 48 && charCode <= 57) {
               return charCode - 48;
             } else if (charCode >= 97 && charCode <= 102) {
               return charCode - 87;
             }
 
-            throw new FormatException(
-                "Invalid UUID string. Contains non-hexadecimal character (0-9 and a-f).");
+            throw const FormatException(
+                'Invalid UUID string. Contains non-hexadecimal character '
+                '(0-9 and a-f).');
           };
 
           final outBuffer = new Uint8List(16);
@@ -208,7 +197,7 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
         }
     }
 
-    throw new PostgreSQLException("Unsupported datatype");
+    throw new PostgreSQLException('Unsupported datatype');
   }
 }
 
@@ -218,21 +207,21 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
   final int typeCode;
 
   @override
-  dynamic convert(Uint8List value) {
+  dynamic convert(Uint8List input) {
     final dataType = typeMap[typeCode];
 
-    if (value == null) {
+    if (input == null) {
       return null;
     }
 
     final buffer = new ByteData.view(
-        value.buffer, value.offsetInBytes, value.lengthInBytes);
+        input.buffer, input.offsetInBytes, input.lengthInBytes);
 
     switch (dataType) {
       case PostgreSQLDataType.name:
       case PostgreSQLDataType.text:
         return utf8.decode(
-            value.buffer.asUint8List(value.offsetInBytes, value.lengthInBytes));
+            input.buffer.asUint8List(input.offsetInBytes, input.lengthInBytes));
       case PostgreSQLDataType.boolean:
         return buffer.getInt8(0) != 0;
       case PostgreSQLDataType.smallInteger:
@@ -258,15 +247,15 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
 
       case PostgreSQLDataType.numeric:
         {
-          var e =
-              value.buffer.asByteData(value.offsetInBytes, value.lengthInBytes);
+          final e =
+              input.buffer.asByteData(input.offsetInBytes, input.lengthInBytes);
 
-          var allWords = e.getInt16(0);
+          final allWords = e.getInt16(0);
           if (allWords == 0) return 0.0;
-          var beforeWords = e.getInt16(2) + 1;
-          var isNegative = (e.getInt16(4) & 16384) == 16384;
-          var afterWords = allWords - beforeWords;
-          var precision = e.getInt16(6);
+          final beforeWords = e.getInt16(2) + 1;
+          final isNegative = (e.getInt16(4) & 16384) == 16384;
+          final afterWords = allWords - beforeWords;
+          final precision = e.getInt16(6);
 
           var offset = 8;
           var beforeDigit = 0;
@@ -292,7 +281,7 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
 
           var result = afterDigit / pow(10000, afterWords) + beforeDigit;
 
-          var fac = pow(10, precision);
+          final fac = pow(10, precision);
           result = (result * fac).round() / fac;
 
           return isNegative ? -result : result;
@@ -301,18 +290,18 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
       case PostgreSQLDataType.json:
         {
           // Removes version which is first character and currently always '1'
-          final bytes = value.buffer
-              .asUint8List(value.offsetInBytes + 1, value.lengthInBytes - 1);
+          final bytes = input.buffer
+              .asUint8List(input.offsetInBytes + 1, input.lengthInBytes - 1);
           return json.decode(utf8.decode(bytes));
         }
 
       case PostgreSQLDataType.byteArray:
-        return value.buffer
-            .asUint8List(value.offsetInBytes, value.lengthInBytes);
+        return input.buffer
+            .asUint8List(input.offsetInBytes, input.lengthInBytes);
 
       case PostgreSQLDataType.uuid:
         {
-          final codeDash = "-".codeUnitAt(0);
+          final codeDash = '-'.codeUnitAt(0);
 
           final cipher = [
             '0',
@@ -332,9 +321,7 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
             'e',
             'f'
           ];
-          final byteConvert = (int value) {
-            return cipher[value];
-          };
+          final byteConvert = (value) => cipher[value];
 
           final buf = new StringBuffer();
           for (var i = 0; i < buffer.lengthInBytes; i++) {
@@ -343,8 +330,7 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
 
             final upperByteHex = byteConvert(upperByteValue);
             final lowerByteHex = byteConvert(byteValue - (upperByteValue * 16));
-            buf.write(upperByteHex);
-            buf.write(lowerByteHex);
+            buf..write(upperByteHex)..write(lowerByteHex);
             if (i == 3 || i == 5 || i == 7 || i == 9) {
               buf.writeCharCode(codeDash);
             }
@@ -359,9 +345,9 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
     // we just return the bytes and let the caller figure out what to
     // do with it.
     try {
-      return utf8.decode(value);
+      return utf8.decode(input);
     } catch (_) {
-      return value;
+      return input;
     }
   }
 

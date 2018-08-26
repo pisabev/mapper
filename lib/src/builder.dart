@@ -3,18 +3,18 @@ part of mapper_server;
 class Expression {
   String _type = '';
 
-  List _parts = <String>[];
+  final List _parts = <String>[];
 
   Expression(String type, List parts) {
     _type = type;
     addMultiple(parts);
   }
 
-  addMultiple(List parts) {
-    parts.forEach((part) => add(part));
+  void addMultiple(List parts) {
+    parts.forEach(add);
   }
 
-  add(dynamic part) {
+  void add(dynamic part) {
     if (part != '' || (part is Expression && part.count() > 0))
       _parts.add(part);
   }
@@ -23,7 +23,7 @@ class Expression {
 
   String toString() {
     if (_parts.length == 1) return _parts[0].toString();
-    return '(' + _parts.join(') ' + _type + ' (') + ')';
+    return '(${_parts.join(') $_type (')})';
   }
 
   String getType() => _type;
@@ -36,16 +36,16 @@ class TSquery {
 
   String toString() {
     if (query == null) return null;
-    var search = query.trim();
+    final search = query.trim();
     if (search.length < 2) return null;
-    var parts = search.split(new RegExp(r'\s+')).map((e) => e
+    final parts = search.split(new RegExp(r'\s+')).map((e) => e
         .replaceAll('!', '\\!')
         .replaceAll(':', '\\:')
         .replaceAll('\&', '\\&')
         .replaceAll('(', '\\(')
         .replaceAll(')', '\\)')
         .replaceAll('\'', '\\\''));
-    return parts.join(' & ') + ':*';
+    return '${parts.join(' & ')}:*';
   }
 }
 
@@ -58,7 +58,7 @@ class Builder {
 
   static const int UPDATE = 3;
 
-  var connection;
+  drv.PostgreSQLConnection connection;
 
   String _sql = '';
 
@@ -70,34 +70,32 @@ class Builder {
 
   Map<String, dynamic> _params = {};
 
-  Map _sqlParts = <String, dynamic>{
-    'select': new List(),
-    'from': new List(),
-    'join': new List(),
-    'set': new List(),
+  final _sqlParts = <String, dynamic>{
+    'select': [],
+    'from': [],
+    'join': [],
+    'set': [],
     'where': '',
-    'groupBy': new List(),
+    'groupBy': [],
     'having': '',
-    'orderBy': new List()
+    'orderBy': []
   };
 
   Builder();
 
   int getType() => _type;
 
-  Builder setParameter(String key, dynamic value) {
+  void setParameter(String key, dynamic value) {
     _params[key] = value;
-    return this;
   }
 
-  Builder setParameters(Map<String, dynamic> params) {
+  void setParameters(Map<String, dynamic> params) {
     _params = params;
-    return this;
   }
 
   Map<String, dynamic> getParameters() => _params;
 
-  dynamic getParameter(key) => _params[key];
+  dynamic getParameter(String key) => _params[key];
 
   String getSQL() {
     if (_sql != '') {
@@ -125,254 +123,212 @@ class Builder {
     return sql;
   }
 
-  Builder offset(int offset) {
+  void offset(int offset) {
     _offset = offset;
-    return this;
   }
 
   int getOffset() => _offset;
 
-  Builder limit(int limit) {
+  void limit(int limit) {
     _limit = limit;
-    return this;
   }
 
   int getLimit() => _limit;
 
-  Builder add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
+  void add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
     if ((sqlPart is String && sqlPart == '') ||
-        (sqlPart is Map && sqlPart.isEmpty)) return this;
+        (sqlPart is Map && sqlPart.isEmpty)) return null;
     if (append) {
       _sqlParts[sqlPartName].add(sqlPart);
     } else {
       _sqlParts[sqlPartName] = sqlPart;
     }
-    return this;
   }
 
-  Builder select(String select) {
-    _sqlParts['select'] = new List();
+  void select(String select) {
+    _sqlParts['select'] = [];
     return addSelect(select);
   }
 
-  Builder addSelect(String select) {
+  void addSelect(String select) {
     _type = Builder.SELECT;
-    return this.add('select', select, true);
+    return add('select', select, true);
   }
 
-  Builder delete(String del) {
+  void delete(String del) {
     _type = Builder.DELETE;
-    return this.add('from', del, true);
+    return add('from', del, true);
   }
 
-  Builder insert(String update) {
+  void insert(String update) {
     _type = Builder.INSERT;
-    return this.add('from', update, true);
+    return add('from', update, true);
   }
 
-  Builder update(String update) {
+  void update(String update) {
     _type = Builder.UPDATE;
-    return this.add('from', update, true);
+    return add('from', update, true);
   }
 
-  Builder from(String from) {
-    return this.add('from', from, true);
-  }
+  void from(String from) => add('from', from, true);
 
-  Builder join(String joinTable, String condition) {
-    return innerJoin(joinTable, condition);
-  }
+  void join(String joinTable, String condition) =>
+      innerJoin(joinTable, condition);
 
-  Builder innerJoin(String joinTable, String condition) {
-    return this.add(
-        'join',
-        {
-          'joinType': 'INNER',
-          'joinTable': joinTable,
-          'joinCondition': condition
-        },
-        true);
-  }
+  void innerJoin(String joinTable, String condition) => add(
+      'join',
+      {'joinType': 'INNER', 'joinTable': joinTable, 'joinCondition': condition},
+      true);
 
-  Builder leftJoin(String joinTable, String condition) {
-    return this.add(
-        'join',
-        {
-          'joinType': 'LEFT',
-          'joinTable': joinTable,
-          'joinCondition': condition
-        },
-        true);
-  }
+  void leftJoin(String joinTable, String condition) => add(
+      'join',
+      {'joinType': 'LEFT', 'joinTable': joinTable, 'joinCondition': condition},
+      true);
 
-  Builder rightJoin(String joinTable, String condition) {
-    return this.add(
-        'join',
-        {
-          'joinType': 'RIGHT',
-          'joinTable': joinTable,
-          'joinCondition': condition
-        },
-        true);
-  }
+  void rightJoin(String joinTable, String condition) => add(
+      'join',
+      {'joinType': 'RIGHT', 'joinTable': joinTable, 'joinCondition': condition},
+      true);
 
-  Builder set(String key, dynamic value) {
-    return this.add('set', {key: value}, true);
-  }
+  void set(String key, dynamic value) => add('set', {key: value}, true);
 
-  Builder where(String where, [String where2 = '']) {
+  void where(String where, [String where2 = '']) {
     if (where2 != '') where = new Expression('AND', [where, where2]).toString();
-    return this.add('where', where);
+    return add('where', where);
   }
 
-  Builder andWhere(String where) {
-    return _exprBuilder('where', where, 'AND');
-  }
+  void andWhere(String where) => _exprBuilder('where', where, 'AND');
 
-  Builder orWhere(String where) {
-    return _exprBuilder('where', where, 'OR');
-  }
+  void orWhere(String where) => _exprBuilder('where', where, 'OR');
 
-  Builder groupBy(String groupBy) {
-    return addGroupBy(groupBy);
-  }
+  void groupBy(String groupBy) => addGroupBy(groupBy);
 
-  Builder addGroupBy(String groupBy) {
-    return this.add('groupBy', groupBy, true);
-  }
+  void addGroupBy(String groupBy) => add('groupBy', groupBy, true);
 
-  Builder having(String having, [String having2 = '']) {
+  void having(String having, [String having2 = '']) {
     if (having2 != '')
       having = new Expression('AND', [having, having2]).toString();
-    return this.add('having', having);
+    return add('having', having);
   }
 
-  Builder andHaving(String having) {
-    return _exprBuilder('having', having, 'AND');
+  void andHaving(String having) => _exprBuilder('having', having, 'AND');
+
+  void orHaving(String having) => _exprBuilder('having', having, 'OR');
+
+  void orderBy(String sort, [String order = 'ASC']) {
+    _sqlParts['orderBy'] = [];
+    return add('orderBy', '$sort $order', true);
   }
 
-  Builder orHaving(String having) {
-    return _exprBuilder('having', having, 'OR');
-  }
+  void addOrderBy(String sort, [String order = 'ASC']) =>
+      add('orderBy', '$sort $order', true);
 
-  Builder orderBy(String sort, [String order = 'ASC']) {
-    _sqlParts['orderBy'] = new List();
-    return this.add('orderBy', sort + ' ' + order, true);
-  }
-
-  Builder addOrderBy(String sort, [String order = 'ASC']) {
-    return this.add('orderBy', sort + ' ' + order, true);
-  }
-
-  Builder setQueryPart(String queryPartName, dynamic queryPart) {
+  void setQueryPart(String queryPartName, dynamic queryPart) {
     _sqlParts[queryPartName] = queryPart;
-    return this;
   }
 
   dynamic getQueryPart(String queryPartName) => _sqlParts[queryPartName];
 
   Map<String, dynamic> getQueryParts() {
-    Map res = <String, dynamic>{};
+    final res = <String, dynamic>{};
     _sqlParts.forEach((k, v) => res[k] = v);
     return res;
   }
 
-  Builder resetQueryParts(List queryPartNames) {
-    if (queryPartNames.length == 0) {
-      var queryPartNames = [];
+  void resetQueryParts(List queryPartNames) {
+    if (queryPartNames.isEmpty) {
+      final queryPartNames = [];
       _sqlParts.forEach((k, v) => queryPartNames.add(k));
     }
-    queryPartNames.forEach((e) => resetQueryPart(e));
-    return this;
+    queryPartNames.forEach(resetQueryPart);
   }
 
-  Builder resetQueryPart(String queryPartName) {
+  void resetQueryPart(String queryPartName) {
     _sqlParts[queryPartName] = (_sqlParts[queryPartName] is List) ? [] : '';
     _sql = '';
-    return this;
   }
 
   bool isJoinPresent(String joinTable) {
-    List joins = getQueryPart('join');
-    for (int i = 0; i < joins.length; i++)
+    final joins = getQueryPart('join');
+    for (var i = 0; i < joins.length; i++)
       if (joins[i]['joinTable'] == joinTable) return true;
     return false;
   }
 
-  Builder _exprBuilder(String key, args, type, [bool append = false]) {
-    var expr = this.getQueryPart(key);
-    expr = (new Expression(type, [expr, args])).toString();
-    return this.add(key, expr, append);
+  void _exprBuilder(String key, args, type, [bool append = false]) {
+    var expr = getQueryPart(key);
+    expr = new Expression(type, [expr, args]).toString();
+    return add(key, expr, append);
   }
 
   String _getSQLForSelect() {
-    StringBuffer sb = new StringBuffer()
+    final sb = new StringBuffer()
       ..write('SELECT ')
       ..writeAll(_sqlParts['select'], ', ')
       ..write('\n FROM ')
       ..writeAll(_sqlParts['from'], ', ');
     if (_sqlParts['join'].length > 0) {
       _sqlParts['join'].forEach((e) {
-        sb.write('\n ');
-        sb.write(e['joinType']);
-        sb.write(' JOIN ');
-        sb.write(e['joinTable']);
-        sb.write(' ON ');
-        sb.write(e['joinCondition']);
+        sb
+          ..write('\n ')
+          ..write(e['joinType'])
+          ..write(' JOIN ')
+          ..write(e['joinTable'])
+          ..write(' ON ')
+          ..write(e['joinCondition']);
       });
     }
     if (_sqlParts['where'] != '') {
-      sb.write('\n WHERE ');
-      sb.write(_sqlParts['where']);
+      sb..write('\n WHERE ')..write(_sqlParts['where']);
     }
     if (_sqlParts['groupBy'].length > 0) {
-      sb.write('\n GROUP BY ');
-      sb.writeAll(_sqlParts['groupBy'], ', ');
+      sb
+        ..write('\n GROUP BY ')
+        ..writeAll(_sqlParts['groupBy'], ', ');
     }
     if (_sqlParts['having'] != '') {
-      sb.write('\n HAVING ');
-      sb.write(_sqlParts['having']);
+      sb..write('\n HAVING ')..write(_sqlParts['having']);
     }
     if (_sqlParts['orderBy'].length > 0) {
-      sb.write('\n ORDER BY ');
-      sb.writeAll(_sqlParts['orderBy'], ', ');
+      sb
+        ..write('\n ORDER BY ')
+        ..writeAll(_sqlParts['orderBy'], ', ');
     }
     if (_limit > 0) {
-      sb.write('\n LIMIT ' + _limit.toString());
-      if (_offset > 0) sb.write(' OFFSET ' + _offset.toString());
+      sb.write('\n LIMIT ${_limit.toString()}');
+      if (_offset > 0) sb.write(' OFFSET ${_offset.toString()}');
     }
     return sb.toString();
   }
 
   String _getSQLForUpdate() {
-    List pairs = new List();
+    final pairs = [];
     _sqlParts['set'].forEach((s) {
       s.forEach((k, v) {
-        pairs.add(k + ' = ' + v);
+        pairs.add('$k = $v');
       });
     });
-    StringBuffer sb = new StringBuffer()
+    final sb = new StringBuffer()
       ..write('UPDATE ')
       ..write(_sqlParts['from'][0])
       ..write(' SET ')
       ..writeAll(pairs, ', ');
     if (_sqlParts['where'] != '') {
-      sb.write('\n WHERE ');
-      sb.write(_sqlParts['where']);
+      sb..write('\n WHERE ')..write(_sqlParts['where']);
     }
     return sb.toString();
   }
 
   String _getSQLForInsert() {
-    List columns = new List();
-    List values = new List();
+    final columns = [];
+    final values = [];
     _sqlParts['set'].forEach((s) {
       s.forEach((k, v) {
         columns.add(k);
         values.add(v);
       });
     });
-    StringBuffer sb = new StringBuffer()
+    final sb = new StringBuffer()
       ..write('INSERT INTO ')
       ..write(_sqlParts['from'][0])
       ..write(' (')
@@ -384,34 +340,34 @@ class Builder {
   }
 
   String _getSQLForDelete() {
-    StringBuffer sb = new StringBuffer()
+    final sb = new StringBuffer()
       ..write('DELETE FROM ')
       ..write(_sqlParts['from'][0]);
     if (_sqlParts['where'] != '') {
-      sb.write('\n WHERE ');
-      sb.write(_sqlParts['where']);
+      sb..write('\n WHERE ')..write(_sqlParts['where']);
     }
     return sb.toString();
   }
 
   Builder clone() {
-    Builder clone = new Builder();
+    final clone = new Builder();
     _sqlParts.forEach((k, v) {
       if (v is List)
         v.forEach((s) => clone._sqlParts[k].add(s));
       else
         clone._sqlParts[k] = v;
     });
-    clone._limit = _limit;
-    clone._offset = _offset;
-    clone._params = new Map.from(_params);
+    clone
+      .._limit = _limit
+      .._offset = _offset
+      .._params = new Map.from(_params);
     return clone;
   }
 
   Builder cloneFilter() {
-    Builder clone = new Builder();
+    final clone = new Builder();
     ['join', 'where', 'having'].forEach((k) {
-      var v = _sqlParts[k];
+      final v = _sqlParts[k];
       if (v is List)
         v.forEach((s) => clone._sqlParts[k].add(s));
       else
@@ -425,18 +381,18 @@ class Builder {
 }
 
 class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
-A extends Application> {
+    A extends Application> {
   static int _unique = 0;
 
   Builder query;
 
   Mapper<E, C, A> mapper;
 
-  Map<String, dynamic> filter = new Map();
+  Map<String, dynamic> filter = {};
 
-  Map<String, List<String>> filter_way = new Map();
+  Map<String, List<String>> filter_way = {};
 
-  Map<String, String> filter_map = new Map();
+  Map<String, String> filter_map = {};
 
   String order_field;
 
@@ -448,10 +404,7 @@ A extends Application> {
 
   C collection;
 
-  CollectionBuilder(Builder q, Mapper<E, C, A> m) {
-    query = q;
-    mapper = m;
-  }
+  CollectionBuilder(this.query, this.mapper);
 
   set limit(int limit) => _limit = limit;
 
@@ -464,7 +417,7 @@ A extends Application> {
     }
   }
 
-  Future<CollectionBuilder<E, C, A>> process([total = false]) async {
+  Future<CollectionBuilder<E, C, A>> process([bool total = false]) async {
     _queryFilter(query);
     _queryFinalize(query);
     collection = await mapper.loadC(query, total);
@@ -472,7 +425,7 @@ A extends Application> {
   }
 
   String queryToString() {
-    var q = query.clone();
+    final q = query.clone();
     _queryFilter(q);
     _queryFinalize(q);
     return '$q\n${q._params}';
@@ -483,7 +436,7 @@ A extends Application> {
   void _queryFilter(Builder query) {
     filter.forEach((k, value) {
       if (value != null) {
-        filter_way.forEach((way, List a) {
+        filter_way.forEach((way, a) {
           if (a.contains(k)) {
             var key = k;
             if (filter_map[k] != null) key = filter_map[k];
@@ -500,20 +453,20 @@ A extends Application> {
       if (_page > 0) query.offset((_page - 1) * _limit);
     }
     if (order_field != null) {
-      String k = order_field;
+      var k = order_field;
       if (filter_map[k] != null) k = filter_map[k];
       query.orderBy(k, order_way);
     }
   }
 
   void _set(Builder query, String way, String key, dynamic value) {
-    String ph = _cleanPlaceHolder(key);
+    var ph = _cleanPlaceHolder(key);
     switch (way) {
       case 'eq':
         if (value is List) {
           value.removeWhere((v) => v == null);
           if (value.isEmpty) return;
-          var q = value.map((v) {
+          final q = value.map((v) {
             if (v == 'null') {
               return '$key IS NULL';
             } else {
@@ -526,60 +479,71 @@ A extends Application> {
         } else if (value == 'null') {
           query.andWhere('$key IS NULL');
         } else {
-          query.andWhere('$key = @$ph').setParameter(ph, value);
+          query
+            ..andWhere('$key = @$ph')
+            ..setParameter(ph, value);
         }
         break;
       case 'gt':
-        query.andWhere('$key > @$ph').setParameter(ph, value);
+        query
+          ..andWhere('$key > @$ph')
+          ..setParameter(ph, value);
         break;
       case 'lt':
-        query.andWhere('$key < @$ph').setParameter(ph, value);
+        query
+          ..andWhere('$key < @$ph')
+          ..setParameter(ph, value);
         break;
       case 'gte':
-        query.andWhere('$key >= @$ph').setParameter(ph, value);
+        query
+          ..andWhere('$key >= @$ph')
+          ..setParameter(ph, value);
         break;
       case 'lte':
-        query.andWhere('$key <= @$ph').setParameter(ph, value);
+        query
+          ..andWhere('$key <= @$ph')
+          ..setParameter(ph, value);
         break;
       case 'like':
         query
-            .andWhere('CAST($key AS text) ILIKE @$ph')
-            .setParameter(ph, '%$value%');
+          ..andWhere('CAST($key AS text) ILIKE @$ph')
+          ..setParameter(ph, '%$value%');
         break;
       case 'rlike':
         query
-            .andWhere('CAST($key AS text) ILIKE @$ph')
-            .setParameter(ph, '%$value');
+          ..andWhere('CAST($key AS text) ILIKE @$ph')
+          ..setParameter(ph, '%$value');
         break;
       case 'llike':
         query
-            .andWhere('CAST($key AS text) ILIKE @$ph')
-            .setParameter(ph, '$value%');
+          ..andWhere('CAST($key AS text) ILIKE @$ph')
+          ..setParameter(ph, '$value%');
         break;
       case 'tsquery':
         query
-            .andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
-            .setParameter(ph, new TSquery(value).toString());
+          ..andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
+          ..setParameter(ph, new TSquery(value).toString());
         break;
       case 'date':
         if (value is List) {
           if (value[0] != null) {
-            DateTime from = DateTime.parse(value[0]);
+            final from = DateTime.parse(value[0]);
             query
-                .andWhere('$key >= @date_from')
-                .setParameter('date_from', from);
+              ..andWhere('$key >= @date_from')
+              ..setParameter('date_from', from);
           }
           if (value[1] != null) {
-            DateTime to = DateTime.parse(value[1]);
+            var to = DateTime.parse(value[1]);
             to = to.add(new Duration(seconds: 86400));
-            query.andWhere('$key < @date_to').setParameter('date_to', to);
+            query
+              ..andWhere('$key < @date_to')
+              ..setParameter('date_to', to);
           }
         }
         break;
     }
   }
 
-  String _cleanPlaceHolder(String key) {
-    return key.replaceAll(new RegExp(r'\.'), '_') + (++_unique).toString();
-  }
+  String _cleanPlaceHolder(String key) =>
+      key.replaceAll(new RegExp(r'\.'), '_') + (++_unique).toString();
 }

@@ -35,7 +35,7 @@ class StreamObserver<E extends Entity> {
 }
 
 class EntityNotifier<E extends Entity> {
-  Observer<E> _observer = new Observer<E>();
+  final Observer<E> _observer = new Observer<E>();
 
   StreamObserver<E> get onCreate =>
       new StreamObserver<E>(MEvent.create, _observer);
@@ -69,12 +69,9 @@ class Database {
   static const String _base = '_';
   static Database instance;
 
-  Map<String, Pool> _pools = {};
+  final Map<String, Pool> _pools = {};
 
-  factory Database() {
-    if (instance == null) instance = new Database._();
-    return instance;
-  }
+  factory Database() => instance ??= new Database._();
 
   Database._();
 
