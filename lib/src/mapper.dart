@@ -131,11 +131,11 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return true;
   }
 
-  Map _readDiff(E obj) {
+  Map<String, dynamic> _readDiff(E obj) {
     var newData = readObject(obj);
     var key = _cacheKeyFromData(newData);
     var oldData = _cacheGetInitData(key);
-    var diffm = {};
+    var diffm = <String, dynamic>{};
     if (oldData != null) {
       newData.forEach((k, v) {
         var oldValue = oldData[k];
