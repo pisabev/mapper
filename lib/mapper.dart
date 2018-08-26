@@ -34,7 +34,7 @@ class StreamObserver<E extends Entity> {
   void listen(ObserverFunction<E> f) => observer.addHook(scope, f);
 }
 
-class EntityNotifier<E extends Entity<Application>> {
+class EntityNotifier<E extends Entity> {
   Observer<E> _observer = new Observer<E>();
 
   StreamObserver<E> get onCreate =>
