@@ -1,6 +1,6 @@
 part of mapper_server;
 
-typedef ObserverFunction<E extends Entity> = void Function(EntityContainer<E>);
+typedef ObserverFunction<E extends Entity> = Null Function(EntityContainer<E>);
 
 enum MEvent { update, create, delete, change }
 
