@@ -26,7 +26,7 @@ class Manager<A extends Application> {
     _connection = await _pool.obtain();
   }
 
-  Manager<T> convert<T extends Application>(T app) => (app is Manager<A>)
+  Manager<T> convert<T extends Application>(T app) => (app is A)
       ? this
       : new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
