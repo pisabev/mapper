@@ -133,13 +133,24 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
           return bd.buffer.asUint8List();
         }
 
-      case PostgreSQLDataType.json:
+      case PostgreSQLDataType.jsonb:
         {
           final jsonBytes = utf8.encode(json.encode(input));
           final outBuffer = new Uint8List(jsonBytes.length + 1);
           outBuffer[0] = 1;
           for (var i = 0; i < jsonBytes.length; i++) {
             outBuffer[i + 1] = jsonBytes[i];
+          }
+
+          return outBuffer;
+        }
+
+      case PostgreSQLDataType.json:
+        {
+          final jsonBytes = utf8.encode(json.encode(input));
+          final outBuffer = new Uint8List(jsonBytes.length);
+          for (var i = 0; i < jsonBytes.length; i++) {
+            outBuffer[i] = jsonBytes[i];
           }
 
           return outBuffer;
@@ -287,11 +298,18 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
           return isNegative ? -result : result;
         }
 
-      case PostgreSQLDataType.json:
+      case PostgreSQLDataType.jsonb:
         {
           // Removes version which is first character and currently always '1'
           final bytes = input.buffer
               .asUint8List(input.offsetInBytes + 1, input.lengthInBytes - 1);
+          return json.decode(utf8.decode(bytes));
+        }
+
+      case PostgreSQLDataType.json:
+        {
+          final bytes = input.buffer
+              .asUint8List(input.offsetInBytes, input.lengthInBytes);
           return json.decode(utf8.decode(bytes));
         }
 
@@ -365,7 +383,8 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
     1114: PostgreSQLDataType.timestampWithoutTimezone,
     1184: PostgreSQLDataType.timestampWithTimezone,
     2950: PostgreSQLDataType.uuid,
-    3802: PostgreSQLDataType.json,
+    3802: PostgreSQLDataType.jsonb,
+    114: PostgreSQLDataType.json,
     1700: PostgreSQLDataType.numeric
   };
 }

@@ -40,8 +40,10 @@ class PostgreSQLFormat {
         return "timestamptz";
       case PostgreSQLDataType.date:
         return "date";
-      case PostgreSQLDataType.json:
+      case PostgreSQLDataType.jsonb:
         return "jsonb";
+      case PostgreSQLDataType.json:
+        return "json";
       case PostgreSQLDataType.byteArray:
         return "bytea";
       case PostgreSQLDataType.name:
