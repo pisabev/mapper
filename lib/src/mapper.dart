@@ -58,9 +58,13 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Builder queryBuilder() => new Builder();
 
-  Builder selectBuilder([String select = '*']) => new Builder()
-    ..select(select)
-    ..from(_escape(table));
+  Builder selectBuilder([String select]) {
+    final tbl = _escape(table);
+    select ??= '$tbl.*';
+    return new Builder()
+      ..select(select)
+      ..from(tbl);
+  }
 
   Builder deleteBuilder() => new Builder()..delete(_escape(table));
 
