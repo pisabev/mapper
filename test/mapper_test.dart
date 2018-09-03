@@ -113,7 +113,7 @@ class Test1 extends Entity {
   int test1_id;
   bool field_bool;
   String field_string;
-  double field_int;
+  num field_int;
 //  Map field_json;
   Map field_jsonb;
   DateTime field_date;
