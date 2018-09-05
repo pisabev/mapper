@@ -267,7 +267,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   void setObject(E object, Map data) => object.init(data);
 
-  Map readObject(E object) => object.toMap();
+  Map<String, dynamic> readObject(E object) => object.toMap();
 
   E mergeData(E object, Map<String, dynamic> data) {
     final m = readObject(object)..addAll(data);
@@ -275,7 +275,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<E> prepare(dynamic vpkey, Map data, {bool forceInsert = false}) async {
+  Future<E> prepare(dynamic vpkey, Map<String, dynamic> data,
+      {bool forceInsert = false}) async {
     if (vpkey != null) {
       final object =
           (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
