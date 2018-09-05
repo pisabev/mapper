@@ -269,7 +269,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Map readObject(E object) => object.toMap();
 
-  E mergeData(E object, Map data) {
+  E mergeData(E object, Map<String, dynamic> data) {
     final m = readObject(object)..addAll(data);
     setObject(object, m);
     return object;
