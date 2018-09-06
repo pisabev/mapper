@@ -1,13 +1,13 @@
 part of mapper_shared;
 
 class Collection<E> extends ListBase<E> {
-  List<E> innerList = new List();
+  List<E> innerList = [];
 
   int totalResults;
 
   int get length => innerList.length;
 
-  void set length(int length) {
+  set length(int length) {
     innerList.length = length;
   }
 
@@ -17,9 +17,9 @@ class Collection<E> extends ListBase<E> {
 
   E operator [](int index) => innerList[index];
 
-  void add(E value) => innerList.add(value);
+  void add(E element) => innerList.add(element);
 
-  void addAll(Iterable<E> all) => innerList.addAll(all);
+  void addAll(Iterable<E> iterable) => innerList.addAll(iterable);
 
   Iterable<T> map<T>(T f(E e)) => innerList.map(f);
 }

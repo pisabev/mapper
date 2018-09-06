@@ -1,6 +1,6 @@
 import 'package:mapper/src/postgres.dart';
 import 'package:test/test.dart';
-import 'package:mapper/src/drv/postgresql_codec.dart';
+import 'package:mapper/src/drv/types.dart';
 
 void main() {
   group("Successful queries", () {
@@ -16,7 +16,7 @@ void main() {
               "(i int, s serial, bi bigint, "
               "bs bigserial, bl boolean, si smallint, "
               "t text, f real, d double precision, "
-              "dt date, ts timestamp, tsz timestamptz, j jsonb)");
+              "dt date, ts timestamp, tsz timestamptz, j jsonb, u uuid)");
       await connection.execute(
           "CREATE TEMPORARY TABLE u (i1 int not null, i2 int not null);");
       await connection
@@ -36,7 +36,7 @@ void main() {
             "t": "°∆",
           });
 
-      var expectedRow = [{'t': "°∆"}];
+      var expectedRow = ["°∆"];
       expect(result, [expectedRow]);
 
       result = await connection.query("select t from t");
@@ -47,7 +47,7 @@ void main() {
       var result =
       await connection.query("INSERT INTO t (t) values ('°∆') RETURNING t");
 
-      var expectedRow = [['t', "°∆"]];
+      var expectedRow = ["°∆"];
       expect(result, [expectedRow]);
 
       result = await connection.query("select t from t");
@@ -62,7 +62,7 @@ void main() {
             "t": "'©™®'",
           });
 
-      var expectedRow = [['t', "'©™®'"]];
+      var expectedRow = ["'©™®'"];
 
       var result = await connection.query("select t from t");
       expect(result, [expectedRow]);
@@ -76,7 +76,7 @@ void main() {
             "t": "°\\'©™®'",
           });
 
-      var expectedRow = [['t', "°\\'©™®'"]];
+      var expectedRow = ["°\\'©™®'"];
 
       var result = await connection.query("select t from t");
       expect(result, [expectedRow]);
@@ -85,7 +85,7 @@ void main() {
     test("UTF16 strings in query with escape characters", () async {
       await connection.execute("INSERT INTO t (t) values ('°''©™®''')");
 
-      var expectedRow = [['t', "°'©™®'"]];
+      var expectedRow = ["°'©™®'"];
 
       var result = await connection.query("select t from t");
       expect(result, [expectedRow]);
@@ -96,7 +96,7 @@ void main() {
           "INSERT INTO t (t) VALUES (${PostgreSQLFormat.id("t", type: PostgreSQLDataType.text)}) returning t;",
           substitutionValues: {"t": lorumIpsum});
       expect(result, [
-        [['t', lorumIpsum]]
+        [lorumIpsum]
       ]);
     });
 
@@ -108,7 +108,7 @@ void main() {
 
     test("Query without specifying types", () async {
       var result = await connection.query(
-          "INSERT INTO t (i, bi, bl, si, t, f, d, dt, ts, tsz, j) values "
+          "INSERT INTO t (i, bi, bl, si, t, f, d, dt, ts, tsz, j, u) values "
               "(${PostgreSQLFormat.id("i")},"
               "${PostgreSQLFormat.id("bi")},"
               "${PostgreSQLFormat.id("bl")},"
@@ -119,7 +119,9 @@ void main() {
               "${PostgreSQLFormat.id("dt")},"
               "${PostgreSQLFormat.id("ts")},"
               "${PostgreSQLFormat.id("tsz")},"
-              "${PostgreSQLFormat.id("j")}) returning i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j",
+              "${PostgreSQLFormat.id("j")},"
+              "${PostgreSQLFormat.id("u")}"
+              ") returning i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j, u",
           substitutionValues: {
             "i": 1,
             "bi": 2,
@@ -131,9 +133,10 @@ void main() {
             "dt": new DateTime.utc(2000),
             "ts": new DateTime.utc(2000, 2),
             "tsz": new DateTime.utc(2000, 3),
-            "j": {"a":"b"}
+            "j": {"a":"b"},
+            "u": "01234567-89ab-cdef-0123-0123456789ab"
           });
-      var r = [result.first.values.toList()];
+
       var expectedRow = [
         1,
         1,
@@ -147,18 +150,18 @@ void main() {
         new DateTime.utc(2000),
         new DateTime.utc(2000, 2),
         new DateTime.utc(2000, 3),
-        {"a":"b"}
+        {"a":"b"},
+        "01234567-89ab-cdef-0123-0123456789ab"
       ];
-      expect(r, [expectedRow]);
+      expect(result, [expectedRow]);
       result = await connection
-          .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j from t");
-      r = [result.first.values.toList()];
-      expect(r, [expectedRow]);
+          .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j, u from t");
+      expect(result, [expectedRow]);
     });
 
     test("Query by specifying all types", () async {
       var result = await connection.query(
-          "INSERT INTO t (i, bi, bl, si, t, f, d, dt, ts, tsz, j) values "
+          "INSERT INTO t (i, bi, bl, si, t, f, d, dt, ts, tsz, j, u) values "
               "(${PostgreSQLFormat.id("i", type: PostgreSQLDataType.integer)},"
               "${PostgreSQLFormat.id("bi", type: PostgreSQLDataType.bigInteger)},"
               "${PostgreSQLFormat.id("bl", type: PostgreSQLDataType.boolean)},"
@@ -169,7 +172,9 @@ void main() {
               "${PostgreSQLFormat.id("dt", type: PostgreSQLDataType.date)},"
               "${PostgreSQLFormat.id("ts", type: PostgreSQLDataType.timestampWithoutTimezone)},"
               "${PostgreSQLFormat.id("tsz", type: PostgreSQLDataType.timestampWithTimezone)},"
-              "${PostgreSQLFormat.id("j", type: PostgreSQLDataType.json)}) returning i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j",
+              "${PostgreSQLFormat.id("j", type: PostgreSQLDataType.json)},"
+              "${PostgreSQLFormat.id("u", type: PostgreSQLDataType.uuid)})"
+              " returning i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j, u",
           substitutionValues: {
             "i": 1,
             "bi": 2,
@@ -181,9 +186,10 @@ void main() {
             "dt": new DateTime.utc(2000),
             "ts": new DateTime.utc(2000, 2),
             "tsz": new DateTime.utc(2000, 3),
-            "j": {"key": "value"}
+            "j": {"key": "value"},
+            "u": "01234567-89ab-cdef-0123-0123456789ab"
           });
-      var r = [result.first.values.toList()];
+
       var expectedRow = [
         1,
         1,
@@ -197,14 +203,14 @@ void main() {
         new DateTime.utc(2000),
         new DateTime.utc(2000, 2),
         new DateTime.utc(2000, 3),
-        {"key": "value"}
+        {"key": "value"},
+        "01234567-89ab-cdef-0123-0123456789ab"
       ];
-      expect(r, [expectedRow]);
+      expect(result, [expectedRow]);
 
       result = await connection
-          .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j from t");
-      r = [result.first.values.toList()];
-      expect(r, [expectedRow]);
+          .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz, j, u from t");
+      expect(result, [expectedRow]);
     });
 
     test("Query by specifying some types", () async {
@@ -232,7 +238,7 @@ void main() {
             "ts": new DateTime.utc(2000, 2),
             "tsz": new DateTime.utc(2000, 3),
           });
-      var r = [result.first.values.toList()];
+
       var expectedRow = [
         1,
         1,
@@ -247,11 +253,10 @@ void main() {
         new DateTime.utc(2000, 2),
         new DateTime.utc(2000, 3)
       ];
-      expect(r, [expectedRow]);
+      expect(result, [expectedRow]);
       result = await connection
           .query("select i,s, bi, bs, bl, si, t, f, d, dt, ts, tsz from t");
-      r = [result.first.values.toList()];
-      expect(r, [expectedRow]);
+      expect(result, [expectedRow]);
     });
 
     test("Can supply null for values (binary)", () async {
@@ -263,7 +268,7 @@ void main() {
           });
 
       expect(results, [
-        [['i1', null], ['i2', 1]]
+        [null, 1]
       ]);
     });
 
@@ -276,7 +281,7 @@ void main() {
           });
 
       expect(results, [
-        [['i1', null], ['i2', 1]]
+        [null, 1]
       ]);
     });
 
@@ -290,7 +295,7 @@ void main() {
           });
 
       expect(results, [
-        [['i1', 0], ['i2', 1]]
+        [0, 1]
       ]);
     });
 
@@ -304,7 +309,7 @@ void main() {
           });
 
       expect(results, [
-        [['i1', 0], ['i2', 1]]
+        [0, 1]
       ]);
     });
 
@@ -317,7 +322,7 @@ void main() {
           });
 
       expect(results, [
-        [['i1', 0], ['i2', 1]]
+        [0, 1]
       ]);
     });
   });

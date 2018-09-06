@@ -26,19 +26,20 @@ class Manager<A extends Application> {
     _connection = await _pool.obtain();
   }
 
-  Manager<T> convert<T extends Application>(T app) => (app is Manager<A>)
+  Manager<T> convert<T extends Application>(T app) => (app is A)
       ? this
       : new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
-  Future<List> query(String query, [Map params]) => _connection
-      .query(query, substitutionValues: params)
-      .catchError((e) => _error(e, query, params));
+  Future<List<Map<String, dynamic>>> query(String query, [Map params]) =>
+      _connection
+          .query(query, substitutionValues: params)
+          .catchError((e) => _error(e, query, params));
 
-  Future<List> execute(Builder builder) => _connection
+  Future<List<Map<String, dynamic>>> execute(Builder builder) => _connection
       .query(builder.getSQL(), substitutionValues: builder._params)
       .catchError((e) => _error(e, builder.getSQL(), builder._params));
 
-  _error(e, [String query, Map params]) {
+  void _error(e, [String query, Map params]) {
     if (e is drv.PostgreSQLException) {
       if (e.code != null &&
           (e.code == '23500' ||
@@ -57,22 +58,22 @@ class Manager<A extends Application> {
     }
   }
 
-  cacheAdd(String key, Entity object, Map initData) =>
+  void cacheAdd(String key, Entity object, Map initData) =>
       _cache.add(key, object, initData);
 
-  cacheClean(String key) => _cache.delete(key);
+  void cacheClean(String key) => _cache.delete(key);
 
   Entity cacheGet(String key) => _cache.get(key);
 
   Map cacheGetInitData(String key) => _cache.getInitData(key);
 
-  cache() => _cache.toString();
+  void cache() => _cache.toString();
 
-  addDirty(Entity object) => _unit.addDirty(object);
+  void addDirty(Entity object) => _unit.addDirty(object);
 
-  addNew(Entity object) => _unit.addNew(object);
+  void addNew(Entity object) => _unit.addNew(object);
 
-  addDelete(Entity object) => _unit.addDelete(object);
+  void addDelete(Entity object) => _unit.addDelete(object);
 
   Future persist() => _unit.persist();
 

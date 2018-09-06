@@ -17,9 +17,7 @@ part 'src/pool.dart';
 part 'src/exception.dart';
 part 'src/observer.dart';
 
-final Logger _log = new Logger('Mapper');
-
-class EntityContainer<E> {
+class EntityContainer<E extends Entity> {
   final E entity;
   final Map<String, dynamic> diff;
   const EntityContainer(this.entity, this.diff);
@@ -27,29 +25,29 @@ class EntityContainer<E> {
   bool isUpdated() => diff != null;
 }
 
-class StreamObserver<E> {
+class StreamObserver<E extends Entity> {
   final MEvent scope;
-  final Observer observer;
+  final Observer<E> observer;
 
   const StreamObserver(this.scope, this.observer);
 
   void listen(ObserverFunction<E> f) => observer.addHook(scope, f);
 }
 
-class EntityNotifier<E extends Entity<Application>> {
-  Observer<E> _observer = new Observer<E>();
+class EntityNotifier<E extends Entity> {
+  final Observer<E> _observer = new Observer<E>();
 
   StreamObserver<E> get onCreate =>
-      new StreamObserver(MEvent.create, _observer);
+      new StreamObserver<E>(MEvent.create, _observer);
 
   StreamObserver<E> get onUpdate =>
-      new StreamObserver(MEvent.update, _observer);
+      new StreamObserver<E>(MEvent.update, _observer);
 
   StreamObserver<E> get onDelete =>
-      new StreamObserver(MEvent.delete, _observer);
+      new StreamObserver<E>(MEvent.delete, _observer);
 
   StreamObserver<E> get onChange =>
-      new StreamObserver(MEvent.change, _observer);
+      new StreamObserver<E>(MEvent.change, _observer);
 
   Future _addUpdate(EntityContainer<E> o) async {
     await _observer.execHooksAsync(MEvent.update, o);
@@ -71,12 +69,9 @@ class Database {
   static const String _base = '_';
   static Database instance;
 
-  Map<String, Pool> _pools = {};
+  final Map<String, Pool> _pools = {};
 
-  factory Database() {
-    if (instance == null) instance = new Database._();
-    return instance;
-  }
+  factory Database() => instance ??= new Database._();
 
   Database._();
 

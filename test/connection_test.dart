@@ -1,3 +1,4 @@
+// ignore_for_file: unawaited_futures
 import 'package:mapper/src/postgres.dart';
 import 'package:test/test.dart';
 import 'dart:io';
@@ -33,7 +34,7 @@ void main() {
     });
 
     test("Connect with md5 auth required", () async {
-      conn = getConnectionNormal();
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
 
       await conn.open();
 
@@ -41,63 +42,63 @@ void main() {
     });
 
     test("SSL Connect with md5 auth required", () async {
-      conn = getConnectionNormalSsl();
+      conn = new PostgreSQLConnection("localhost", 5432, "dart_test", username: "user", password: "user", useSSL: true);
 
       await conn.open();
 
       expect(await conn.execute("select 1"), equals(1));
-      var socketMirror = reflect(conn).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) =>
-              dm.simpleName.toString().contains("_socket"));
-      var underlyingSocket =
-          reflect(conn).getField(socketMirror.simpleName).reflectee;
+      var socketMirror = reflect(conn)
+          .type
+          .declarations
+          .values
+          .firstWhere((DeclarationMirror dm) => dm.simpleName.toString().contains("_socket"));
+      var underlyingSocket = reflect(conn).getField(socketMirror.simpleName).reflectee;
       expect(underlyingSocket is SecureSocket, true);
     });
 
-    /*test("Connect with no auth required", () async {
-      conn = getConnectionNoPassword();
+    test("Connect with no auth required", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
 
       expect(await conn.execute("select 1"), equals(1));
     });
 
     test("SSL Connect with no auth required", () async {
-      conn = getConnectionNoPasswordSsl();
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", useSSL: true);
       await conn.open();
 
       expect(await conn.execute("select 1"), equals(1));
-    });*/
+    });
 
-    test("Closing idle connection succeeds, closes underlying socket",
-        () async {
-      conn = getConnectionNormal();
-
+    test("Closing idle connection succeeds, closes underlying socket", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
 
       await conn.close();
 
-      var socketMirror = reflect(conn).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) =>
-              dm.simpleName.toString().contains("_socket"));
-      Socket underlyingSocket =
-          reflect(conn).getField(socketMirror.simpleName).reflectee;
+      var socketMirror = reflect(conn)
+          .type
+          .declarations
+          .values
+          .firstWhere((DeclarationMirror dm) => dm.simpleName.toString().contains("_socket"));
+      Socket underlyingSocket = reflect(conn).getField(socketMirror.simpleName).reflectee;
       expect(await underlyingSocket.done, isNotNull);
 
       conn = null;
     });
 
-    test("SSL Closing idle connection succeeds, closes underlying socket",
-        () async {
-      conn = getConnectionNormalSsl();
+    test("SSL Closing idle connection succeeds, closes underlying socket", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", useSSL: true);
       await conn.open();
 
       await conn.close();
 
-      var socketMirror = reflect(conn).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) =>
-              dm.simpleName.toString().contains("_socket"));
-      Socket underlyingSocket =
-          reflect(conn).getField(socketMirror.simpleName).reflectee;
+      var socketMirror = reflect(conn)
+          .type
+          .declarations
+          .values
+          .firstWhere((DeclarationMirror dm) => dm.simpleName.toString().contains("_socket"));
+      Socket underlyingSocket = reflect(conn).getField(socketMirror.simpleName).reflectee;
       expect(await underlyingSocket.done, isNotNull);
 
       conn = null;
@@ -105,74 +106,60 @@ void main() {
 
     test(
         "Closing connection while busy succeeds, queued queries are all accounted for (canceled), closes underlying socket",
-        () async {
-      conn = getConnectionNormal();
-      await conn.open();
+            () async {
+          conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
+          await conn.open();
 
-      var errors = [];
-      var futures = [
-        conn
-            .query("select 1", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 2", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 3", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 4", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 5", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-      ];
+          var errors = [];
+          final catcher = (e) {
+            errors.add(e);
+            return null;
+          };
+          var futures = [
+            conn.query("select 1", allowReuse: false).catchError(catcher),
+            conn.query("select 2", allowReuse: false).catchError(catcher),
+            conn.query("select 3", allowReuse: false).catchError(catcher),
+            conn.query("select 4", allowReuse: false).catchError(catcher),
+            conn.query("select 5", allowReuse: false).catchError(catcher),
+          ];
 
-      await conn.close();
-      await Future.wait(futures);
-      expect(errors.length, 5);
-      expect(errors.map((e) => e.message),
-          everyElement(contains("Connection closed")));
-    });
+          await conn.close();
+          await Future.wait(futures);
+          expect(errors.length, 5);
+          expect(errors.map((e) => e.message), everyElement(contains("Query cancelled")));
+        });
 
     test(
         "SSL Closing connection while busy succeeds, queued queries are all accounted for (canceled), closes underlying socket",
-        () async {
-      conn = getConnectionNormalSsl();
-      await conn.open();
+            () async {
+          conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", useSSL: true);
+          await conn.open();
 
-      var errors = [];
-      var futures = [
-        conn
-            .query("select 1", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 2", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 3", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 4", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-        conn
-            .query("select 5", allowReuse: false)
-            .catchError((e) => errors.add(e)),
-      ];
+          var errors = [];
+          final catcher = (e) {
+            errors.add(e);
+            return null;
+          };
+          var futures = [
+            conn.query("select 1", allowReuse: false).catchError(catcher),
+            conn.query("select 2", allowReuse: false).catchError(catcher),
+            conn.query("select 3", allowReuse: false).catchError(catcher),
+            conn.query("select 4", allowReuse: false).catchError(catcher),
+            conn.query("select 5", allowReuse: false).catchError(catcher),
+          ];
 
-      await conn.close();
-      await Future.wait(futures);
-      expect(errors.length, 5);
-      expect(errors.map((e) => e.message),
-          everyElement(contains("Connection closed")));
-    });
+          await conn.close();
+          await Future.wait(futures);
+          expect(errors.length, 5);
+          expect(errors.map((e) => e.message), everyElement(contains("Query cancelled")));
+        });
   });
 
   group("Successful queries over time", () {
     PostgreSQLConnection conn = null;
 
     setUp(() async {
-      conn = getConnectionNormal();
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
     });
 
@@ -180,39 +167,35 @@ void main() {
       await conn?.close();
     });
 
-    test(
-        "Issuing multiple queries and awaiting between each one successfully returns the right value",
-        () async {
+    test("Issuing multiple queries and awaiting between each one successfully returns the right value", () async {
       expect(
           await conn.query("select 1", allowReuse: false),
           equals([
-            [['?column?', 1]]
+            [1]
           ]));
       expect(
           await conn.query("select 2", allowReuse: false),
           equals([
-            [['?column?', 2]]
+            [2]
           ]));
       expect(
           await conn.query("select 3", allowReuse: false),
           equals([
-            [['?column?', 3]]
+            [3]
           ]));
       expect(
           await conn.query("select 4", allowReuse: false),
           equals([
-            [['?column?', 4]]
+            [4]
           ]));
       expect(
           await conn.query("select 5", allowReuse: false),
           equals([
-            [['?column?', 5]]
+            [5]
           ]));
     });
 
-    test(
-        "Issuing multiple queries without awaiting are returned with appropriate values",
-        () async {
+    test("Issuing multiple queries without awaiting are returned with appropriate values", () async {
       var futures = [
         conn.query("select 1", allowReuse: false),
         conn.query("select 2", allowReuse: false),
@@ -225,19 +208,19 @@ void main() {
 
       expect(results, [
         [
-          [['?column?', 1]]
+          [1]
         ],
         [
-          [['?column?', 2]]
+          [2]
         ],
         [
-          [['?column?', 3]]
+          [3]
         ],
         [
-          [['?column?', 4]]
+          [4]
         ],
         [
-          [['?column?', 5]]
+          [5]
         ]
       ]);
     });
@@ -245,14 +228,16 @@ void main() {
 
   group("Unintended user-error situations", () {
     PostgreSQLConnection conn = null;
+    Future openFuture;
 
     tearDown(() async {
+      await openFuture;
       await conn?.close();
     });
 
     test("Sending queries to opening connection triggers error", () async {
-      conn = getConnectionNormal();
-      conn.open();
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
+      openFuture = conn.open();
 
       try {
         await conn.execute("select 1");
@@ -263,8 +248,8 @@ void main() {
     });
 
     test("SSL Sending queries to opening connection triggers error", () async {
-      conn = getConnectionNormalSsl();
-      conn.open();
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", useSSL: true);
+      openFuture = conn.open();
 
       try {
         await conn.execute("select 1");
@@ -274,10 +259,9 @@ void main() {
       }
     });
 
-    test("Starting transaction while opening connection triggers error",
-        () async {
-      conn = getConnectionNormal();
-      conn.open();
+    test("Starting transaction while opening connection triggers error", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
+      openFuture = conn.open();
 
       try {
         await conn.transaction((ctx) async {
@@ -289,10 +273,9 @@ void main() {
       }
     });
 
-    test("SSL Starting transaction while opening connection triggers error",
-        () async {
-      conn = getConnectionNormalSsl();
-      conn.open();
+    test("SSL Starting transaction while opening connection triggers error", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", useSSL: true);
+      openFuture = conn.open();
 
       try {
         await conn.transaction((ctx) async {
@@ -304,10 +287,8 @@ void main() {
       }
     });
 
-    test("Invalid password reports error, conn is closed, disables conn",
-        () async {
-      conn = new PostgreSQLConnection("localhost", 5432, "test",
-          username: "user", password: "wrongpass");
+    test("Invalid password reports error, conn is closed, disables conn", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "notdart");
 
       try {
         await conn.open();
@@ -319,10 +300,9 @@ void main() {
       await expectConnectionIsInvalid(conn);
     });
 
-    test("SSL Invalid password reports error, conn is closed, disables conn",
-        () async {
-      conn = new PostgreSQLConnection("localhost", 5432, "test",
-          username: "user", password: "wrongpass", useSSL: true);
+    test("SSL Invalid password reports error, conn is closed, disables conn", () async {
+      conn =
+      new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "usersss", useSSL: true);
 
       try {
         await conn.open();
@@ -334,9 +314,8 @@ void main() {
       await expectConnectionIsInvalid(conn);
     });
 
-    test("A query error maintains connectivity, allows future queries",
-        () async {
-      conn = getConnectionNormal();
+    test("A query error maintains connectivity, allows future queries", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
 
       await conn.execute("CREATE TEMPORARY TABLE t (i int unique)");
@@ -351,15 +330,14 @@ void main() {
       await conn.execute("INSERT INTO t (i) VALUES (2)");
     });
 
-    test(
-        "A query error maintains connectivity, continues processing pending queries",
-        () async {
-      conn = getConnectionNormal();
+    test("A query error maintains connectivity, continues processing pending queries", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "user", username: "test");
       await conn.open();
 
       await conn.execute("CREATE TEMPORARY TABLE t (i int unique)");
 
       await conn.execute("INSERT INTO t (i) VALUES (1)");
+      //ignore: unawaited_futures
       conn.execute("INSERT INTO t (i) VALUES (1)").catchError((err) {
         // ignore
       });
@@ -373,34 +351,36 @@ void main() {
 
       expect(results, [
         [
-          [['?column?', 1]]
+          [1]
         ],
         [
-          [['?column?', 2]]
+          [2]
         ],
         [
-          [['?column?', 3]]
+          [3]
         ]
       ]);
 
-      var queueMirror = reflect(conn).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) =>
-              dm.simpleName.toString().contains("_queryQueue"));
-      List<dynamic> queue =
-          reflect(conn).getField(queueMirror.simpleName).reflectee;
+      var queueMirror = reflect(conn)
+          .type
+          .instanceMembers
+          .values
+          .firstWhere((DeclarationMirror dm) => dm.simpleName.toString().contains("_queue"));
+      List<dynamic> queue = reflect(conn).getField(queueMirror.simpleName).reflectee;
       expect(queue, isEmpty);
     });
 
-    test(
-        "A query error maintains connectivity, continues processing pending transactions",
-        () async {
-      conn = getConnectionNormal();
+    test("A query error maintains connectivity, continues processing pending transactions", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
 
       await conn.execute("CREATE TEMPORARY TABLE t (i int unique)");
       await conn.execute("INSERT INTO t (i) VALUES (1)");
 
-      var orderEnsurer = [];
+      final orderEnsurer = [];
+
+      // this will emit a query error
+      //ignore: unawaited_futures
       conn.execute("INSERT INTO t (i) VALUES (1)").catchError((err) {
         orderEnsurer.add(1);
         // ignore
@@ -414,15 +394,13 @@ void main() {
       orderEnsurer.add(4);
 
       expect(res, [
-        [['i', 1]]
+        [1]
       ]);
       expect(orderEnsurer, [2, 1, 3, 4]);
     });
 
-    test(
-        "Building query throws error, connection continues processing pending queries",
-        () async {
-      conn = getConnectionNormal();
+    test("Building query throws error, connection continues processing pending queries", () async {
+      conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user");
       await conn.open();
 
       // Make some async queries that'll exit the event loop, but then fail on a query that'll die early
@@ -438,18 +416,19 @@ void main() {
 
       expect(results, [
         [
-          [['?column?', 1]]
+          [1]
         ],
         [
-          [['?column?', 2]]
+          [2]
         ]
       ]);
 
-      var queueMirror = reflect(conn).type.declarations.values.firstWhere(
-          (DeclarationMirror dm) =>
-              dm.simpleName.toString().contains("_queryQueue"));
-      List<dynamic> queue =
-          reflect(conn).getField(queueMirror.simpleName).reflectee;
+      var queueMirror = reflect(conn)
+          .type
+          .instanceMembers
+          .values
+          .firstWhere((DeclarationMirror dm) => dm.simpleName.toString().contains("_queue"));
+      List<dynamic> queue = reflect(conn).getField(queueMirror.simpleName).reflectee;
       expect(queue, isEmpty);
     });
   });
@@ -463,10 +442,8 @@ void main() {
       await socket?.close();
     });
 
-    test(
-        "Socket fails to connect reports error, disables connection for future use",
-        () async {
-      var conn = new PostgreSQLConnection("localhost", 5431, "test");
+    test("Socket fails to connect reports error, disables connection for future use", () async {
+      var conn = new PostgreSQLConnection("localhost", 5431, "dart_test");
 
       try {
         await conn.open();
@@ -476,11 +453,8 @@ void main() {
       await expectConnectionIsInvalid(conn);
     });
 
-    test(
-        "SSL Socket fails to connect reports error, disables connection for future use",
-        () async {
-      var conn = new PostgreSQLConnection("localhost", 5431, "test",
-          useSSL: true);
+    test("SSL Socket fails to connect reports error, disables connection for future use", () async {
+      var conn = new PostgreSQLConnection("localhost", 5431, "dart_test", useSSL: true);
 
       try {
         await conn.open();
@@ -490,57 +464,45 @@ void main() {
       await expectConnectionIsInvalid(conn);
     });
 
-    test(
-        "Connection that times out throws appropriate error and cannot be reused",
-        () async {
-      serverSocket =
-          await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
+    test("Connection that times out throws appropriate error and cannot be reused", () async {
+      serverSocket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
       serverSocket.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
       });
 
-      var conn = new PostgreSQLConnection("localhost", 5433, "test",
-          timeoutInSeconds: 2);
+      var conn = new PostgreSQLConnection("localhost", 5433, "dart_test", timeoutInSeconds: 2);
 
       try {
         await conn.open();
-      } on PostgreSQLException catch (e) {
-        expect(e.message, contains("Timed out trying to connect"));
-      }
+        fail('unreachable');
+      } on TimeoutException {}
 
       await expectConnectionIsInvalid(conn);
     });
 
-    test(
-        "SSL Connection that times out throws appropriate error and cannot be reused",
-        () async {
-      serverSocket =
-          await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
+    test("SSL Connection that times out throws appropriate error and cannot be reused", () async {
+      serverSocket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
       serverSocket.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
       });
 
-      var conn = new PostgreSQLConnection("localhost", 5433, "test",
-          timeoutInSeconds: 2, useSSL: true);
+      var conn = new PostgreSQLConnection("localhost", 5433, "dart_test", timeoutInSeconds: 2, useSSL: true);
 
       try {
         await conn.open();
-      } on PostgreSQLException catch (e) {
-        expect(e.message, contains("Timed out trying to connect"));
-      }
+        fail('unreachable');
+      } on TimeoutException {}
 
       await expectConnectionIsInvalid(conn);
     });
 
-    test("Connection that times out triggers future for pending queries",
-        () async {
+    test("Connection that times out triggers future for pending queries", () async {
       var openCompleter = new Completer();
-      serverSocket =
-          await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
+      serverSocket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
       serverSocket.listen((s) {
         socket = s;
         // Don't respond on purpose
@@ -550,8 +512,7 @@ void main() {
         });
       });
 
-      var conn = new PostgreSQLConnection("localhost", 5433, "test",
-          timeoutInSeconds: 2);
+      var conn = new PostgreSQLConnection("localhost", 5433, "dart_test", timeoutInSeconds: 2);
       conn.open().catchError((e) {});
 
       await openCompleter.future;
@@ -560,15 +521,13 @@ void main() {
         await conn.execute("select 1");
         expect(true, false);
       } on PostgreSQLException catch (e) {
-        expect(e.message, contains("closed or query cancelled"));
+        expect(e.message, contains("Failed to connect"));
       }
     });
 
-    test("SSL Connection that times out triggers future for pending queries",
-        () async {
+    test("SSL Connection that times out triggers future for pending queries", () async {
       var openCompleter = new Completer();
-      serverSocket =
-          await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
+      serverSocket = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
       serverSocket.listen((s) {
         socket = s;
         // Don't respond on purpose
@@ -578,9 +537,8 @@ void main() {
         });
       });
 
-      var conn = new PostgreSQLConnection("localhost", 5433, "test",
-          timeoutInSeconds: 2, useSSL: true);
-      conn.open().catchError((e) {});
+      var conn = new PostgreSQLConnection("localhost", 5433, "dart_test", timeoutInSeconds: 2, useSSL: true);
+      conn.open().catchError((e) { return null;});
 
       await openCompleter.future;
 
@@ -597,6 +555,38 @@ void main() {
       } on PostgreSQLException {}
     });
   });
+
+  test("If connection is closed, do not allow .execute", () async {
+    final conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
+    try {
+      await conn.execute("SELECT 1");
+      fail('unreachable');
+    } on PostgreSQLException catch (e) {
+      expect(e.toString(), contains("connection is not open"));
+    }
+  });
+
+  test("If connection is closed, do not allow .query", () async {
+    final conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
+    try {
+      await conn.query("SELECT 1");
+      fail('unreachable');
+    } on PostgreSQLException catch (e) {
+      expect(e.toString(), contains("connection is not open"));
+    }
+
+  });
+
+//  test("If connection is closed, do not allow .mappedResultsQuery", () async {
+//    final conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
+//    try {
+//      await conn.mappedResultsQuery("SELECT 1");
+//      fail('unreachable');
+//    } on PostgreSQLException catch (e) {
+//      expect(e.toString(), contains("connection is not open"));
+//    }
+//
+//  });
 }
 
 Future expectConnectionIsInvalid(PostgreSQLConnection conn) async {

@@ -1,6 +1,6 @@
 part of mapper_server;
 
-typedef T EntityFunction<T>();
+typedef EntityFunction<T> = T Function();
 
 abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
@@ -19,33 +19,35 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   EntityNotifier<E> notifier;
 
   Mapper(this.manager) {
-    if (pkey == null) pkey = table + '_id';
+    pkey ??= '${table}_id';
   }
 
-  Future<E> find(dynamic id, [no_cache = false]) {
+  Future<E> find(dynamic id, [bool no_cache = false]) {
     if (id is List) return findComposite(id);
-    String cache_key = id.toString();
-    E e = _cacheGet(cache_key);
+    final cache_key = id.toString();
+    final e = _cacheGet(cache_key);
     if (e != null) {
       return new Future.value(e);
     } else {
       return _streamToEntity(selectBuilder()
-          .where(_escape(pkey) + ' = @pkey')
-          .setParameter('pkey', id));
+        ..where('${_escape(pkey)} = @pkey')
+        ..setParameter('pkey', id));
     }
   }
 
-  Future<E> findComposite(List<dynamic> ids, [no_cache = false]) {
-    String cache_key = ids.join(_SEP);
-    E e = _cacheGet(cache_key);
+  Future<E> findComposite(List<dynamic> ids, [bool no_cache = false]) {
+    final cache_key = ids.join(_SEP);
+    final e = _cacheGet(cache_key);
     if (e != null) {
       return new Future.value(e);
     } else {
-      Builder q = selectBuilder();
-      int i = 0;
+      final q = selectBuilder();
+      var i = 0;
       ids.forEach((k) {
-        String key = 'pkey' + i.toString();
-        q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
+        final key = 'pkey$i';
+        q
+          ..andWhere('${_escape(pkey[i])} = @$key')
+          ..setParameter(key, k);
         i++;
       });
       return _streamToEntity(q);
@@ -56,89 +58,99 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Builder queryBuilder() => new Builder();
 
-  Builder selectBuilder([String select = '*']) =>
-      new Builder().select(select).from(_escape(table));
+  Builder selectBuilder([String select]) {
+    final tbl = _escape(table);
+    select ??= '$tbl.*';
+    return new Builder()
+      ..select(select)
+      ..from(tbl);
+  }
 
-  Builder deleteBuilder() => new Builder().delete(_escape(table));
+  Builder deleteBuilder() => new Builder()..delete(_escape(table));
 
-  Builder insertBuilder() => new Builder().insert(_escape(table));
+  Builder insertBuilder() => new Builder()..insert(_escape(table));
 
-  Builder updateBuilder() => new Builder().update(_escape(table));
+  Builder updateBuilder() => new Builder()..update(_escape(table));
 
   Future<E> loadE(Builder builder) => _streamToEntity(builder)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<C> loadC(Builder builder, [calcTotal = false]) =>
+  Future<C> loadC(Builder builder, [bool calcTotal = false]) =>
       _streamToCollection(builder, calcTotal).catchError(
           (e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) async {
-    Map data = readObject(object);
-    var result = await execute(_setUpdateData(insertBuilder(), data, true));
+    final data = readObject(object);
+    final result = await execute(_setUpdateData(insertBuilder(), data, true));
     setObject(object, result[0]);
-    var d = readObject(object);
+    final d = readObject(object);
     _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
     await _notifyCreate(object);
     return object;
   }
 
   Future<E> update(E object) async {
-    Map data = readObject(object);
-    Builder q = _setUpdateData(updateBuilder(), data);
+    final data = readObject(object);
+    final q = _setUpdateData(updateBuilder(), data);
     if (pkey is List)
-      pkey.forEach(
-          (k) => q.andWhere(_escape(k) + ' = @' + k).setParameter(k, data[k]));
+      pkey.forEach((k) => q
+        ..andWhere('${_escape(k)} = @$k')
+        ..setParameter(k, data[k]));
     else
-      q.andWhere(_escape(pkey) + ' = @' + pkey).setParameter(pkey, data[pkey]);
+      q
+        ..andWhere('${_escape(pkey)} = @$pkey')
+        ..setParameter(pkey, data[pkey]);
     await execute(q);
     await _notifyUpdate(object);
     return object;
   }
 
   Future<bool> delete(E object) {
-    Map data = readObject(object);
+    final data = readObject(object);
     return (pkey is List)
         ? _deleteComposite(pkey.map((k) => data[k]), object)
         : _deleteById(data[pkey], object);
   }
 
   Future<bool> deleteById(dynamic id) =>
-      find(id).then((E object) => _deleteById(id, object));
+      find(id).then((object) => _deleteById(id, object));
 
   Future<bool> deleteComposite(Iterable<dynamic> ids) =>
-      findComposite(ids).then((E object) => _deleteComposite(ids, object));
+      findComposite(ids).then((object) => _deleteComposite(ids, object));
 
   Future<bool> _deleteById(dynamic id, E object) async {
     _cacheClean(id.toString());
     await _notifyDelete(object);
     await execute(deleteBuilder()
-        .where(_escape(pkey) + ' = @' + pkey)
-        .setParameter(pkey, id));
+      ..where('${_escape(pkey)} = @$pkey')
+      ..setParameter(pkey, id));
     return true;
   }
 
   Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
     await _notifyDelete(object);
     _cacheClean(ids.join(_SEP));
-    Builder q = deleteBuilder();
-    int i = 0;
+    final q = deleteBuilder();
+    var i = 0;
     ids.forEach((k) {
-      String key = 'pkey' + i.toString();
-      q.andWhere(_escape(pkey[i]) + ' = @' + key).setParameter(key, k);
+      final key = 'pkey$i';
+      q
+        ..andWhere('${_escape(pkey[i])} = @$key')
+        ..setParameter(key, k);
       i++;
     });
     await execute(q);
     return true;
   }
 
-  Map _readDiff(E obj) {
-    var newData = readObject(obj);
-    var key = _cacheKeyFromData(newData);
-    var oldData = _cacheGetInitData(key);
-    var diffm = {};
+  Map<String, dynamic> _readDiff(E obj) {
+    final newData = readObject(obj);
+    final key = _cacheKeyFromData(newData);
+    final oldData = _cacheGetInitData(key);
+    final diffm = <String, dynamic>{};
     if (oldData != null) {
       newData.forEach((k, v) {
-        var oldValue = oldData[k];
+        final oldValue = oldData[k];
         if (oldValue != v) diffm[k] = oldValue;
       });
     }
@@ -147,7 +159,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future _notifyUpdate(E obj) async {
     if (notifier != null) {
-      var diffm = _readDiff(obj);
+      final diffm = _readDiff(obj);
       if (diffm.isNotEmpty) {
         if (!manager.inTransaction)
           await notifier._addUpdate(new EntityContainer(obj, diffm));
@@ -184,16 +196,16 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         builder.set(_escape(k), 'DEFAULT');
       else
         builder
-            .set(_escape(k), v is List ? '@$k:jsonb' : '@$k')
-            .setParameter(k, v);
+          ..set(_escape(k), v is List ? '@$k:jsonb' : '@$k')
+          ..setParameter(k, v);
     });
     return builder;
   }
 
   E _onStreamRow(data) {
-    String key = _cacheKeyFromData(data);
+    final key = _cacheKeyFromData(data);
     if (key == null) throw new Exception('Pkey value not found!');
-    E object = _cacheGet(key);
+    var object = _cacheGet(key);
     if (object != null) return object;
     object = createObject(data);
     _cacheAdd(key, object, notifier != null ? readObject(object) : null);
@@ -205,24 +217,20 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> _streamToEntity(Builder builder) async {
-    var res = await manager._connection
-        .query(builder.getSQL(), substitutionValues: builder._params)
+    final res = await manager._connection
+        .queryToEntityCollection(
+            builder.getSQL(), _onStreamRow, createCollection(),
+            substitutionValues: builder._params)
         .catchError(
             (e) => manager._error(e, builder.getSQL(), builder._params));
-    if (res.isEmpty) return null;
-    return res.map(_onStreamRow).first;
+    return res.isEmpty ? null : res.first;
   }
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
     if (calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
-    var res = await manager._connection
-        .query(builder.getSQL(), substitutionValues: builder._params);
-    C col = createCollection();
-    return col
-      ..addAll(res.map((row) {
-        if (calcTotal) col.totalResults = row['__total__'];
-        return _onStreamRow(row);
-      }));
+    return manager._connection.queryToEntityCollection(
+        builder.getSQL(), _onStreamRow, createCollection(),
+        substitutionValues: builder._params);
   }
 
   String _cacheKeyFromData(Map data) => (pkey is List)
@@ -243,15 +251,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       manager.cacheGetInitData(runtimeType.toString() + k);
 
   CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
-    if (q == null) q = selectBuilder();
+    q ??= selectBuilder();
     return new CollectionBuilder<E, C, A>(q, this);
   }
 
   String _escape(String string) => '"$string"';
 
   E createObject([dynamic data]) {
-    E object = entity()
-      .._mapper = this;
+    final object = entity().._mapper = this;
     if (data != null) object.init(data);
     return object;
   }
@@ -260,22 +267,22 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   void setObject(E object, Map data) => object.init(data);
 
-  Map readObject(E object) => object.toMap();
+  Map<String, dynamic> readObject(E object) => object.toMap();
 
-  E mergeData(E object, Map data) {
-    Map m = readObject(object);
-    m.addAll(data);
+  E mergeData(E object, Map<String, dynamic> data) {
+    final m = readObject(object)..addAll(data);
     setObject(object, m);
     return object;
   }
 
-  Future<E> prepare(dynamic vpkey, Map data, {forceInsert = false}) async {
+  Future<E> prepare(dynamic vpkey, Map<String, dynamic> data,
+      {bool forceInsert = false}) async {
     if (vpkey != null) {
-      E object =
+      final object =
           (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
       data[pkey] = vpkey;
       if (object == null && forceInsert) {
-        E object = createObject(data);
+        final object = createObject(data);
         manager.addNew(object);
         return object;
       } else {
@@ -284,7 +291,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         return object;
       }
     } else {
-      E object = createObject(data);
+      final object = createObject(data);
       manager.addNew(object);
       return object;
     }

@@ -1,5 +1,6 @@
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
+
 import 'connection.dart';
 import 'query.dart';
 
@@ -11,8 +12,7 @@ class ErrorResponseMessage implements ServerMessage {
   List<ErrorField> fields = [new ErrorField()];
 
   void readBytes(Uint8List bytes) {
-    var lastByteRemovedList =
-        new Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.length - 1);
+    var lastByteRemovedList = new Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.length - 1);
 
     lastByteRemovedList.forEach((byte) {
       if (byte != 0) {
@@ -57,9 +57,8 @@ class ParameterStatusMessage extends ServerMessage {
   String value;
 
   void readBytes(Uint8List bytes) {
-    name = UTF8.decode(bytes.sublist(0, bytes.indexOf(0)));
-    value =
-        UTF8.decode(bytes.sublist(bytes.indexOf(0) + 1, bytes.lastIndexOf(0)));
+    name = utf8.decode(bytes.sublist(0, bytes.indexOf(0)));
+    value = utf8.decode(bytes.sublist(bytes.indexOf(0) + 1, bytes.lastIndexOf(0)));
   }
 }
 
@@ -71,7 +70,7 @@ class ReadyForQueryMessage extends ServerMessage {
   String state;
 
   void readBytes(Uint8List bytes) {
-    state = UTF8.decode(bytes);
+    state = utf8.decode(bytes);
   }
 }
 
@@ -122,8 +121,7 @@ class DataRowMessage extends ServerMessage {
       } else if (dataSize == -1) {
         values.add(null);
       } else {
-        var rawBytes = new ByteData.view(
-            bytes.buffer, bytes.offsetInBytes + offset, dataSize);
+        var rawBytes = new ByteData.view(bytes.buffer, bytes.offsetInBytes + offset, dataSize);
         values.add(rawBytes);
         offset += dataSize;
       }
@@ -141,8 +139,8 @@ class NotificationResponseMessage extends ServerMessage {
   void readBytes(Uint8List bytes) {
     var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
     processID = view.getUint32(0);
-    channel = UTF8.decode(bytes.sublist(4, bytes.indexOf(0, 4)));
-    payload = UTF8.decode(bytes.sublist(bytes.indexOf(0, 4) + 1, bytes.lastIndexOf(0)));
+    channel = utf8.decode(bytes.sublist(4, bytes.indexOf(0, 4)));
+    payload = utf8.decode(bytes.sublist(bytes.indexOf(0, 4) + 1, bytes.lastIndexOf(0)));
   }
 }
 
@@ -152,7 +150,7 @@ class CommandCompleteMessage extends ServerMessage {
   static RegExp identifierExpression = new RegExp(r"[A-Z ]*");
 
   void readBytes(Uint8List bytes) {
-    var str = UTF8.decode(bytes.sublist(0, bytes.length - 1));
+    var str = utf8.decode(bytes.sublist(0, bytes.length - 1));
 
     var match = identifierExpression.firstMatch(str);
     if (match.end < str.length) {
@@ -206,6 +204,11 @@ class UnknownMessage extends ServerMessage {
 
   void readBytes(Uint8List bytes) {
     this.bytes = bytes;
+  }
+
+  @override
+  int get hashCode {
+    return bytes.hashCode;
   }
 
   @override

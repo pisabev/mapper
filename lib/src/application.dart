@@ -1,5 +1,5 @@
 part of mapper_server;
 
-class Application {
+abstract class Application {
   Manager m;
 }

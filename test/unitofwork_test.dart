@@ -61,6 +61,7 @@ CREATE TEMPORARY TABLE "test1" (
 
 class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   String table = 'test1';
+
   Test1Mapper(m) : super(m);
 }
 
