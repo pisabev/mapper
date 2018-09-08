@@ -1,8 +1,10 @@
-import 'utf8_backed_string.dart';
 import 'dart:typed_data';
-import 'query.dart';
-import 'constants.dart';
+
 import 'package:crypto/crypto.dart';
+
+import 'constants.dart';
+import 'utf8_backed_string.dart';
+import 'query.dart';
 
 abstract class ClientMessage {
   static const int FormatText = 0;
