@@ -1,6 +1,7 @@
 .idea
 .settings
 .pub
+.dart_tool
 packages
 .packages
 pubspec.lock
