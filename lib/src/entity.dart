@@ -7,7 +7,7 @@ abstract class Entity<A extends Application> {
 
   Manager<A> get manager => _mapper.manager;
 
-  Map toMap();
+  Map<String, dynamic> toMap();
 
-  Map toJson();
+  Map<String, dynamic> toJson();
 }
