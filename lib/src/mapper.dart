@@ -112,8 +112,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         : _deleteById(data[pkey], object);
   }
 
-  Future<bool> deleteById(dynamic id) =>
-      find(id).then((object) => _deleteById(id, object));
+  Future<bool> deleteById(dynamic id) => find(id).then(delete);
 
   Future<bool> deleteComposite(Iterable<dynamic> ids) =>
       findComposite(ids).then((object) => _deleteComposite(ids, object));
