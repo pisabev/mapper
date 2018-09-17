@@ -105,7 +105,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<bool> delete(E object) {
+  Future<bool> delete(E object) async {
+    if (object == null) return false;
     final data = readObject(object);
     return (pkey is List)
         ? _deleteComposite(pkey.map((k) => data[k]), object)
