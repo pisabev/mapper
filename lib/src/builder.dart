@@ -525,7 +525,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
           ..setParameter(ph, new TSquery(value).toString());
         break;
       case 'date':
-        if (value is List) {
+        if (value is List && value.isNotEmpty && value.length == 2) {
           if (value[0] != null) {
             final from = DateTime.parse(value[0]);
             query
