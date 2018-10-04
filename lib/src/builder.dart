@@ -524,6 +524,11 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
           ..andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
           ..setParameter(ph, new TSquery(value).toString());
         break;
+      case 'tsvector':
+        query
+          ..andWhere('$key @@ to_tsquery(@$ph)')
+          ..setParameter(ph, new TSquery(value).toString());
+        break;
       case 'date':
         if (value is List && value.isNotEmpty && value.length == 2) {
           if (value[0] != null) {
