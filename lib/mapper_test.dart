@@ -4,13 +4,8 @@ import 'dart:io';
 import 'package:mapper/mapper.dart';
 
 Future<void> drop(DatabaseConfig c) async {
-  try {
-    run(await Process.run(
-        'psql', [c.userUrl, '-c', 'DROP SCHEMA PUBLIC CASCADE']));
-  } catch (e) {
-    print('Warning: $e');
-  }
-  print('Drop: Done');
+  run(await Process.run(
+      'psql', [c.userUrl, '-c', 'DROP SCHEMA PUBLIC CASCADE']));
 }
 
 Future<void> create(DatabaseConfig c, {bool executeInit = true}) async {
@@ -20,7 +15,6 @@ Future<void> create(DatabaseConfig c, {bool executeInit = true}) async {
   if (executeInit)
     run(await Process.run(
         'psql', [c.userUrl, '-f', 'lib/src/db/schema/init.sql']));
-  print('Create: Done');
 }
 
 Future<Pool> setup(DatabaseConfig c) async {
@@ -28,7 +22,6 @@ Future<Pool> setup(DatabaseConfig c) async {
       user: c.username, password: c.password);
   await pool.start();
   new Database().registerPool(pool);
-  print('Setup: Done');
   return pool;
 }
 
