@@ -30,7 +30,7 @@ Future<Pool> setup(DatabaseConfig c) async {
   return pool;
 }
 
-Future<Manager<A>> testMapper<A extends Application>(DatabaseConfig c, A app,
+Future<Manager<A>> testManager<A extends Application>(DatabaseConfig c, A app,
     {List<String> dataFiles, bool executeInit = true, String sql}) async {
   await drop(c);
   await create(c, dataFiles: dataFiles, executeInit: executeInit);
