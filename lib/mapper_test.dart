@@ -8,10 +8,15 @@ Future<void> drop(DatabaseConfig c) async {
       'psql', [c.userUrl, '-c', 'DROP SCHEMA PUBLIC CASCADE']));
 }
 
-Future<void> create(DatabaseConfig c, {bool executeInit = true}) async {
+Future<void> create(DatabaseConfig c,
+    {List<String> dataFolder, bool executeInit = true}) async {
   run(await Process.run('psql', [c.userUrl, '-c', 'CREATE SCHEMA PUBLIC']));
   run(await Process.run(
       'psql', [c.userUrl, '-f', 'lib/src/db/schema/create.sql']));
+  if (dataFolder != null)
+    for (var scr in dataFolder)
+      run(await Process.run(
+          'psql', [c.userUrl, '-f', 'lib/src/db/schema/data/$scr.sql']));
   if (executeInit)
     run(await Process.run(
         'psql', [c.userUrl, '-f', 'lib/src/db/schema/init.sql']));
