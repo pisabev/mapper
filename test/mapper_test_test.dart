@@ -2,19 +2,13 @@ import 'dart:async';
 
 import 'package:mapper/mapper_test.dart';
 
-Future<Null> main() async {
-  var c = new DatabaseConfig(
-    'localhost',
-    5432,
-    'dbadmin',
-    '1234',
-    'testdatabase',
-  );
+Future<void> main() async {
+  final c = new DatabaseConfig();
 
-  await uninstall(c);
+  await drop(c);
   try {
-    await install(c);
-    var p = await setup(c);
+    await create(c);
+    final p = await setup(c);
     await p.destroy(graceful: false);
   } catch (e) {
     print(e);

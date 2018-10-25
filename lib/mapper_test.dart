@@ -3,28 +3,24 @@ import 'dart:io';
 
 import 'package:mapper/mapper.dart';
 
-import 'src/mapper_test/config.dart';
-import 'src/mapper_test/private.dart';
-
-export 'src/mapper_test/config.dart';
-
-Future<Null> uninstall(DatabaseConfig c) async {
+Future<void> drop(DatabaseConfig c) async {
   try {
     run(await Process.run(
         'psql', [c.userUrl, '-c', 'DROP SCHEMA PUBLIC CASCADE']));
   } catch (e) {
     print('Warning: $e');
   }
-  print('UNINSTALL: DONE');
+  print('Drop: Done');
 }
 
-Future<Null> install(DatabaseConfig c) async {
+Future<void> create(DatabaseConfig c, {bool executeInit = true}) async {
   run(await Process.run('psql', [c.userUrl, '-c', 'CREATE SCHEMA PUBLIC']));
   run(await Process.run(
-      'psql', [c.userUrl, '-f', '../lib/src/db/schema/create.sql']));
-  run(await Process.run(
-      'psql', [c.userUrl, '-f', '../lib/src/db/schema/init.sql']));
-  print('INSTALL: DONE');
+      'psql', [c.userUrl, '-f', 'lib/src/db/schema/create.sql']));
+  if (executeInit)
+    run(await Process.run(
+        'psql', [c.userUrl, '-f', 'lib/src/db/schema/init.sql']));
+  print('Create: Done');
 }
 
 Future<Pool> setup(DatabaseConfig c) async {
@@ -32,6 +28,37 @@ Future<Pool> setup(DatabaseConfig c) async {
       user: c.username, password: c.password);
   await pool.start();
   new Database().registerPool(pool);
-  print('SETUP: DONE');
+  print('Setup: Done');
   return pool;
+}
+
+Future<Manager<A>> testMapper<A extends Application>(DatabaseConfig c, A app,
+    {bool executeInit = true, String sql}) async {
+  await drop(c);
+  await create(c, executeInit: executeInit);
+  await setup(c);
+  final m = await new Database().init(app);
+  if (sql != null) await m.query(sql);
+  return m;
+}
+
+void run(ProcessResult processResult) {
+  if (processResult.exitCode != 0) throw new Exception(processResult.stderr);
+}
+
+class DatabaseConfig {
+  final String host;
+  final int port;
+  final String username;
+  final String password;
+  final String database;
+
+  DatabaseConfig(
+      {this.host = 'localhost',
+      this.port = 5432,
+      this.username = 'user',
+      this.password = 'user',
+      this.database = 'test'});
+
+  String get userUrl => 'postgres://$username:$password@$host:$port/$database';
 }
