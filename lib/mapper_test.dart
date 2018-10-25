@@ -31,9 +31,9 @@ Future<Pool> setup(DatabaseConfig c) async {
 }
 
 Future<Manager<A>> testMapper<A extends Application>(DatabaseConfig c, A app,
-    {bool executeInit = true, String sql}) async {
+    {List<String> dataFiles, bool executeInit = true, String sql}) async {
   await drop(c);
-  await create(c, executeInit: executeInit);
+  await create(c, dataFiles: dataFiles, executeInit: executeInit);
   await setup(c);
   final m = await new Database().init(app);
   if (sql != null) await m.query(sql);
