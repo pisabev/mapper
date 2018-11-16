@@ -109,7 +109,7 @@ class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   Test1Mapper(m) : super(m);
 }
 
-class Test1 extends Entity {
+class Test1 with Entity {
   int test1_id;
   bool field_bool;
   String field_string;
@@ -157,7 +157,7 @@ class Test2Mapper extends Mapper<Test2, Test2Collection, App2> {
   Test2Mapper(m) : super(m);
 }
 
-class Test2 extends Entity {
+class Test2 with Entity {
   int test1_id;
   bool field_bool;
   String field_string;
