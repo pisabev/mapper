@@ -473,27 +473,28 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
       if (value != null) {
         var key = k;
         if (filterRule.map[k] != null) key = filterRule.map[k];
-        if (filterRule.eq.contains(k))
+        if (filterRule.eq != null && filterRule.eq.contains(k))
           _setEq(query, key, value);
-        else if (filterRule.gt.contains(k))
+        else if (filterRule.gt != null && filterRule.gt.contains(k))
           _setGt(query, key, value);
-        else if (filterRule.lt.contains(k))
+        else if (filterRule.lt != null && filterRule.lt.contains(k))
           _setLt(query, key, value);
-        else if (filterRule.gte.contains(k))
+        else if (filterRule.gte != null && filterRule.gte.contains(k))
           _setGte(query, key, value);
-        else if (filterRule.lte.contains(k))
+        else if (filterRule.lte != null && filterRule.lte.contains(k))
           _setLte(query, key, value);
-        else if (filterRule.like.contains(k))
+        else if (filterRule.like != null && filterRule.like.contains(k))
           _setLike(query, key, value);
-        else if (filterRule.rlike.contains(k))
+        else if (filterRule.rlike != null && filterRule.rlike.contains(k))
           _setRlike(query, key, value);
-        else if (filterRule.llike.contains(k))
+        else if (filterRule.llike != null && filterRule.llike.contains(k))
           _setLlike(query, key, value);
-        else if (filterRule.tsquery.contains(k))
+        else if (filterRule.tsquery != null && filterRule.tsquery.contains(k))
           _setTsquery(query, key, value);
-        else if (filterRule.tsvector.contains(k))
+        else if (filterRule.tsvector != null && filterRule.tsvector.contains(k))
           _setTsvector(query, key, value);
-        else if (filterRule.date.contains(k)) _setDate(query, key, value);
+        else if (filterRule.date != null && filterRule.date.contains(k))
+          _setDate(query, key, value);
       }
     });
   }
