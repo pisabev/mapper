@@ -472,7 +472,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     filter.forEach((k, value) {
       if (value != null) {
         var key = k;
-        if (filterRule.map[k] != null) key = filterRule.map[k];
+        if (filterRule?.map[k] != null) key = filterRule.map[k];
         if (filterRule.eq != null && filterRule.eq.contains(k))
           _setEq(query, key, value);
         else if (filterRule.gt != null && filterRule.gt.contains(k))
