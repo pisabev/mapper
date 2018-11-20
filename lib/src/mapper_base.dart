@@ -1,5 +1,7 @@
 part of mapper_server;
 
+typedef EntityFunction<T> = T Function();
+
 abstract class MapperBase<E extends Entity<Application>,
     C extends Collection<E>, A extends Application> {
   final Manager<A> manager;
