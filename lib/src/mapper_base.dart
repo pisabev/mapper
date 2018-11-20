@@ -12,8 +12,6 @@ abstract class MapperBase<E extends Entity<Application>,
 
   MapperBase(this.manager);
 
-  Builder queryBuilder() => new Builder();
-
   Future<E> loadE(Builder builder) => _streamToEntity(builder)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
@@ -45,7 +43,7 @@ abstract class MapperBase<E extends Entity<Application>,
   }
 
   CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
-    q ??= queryBuilder();
+    q ??= new Builder();
     return new CollectionBuilder<E, C, A>(q, this);
   }
 
