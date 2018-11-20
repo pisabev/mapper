@@ -380,6 +380,21 @@ class Builder {
   String toString() => getSQL();
 }
 
+class FilterRule {
+  List<String> eq;
+  List<String> gt;
+  List<String> lt;
+  List<String> gte;
+  List<String> lte;
+  List<String> like;
+  List<String> rlike;
+  List<String> llike;
+  List<String> tsquery;
+  List<String> tsvector;
+  List<String> date;
+  Map<String, String> map;
+}
+
 class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   static int _unique = 0;
@@ -390,9 +405,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   Map<String, dynamic> filter = {};
 
-  Map<String, List<String>> filter_way = {};
-
-  Map<String, String> filter_map = {};
+  FilterRule filterRule;
 
   String order_field;
 
@@ -409,6 +422,28 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   set limit(int limit) => _limit = limit;
 
   set page(int page) => _page = (page > 0) ? page : 0;
+
+  @Deprecated('Use filterRule! instead')
+  set filter_way(Map<String, List<String>> m) {
+    filterRule = filterRule ?? new FilterRule()
+      ..eq = m['eq']
+      ..gt = m['gt']
+      ..lt = m['lt']
+      ..gte = m['gte']
+      ..lte = m['lte']
+      ..like = m['like']
+      ..rlike = m['rlike']
+      ..llike = m['llike']
+      ..tsquery = m['tsquery']
+      ..tsvector = m['tsvector']
+      ..date = m['date'];
+  }
+
+  @Deprecated('Use filterRule instead!')
+  set filter_map(Map<String, String> m) {
+    filterRule = filterRule ?? new FilterRule()
+      ..map = m;
+  }
 
   void order(String order, String way) {
     if (order != null) {
@@ -436,13 +471,29 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   void _queryFilter(Builder query) {
     filter.forEach((k, value) {
       if (value != null) {
-        filter_way.forEach((way, a) {
-          if (a.contains(k)) {
-            var key = k;
-            if (filter_map[k] != null) key = filter_map[k];
-            _set(query, way, key, value);
-          }
-        });
+        var key = k;
+        if (filterRule.map[k] != null) key = filterRule.map[k];
+        if (filterRule.eq.contains(k))
+          _setEq(query, key, value);
+        else if (filterRule.gt.contains(k))
+          _setGt(query, key, value);
+        else if (filterRule.lt.contains(k))
+          _setLt(query, key, value);
+        else if (filterRule.gte.contains(k))
+          _setGte(query, key, value);
+        else if (filterRule.lte.contains(k))
+          _setLte(query, key, value);
+        else if (filterRule.like.contains(k))
+          _setLike(query, key, value);
+        else if (filterRule.rlike.contains(k))
+          _setRlike(query, key, value);
+        else if (filterRule.llike.contains(k))
+          _setLlike(query, key, value);
+        else if (filterRule.tsquery.contains(k))
+          _setTsquery(query, key, value);
+        else if (filterRule.tsvector.contains(k))
+          _setTsvector(query, key, value);
+        else if (filterRule.date.contains(k)) _setDate(query, key, value);
       }
     });
   }
@@ -454,98 +505,113 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     }
     if (order_field != null) {
       var k = order_field;
-      if (filter_map[k] != null) k = filter_map[k];
+      if (filterRule.map[k] != null) k = filterRule.map[k];
       query.orderBy(k, order_way);
     }
   }
 
-  void _set(Builder query, String way, String key, dynamic value) {
+  void _setEq(Builder query, String key, dynamic value) {
     var ph = _cleanPlaceHolder(key);
-    switch (way) {
-      case 'eq':
-        if (value is List) {
-          value.removeWhere((v) => v == null);
-          if (value.isEmpty) return;
-          final q = value.map((v) {
-            if (v == 'null') {
-              return '$key IS NULL';
-            } else {
-              ph = _cleanPlaceHolder(key);
-              query.setParameter(ph, v);
-              return '$key = @$ph';
-            }
-          });
-          query.andWhere(q.join(' OR '));
-        } else if (value == 'null') {
-          query.andWhere('$key IS NULL');
+    if (value is List) {
+      value.removeWhere((v) => v == null);
+      if (value.isEmpty) return;
+      final q = value.map((v) {
+        if (v == 'null') {
+          return '$key IS NULL';
         } else {
-          query
-            ..andWhere('$key = @$ph')
-            ..setParameter(ph, value);
+          ph = _cleanPlaceHolder(key);
+          query.setParameter(ph, v);
+          return '$key = @$ph';
         }
-        break;
-      case 'gt':
+      });
+      query.andWhere(q.join(' OR '));
+    } else if (value == 'null') {
+      query.andWhere('$key IS NULL');
+    } else {
+      query
+        ..andWhere('$key = @$ph')
+        ..setParameter(ph, value);
+    }
+  }
+
+  void _setGt(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('$key > @$ph')
+      ..setParameter(ph, value);
+  }
+
+  void _setLt(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('$key < @$ph')
+      ..setParameter(ph, value);
+  }
+
+  void _setGte(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('$key >= @$ph')
+      ..setParameter(ph, value);
+  }
+
+  void _setLte(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('$key <= @$ph')
+      ..setParameter(ph, value);
+  }
+
+  void _setLike(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('CAST($key AS text) ILIKE @$ph')
+      ..setParameter(ph, '%$value%');
+  }
+
+  void _setLlike(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('CAST($key AS text) ILIKE @$ph')
+      ..setParameter(ph, '$value%');
+  }
+
+  void _setRlike(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('CAST($key AS text) ILIKE @$ph')
+      ..setParameter(ph, '%$value');
+  }
+
+  void _setTsquery(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
+      ..setParameter(ph, new TSquery(value).toString());
+  }
+
+  void _setTsvector(Builder query, String key, dynamic value) {
+    final ph = _cleanPlaceHolder(key);
+    query
+      ..andWhere('$key @@ to_tsquery(@$ph)')
+      ..setParameter(ph, new TSquery(value).toString());
+  }
+
+  void _setDate(Builder query, String key, dynamic value) {
+    if (value is List && value.isNotEmpty && value.length == 2) {
+      if (value[0] != null) {
+        final from = DateTime.parse(value[0]);
         query
-          ..andWhere('$key > @$ph')
-          ..setParameter(ph, value);
-        break;
-      case 'lt':
+          ..andWhere('$key >= @date_from')
+          ..setParameter('date_from', from);
+      }
+      if (value[1] != null) {
+        var to = DateTime.parse(value[1]);
+        to = to.add(new Duration(seconds: 86400));
         query
-          ..andWhere('$key < @$ph')
-          ..setParameter(ph, value);
-        break;
-      case 'gte':
-        query
-          ..andWhere('$key >= @$ph')
-          ..setParameter(ph, value);
-        break;
-      case 'lte':
-        query
-          ..andWhere('$key <= @$ph')
-          ..setParameter(ph, value);
-        break;
-      case 'like':
-        query
-          ..andWhere('CAST($key AS text) ILIKE @$ph')
-          ..setParameter(ph, '%$value%');
-        break;
-      case 'rlike':
-        query
-          ..andWhere('CAST($key AS text) ILIKE @$ph')
-          ..setParameter(ph, '%$value');
-        break;
-      case 'llike':
-        query
-          ..andWhere('CAST($key AS text) ILIKE @$ph')
-          ..setParameter(ph, '$value%');
-        break;
-      case 'tsquery':
-        query
-          ..andWhere('to_tsvector($key) @@ to_tsquery(@$ph)')
-          ..setParameter(ph, new TSquery(value).toString());
-        break;
-      case 'tsvector':
-        query
-          ..andWhere('$key @@ to_tsquery(@$ph)')
-          ..setParameter(ph, new TSquery(value).toString());
-        break;
-      case 'date':
-        if (value is List && value.isNotEmpty && value.length == 2) {
-          if (value[0] != null) {
-            final from = DateTime.parse(value[0]);
-            query
-              ..andWhere('$key >= @date_from')
-              ..setParameter('date_from', from);
-          }
-          if (value[1] != null) {
-            var to = DateTime.parse(value[1]);
-            to = to.add(new Duration(seconds: 86400));
-            query
-              ..andWhere('$key < @date_to')
-              ..setParameter('date_to', to);
-          }
-        }
-        break;
+          ..andWhere('$key < @date_to')
+          ..setParameter('date_to', to);
+      }
     }
   }
 
