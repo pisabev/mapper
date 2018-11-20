@@ -3,8 +3,7 @@ part of mapper_server;
 typedef EntityFunction<T> = T Function();
 
 abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
-    A extends Application> {
-  final Manager<A> manager;
+    A extends Application> extends MapperBase<E, C, A>{
 
   String table;
 
@@ -12,13 +11,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   static const String _SEP = '.';
 
-  EntityFunction<E> entity;
-
-  EntityFunction<C> collection;
-
   EntityNotifier<E> notifier;
 
-  Mapper(this.manager) {
+  Mapper(manager) : super(manager) {
     pkey ??= '${table}_id';
   }
 
@@ -56,8 +51,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future<C> findAll() => loadC(selectBuilder());
 
-  Builder queryBuilder() => new Builder();
-
   Builder selectBuilder([String select]) {
     final tbl = _escape(table);
     select ??= '$tbl.*';
@@ -71,13 +64,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Builder insertBuilder() => new Builder()..insert(_escape(table));
 
   Builder updateBuilder() => new Builder()..update(_escape(table));
-
-  Future<E> loadE(Builder builder) => _streamToEntity(builder)
-      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
-
-  Future<C> loadC(Builder builder, [bool calcTotal = false]) =>
-      _streamToCollection(builder, calcTotal).catchError(
-          (e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> insert(E object) async {
     final data = readObject(object);
@@ -212,10 +198,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<List> execute(Builder builder) => manager._connection
-      .query(builder.getSQL(), substitutionValues: builder._params)
-      .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
-
   Future<E> _streamToEntity(Builder builder) async {
     final res = await manager._connection
         .queryToEntityCollection(
@@ -262,8 +244,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     if (data != null) object.init(data);
     return object;
   }
-
-  C createCollection() => collection();
 
   void setObject(E object, Map data) => object.init(data);
 

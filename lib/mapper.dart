@@ -9,6 +9,7 @@ export 'client.dart';
 part 'src/application.dart';
 part 'src/builder.dart';
 part 'src/mapper.dart';
+part 'src/mapper_base.dart';
 part 'src/manager.dart';
 part 'src/unit.dart';
 part 'src/entity.dart';

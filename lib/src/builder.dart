@@ -386,7 +386,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   Builder query;
 
-  Mapper<E, C, A> mapper;
+  MapperBase<E, C, A> mapper;
 
   Map<String, dynamic> filter = {};
 
