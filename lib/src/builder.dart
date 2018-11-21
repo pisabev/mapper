@@ -507,7 +507,8 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     }
     if (order_field != null) {
       var k = order_field;
-      if (filterRule.map[k] != null) k = filterRule.map[k];
+      if (filterRule.map != null && filterRule.map.containsKey(k))
+        k = filterRule.map[k];
       query.orderBy(k, order_way);
     }
   }
