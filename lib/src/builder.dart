@@ -32,8 +32,9 @@ class _Expression {
 abstract class Expression {
   String key;
   Object value;
+  bool applyIfNull;
 
-  Expression(this.key, this.value);
+  Expression(this.key, this.value, {this.applyIfNull = true});
 
   void _evaluate(Builder builder);
 }
@@ -42,9 +43,13 @@ class Equals extends Expression {
   Equals(String k, Object v) : super(k, v);
   void _evaluate(Builder builder) {
     final par = builder.getUniqueKey();
-    builder
-      ..andWhere('$key = @$par')
-      ..setParameter(par, value);
+    if (value == null) {
+      if (applyIfNull) builder.andWhere('$key IS NULL');
+    } else {
+      builder
+        ..andWhere('$key = @$par')
+        ..setParameter(par, value);
+    }
   }
 }
 
