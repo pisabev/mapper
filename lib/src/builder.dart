@@ -1,11 +1,11 @@
 part of mapper_server;
 
-class Expression {
+class _Expression {
   String _type = '';
 
   final List _parts = <String>[];
 
-  Expression(String type, List parts) {
+  _Expression(String type, List parts) {
     _type = type;
     addMultiple(parts);
   }
@@ -15,7 +15,7 @@ class Expression {
   }
 
   void add(dynamic part) {
-    if (part != '' || (part is Expression && part.count() > 0))
+    if (part != '' || (part is _Expression && part.count() > 0))
       _parts.add(part);
   }
 
@@ -27,6 +27,25 @@ class Expression {
   }
 
   String getType() => _type;
+}
+
+abstract class Expression {
+  String key;
+  Object value;
+
+  Expression(this.key, this.value);
+
+  void _evaluate(Builder builder);
+}
+
+class Equals extends Expression {
+  Equals(String k, Object v) : super(k, v);
+  void _evaluate(Builder builder) {
+    final par = builder.getUniqueKey();
+    builder
+      ..andWhere('$key = @$par')
+      ..setParameter(par, value);
+  }
 }
 
 class TSquery {
@@ -58,6 +77,10 @@ class Builder {
 
   static const int UPDATE = 3;
 
+  int _counter;
+
+  String getUniqueKey() => 'p_unique_${++_counter}';
+
   drv.PostgreSQLConnection connection;
 
   String _sql = '';
@@ -81,7 +104,7 @@ class Builder {
     'orderBy': []
   };
 
-  Builder();
+  Builder() : _counter = 0;
 
   int getType() => _type;
 
@@ -193,7 +216,8 @@ class Builder {
   void set(String key, dynamic value) => add('set', {key: value}, true);
 
   void where(String where, [String where2 = '']) {
-    if (where2 != '') where = new Expression('AND', [where, where2]).toString();
+    if (where2 != '')
+      where = new _Expression('AND', [where, where2]).toString();
     return add('where', where);
   }
 
@@ -207,7 +231,7 @@ class Builder {
 
   void having(String having, [String having2 = '']) {
     if (having2 != '')
-      having = new Expression('AND', [having, having2]).toString();
+      having = new _Expression('AND', [having, having2]).toString();
     return add('having', having);
   }
 
@@ -257,7 +281,7 @@ class Builder {
 
   void _exprBuilder(String key, args, type, [bool append = false]) {
     var expr = getQueryPart(key);
-    expr = new Expression(type, [expr, args]).toString();
+    expr = new _Expression(type, [expr, args]).toString();
     return add(key, expr, append);
   }
 

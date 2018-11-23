@@ -1,8 +1,7 @@
 part of mapper_server;
 
 abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
-    A extends Application> extends MapperBase<E, C, A>{
-
+    A extends Application> extends MapperBase<E, C, A> {
   String table;
 
   dynamic pkey;
@@ -45,6 +44,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       });
       return _streamToEntity(q);
     }
+  }
+
+  Future<T> findWhere<T>(List<Expression> expr) {
+    final b = selectBuilder();
+    expr.forEach((e) => e._evaluate(b));
+    return T is C ? loadC(b) : loadE(b);
   }
 
   Future<C> findAll() => loadC(selectBuilder());
