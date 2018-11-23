@@ -32,15 +32,15 @@ class _Expression {
 abstract class Expression {
   String key;
   Object value;
-  bool applyIfNull;
 
-  Expression(this.key, this.value, {this.applyIfNull = true});
+  Expression(this.key, this.value);
 
   void _evaluate(Builder builder);
 }
 
 class Equals extends Expression {
-  Equals(String k, Object v) : super(k, v);
+  bool applyIfNull;
+  Equals(String k, Object v, {this.applyIfNull = true}) : super(k, v);
   void _evaluate(Builder builder) {
     final par = builder.getUniqueKey();
     if (value == null) {
