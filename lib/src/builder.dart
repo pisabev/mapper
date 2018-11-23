@@ -30,8 +30,8 @@ class _Expression {
 }
 
 abstract class Expression {
-  String key;
-  Object value;
+  final String key;
+  final dynamic value;
 
   Expression(this.key, this.value);
 
@@ -45,6 +45,10 @@ class Equals extends Expression {
     final par = builder.getUniqueKey();
     if (value == null) {
       if (applyIfNull) builder.andWhere('$key IS NULL');
+    } else if (value is List) {
+      builder
+        ..andWhere('$key IN (${value.join(',')})')
+        ..setParameter(par, value);
     } else {
       builder
         ..andWhere('$key = @$par')
