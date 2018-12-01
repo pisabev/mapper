@@ -502,6 +502,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   int get total => collection.totalResults;
 
   void _queryFilter(Builder query) {
+    if (filterRule == null) return;
     filter.forEach((k, value) {
       if (value != null) {
         var key = k;
