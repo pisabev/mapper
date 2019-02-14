@@ -47,7 +47,11 @@ abstract class MapperBase<E extends Entity<Application>,
     return new CollectionBuilder<E, C, A>(q, this);
   }
 
-  E createObject([Map data]) => entity()..init(data);
+  E createObject([dynamic data]) {
+    final object = entity().._mapper = this;
+    if (data != null) object.init(data);
+    return object;
+  }
 
   C createCollection() => collection();
 }

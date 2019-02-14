@@ -242,12 +242,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   String _escape(String string) => '"$string"';
 
-  E createObject([dynamic data]) {
-    final object = entity().._mapper = this;
-    if (data != null) object.init(data);
-    return object;
-  }
-
   void setObject(E object, Map data) => object.init(data);
 
   Map<String, dynamic> readObject(E object) => object.toMap();
