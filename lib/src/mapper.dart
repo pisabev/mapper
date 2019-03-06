@@ -252,18 +252,19 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<E> prepare(dynamic vpkey, Map<String, dynamic> data,
+  Future<E> prepare(Map<String, dynamic> data,
       {bool forceInsert = false}) async {
+    dynamic vpkey;
+    if (pkey is List) {
+      vpkey = [];
+      pkey.forEarch((k) => vpkey.add(data[k]));
+      if (vpkey.any((v) => v == null)) vpkey = null;
+    } else {
+      vpkey = data[pkey];
+    }
     if (vpkey != null) {
-      E object;
-      if (vpkey is List) {
-        object = await findComposite(vpkey);
-        for (var i = 0; i < (pkey as List).length; i++)
-          data[pkey[i]] = vpkey[i];
-      } else {
-        object = await find(vpkey);
-        data[pkey] = vpkey;
-      }
+      final E object =
+          (vpkey is List) ? await findComposite(vpkey) : await find(vpkey);
       if (object == null && forceInsert) {
         final object = createObject(data);
         manager.addNew(object);
