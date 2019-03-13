@@ -151,10 +151,10 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       final diffm = _readDiff(obj);
       if (diffm.isNotEmpty) {
         if (!manager.inTransaction)
-          await notifier._addUpdate(new EntityContainer(obj, diffm));
+          await notifier._addUpdate(new EntityContainer(obj, diff: diffm));
         else
-          manager._unit._addNotifyUpdate(
-              obj, () => notifier._addUpdate(new EntityContainer(obj, diffm)));
+          manager._unit._addNotifyUpdate(obj,
+              () => notifier._addUpdate(new EntityContainer(obj, diff: diffm)));
       }
     }
   }
@@ -162,20 +162,20 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future _notifyCreate(E obj) async {
     if (notifier != null) {
       if (!manager.inTransaction)
-        await notifier._addCreate(new EntityContainer(obj, null));
+        await notifier._addCreate(new EntityContainer(obj));
       else
         manager._unit._addNotifyInsert(
-            obj, () => notifier._addCreate(new EntityContainer(obj, null)));
+            obj, () => notifier._addCreate(new EntityContainer(obj)));
     }
   }
 
   Future _notifyDelete(E obj) async {
     if (notifier != null) {
       if (!manager.inTransaction)
-        await notifier._addDelete(new EntityContainer(obj, null));
+        await notifier._addDelete(new EntityContainer(obj, deleted: true));
       else
-        manager._unit._addNotifyDelete(
-            obj, () => notifier._addDelete(new EntityContainer(obj, null)));
+        manager._unit._addNotifyDelete(obj,
+            () => notifier._addDelete(new EntityContainer(obj, deleted: true)));
     }
   }
 

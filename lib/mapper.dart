@@ -22,9 +22,11 @@ part 'src/observer.dart';
 class EntityContainer<E extends Entity> {
   final E entity;
   final Map<String, dynamic> diff;
-  const EntityContainer(this.entity, this.diff);
+  final bool deleted;
+  const EntityContainer(this.entity, {this.diff, this.deleted = false});
 
-  bool isUpdated() => diff != null;
+  bool get isUpdated => diff != null;
+  bool get isDeleted => deleted;
 }
 
 class StreamObserver<E extends Entity> {
