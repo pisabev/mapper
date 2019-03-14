@@ -18,6 +18,6 @@ class Observer<E extends Entity> {
 
   Future execHooksAsync(MEvent scope, EntityContainer<E> object) async {
     if (!_hook.containsKey(scope)) return;
-    for (var f in _hook[scope]) await f(object);
+    for (final f in _hook[scope]) await f(object);
   }
 }
