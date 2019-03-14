@@ -1,8 +1,7 @@
 import 'package:mapper/mapper.dart';
 import 'package:mapper/client.dart';
+import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
-
-import 'common.dart';
 
 Manager<App> manager;
 
@@ -18,12 +17,10 @@ class App extends Application with AppMixin {}
 main() {
   group('Unit of Work', () {
     setUp(() async {
-      await initDb(new App(), sql);
-      manager = await new Database().init(new App());
+      manager = await testManager(new DatabaseConfig(), new App(),
+          executeCreate: false, executeInit: false, sql: sql);
     });
-    tearDown(() {
-
-    });
+    tearDown(() {});
     test('Basics', () async {
       await manager.begin();
       Test1 t = manager.app.test1.createObject();
@@ -43,7 +40,6 @@ main() {
       }
     }, skip: false);
   });
-
 }
 
 var sql = '''
@@ -92,18 +88,16 @@ class Test1 with Entity {
   }
 
   toMap() => {
-    'test1_id': test1_id,
-    'field_string': field_string,
-    'field_int': field_int,
-    'field_json': field_json,
-    'field_jsonb': field_jsonb,
-    'field_date': field_date,
-    'field_list': field_list
-  };
+        'test1_id': test1_id,
+        'field_string': field_string,
+        'field_int': field_int,
+        'field_json': field_json,
+        'field_jsonb': field_jsonb,
+        'field_date': field_date,
+        'field_list': field_list
+      };
 
   toJson() => toMap();
 }
 
-class Test1Collection extends Collection<Test1> {
-
-}
+class Test1Collection extends Collection<Test1> {}

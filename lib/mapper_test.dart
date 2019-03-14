@@ -9,10 +9,13 @@ Future<void> drop(DatabaseConfig c) async {
 }
 
 Future<void> create(DatabaseConfig c,
-    {List<String> dataFiles, bool executeInit = true}) async {
+    {List<String> dataFiles,
+    bool executeCreate = true,
+    bool executeInit = true}) async {
   run(await Process.run('psql', [c.userUrl, '-c', 'CREATE SCHEMA PUBLIC']));
-  run(await Process.run(
-      'psql', [c.userUrl, '-f', 'lib/src/db/schema/create.sql']));
+  if (executeInit)
+    run(await Process.run(
+        'psql', [c.userUrl, '-f', 'lib/src/db/schema/create.sql']));
   if (dataFiles != null)
     for (var f in dataFiles)
       run(await Process.run(
@@ -31,9 +34,15 @@ Future<Pool> setup(DatabaseConfig c) async {
 }
 
 Future<Manager<A>> testManager<A extends Application>(DatabaseConfig c, A app,
-    {List<String> dataFiles, bool executeInit = true, String sql}) async {
+    {List<String> dataFiles,
+    bool executeCreate = true,
+    bool executeInit = true,
+    String sql}) async {
   await drop(c);
-  await create(c, dataFiles: dataFiles, executeInit: executeInit);
+  await create(c,
+      dataFiles: dataFiles,
+      executeCreate: executeCreate,
+      executeInit: executeInit);
   await setup(c);
   final m = await new Database().init(app);
   if (sql != null) await m.query(sql);
