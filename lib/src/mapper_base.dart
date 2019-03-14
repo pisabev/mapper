@@ -42,6 +42,12 @@ abstract class MapperBase<E extends Entity<Application>,
         substitutionValues: builder._params);
   }
 
+  Future<C> queryToEntityCollection(
+          String query, Map<String, dynamic> params) async =>
+      manager._connection.queryToEntityCollection(
+          query, _onStreamRow, createCollection(),
+          substitutionValues: params);
+
   CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
     q ??= new Builder();
     return new CollectionBuilder<E, C, A>(q, this);
