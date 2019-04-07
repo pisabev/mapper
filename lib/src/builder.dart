@@ -40,7 +40,9 @@ abstract class Expression {
 
 class Equals extends Expression {
   bool applyIfNull;
+
   Equals(String k, Object v, {this.applyIfNull = true}) : super(k, v);
+
   void _evaluate(Builder builder) {
     final par = builder.getUniqueKey();
     if (value == null) {
@@ -169,7 +171,7 @@ class Builder {
 
   void add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
     if ((sqlPart is String && sqlPart == '') ||
-        (sqlPart is Map && sqlPart.isEmpty)) return null;
+        (sqlPart is Map && sqlPart.isEmpty)) return;
     if (append) {
       _sqlParts[sqlPartName].add(sqlPart);
     } else {

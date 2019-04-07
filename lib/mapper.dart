@@ -1,23 +1,26 @@
 library mapper_server;
 
 import 'dart:async';
-//import 'package:logging/logging.dart';
-import 'src/postgres.dart' as drv;
+
 import 'client.dart';
+import 'src/postgres.dart' as drv;
+
 export 'client.dart';
 
 part 'src/application.dart';
 part 'src/builder.dart';
+part 'src/cache.dart';
+part 'src/entity.dart';
+part 'src/exception.dart';
+part 'src/manager.dart';
 part 'src/mapper.dart';
 part 'src/mapper_base.dart';
 part 'src/mapper_view.dart';
-part 'src/manager.dart';
-part 'src/unit.dart';
-part 'src/entity.dart';
-part 'src/cache.dart';
-part 'src/pool.dart';
-part 'src/exception.dart';
 part 'src/observer.dart';
+part 'src/pool.dart';
+part 'src/unit.dart';
+//import 'package:logging/logging.dart';
+
 
 class EntityContainer<E extends Entity> {
   final E entity;

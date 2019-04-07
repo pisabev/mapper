@@ -17,7 +17,7 @@ Future<void> create(DatabaseConfig c,
     run(await Process.run(
         'psql', [c.userUrl, '-f', 'lib/src/db/schema/create.sql']));
   if (dataFiles != null)
-    for (var f in dataFiles)
+    for (final f in dataFiles)
       run(await Process.run(
           'psql', [c.userUrl, '-f', 'lib/src/db/schema/data/$f.sql']));
   if (executeInit)

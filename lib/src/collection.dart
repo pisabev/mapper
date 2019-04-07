@@ -21,5 +21,5 @@ class Collection<E> extends ListBase<E> {
 
   void addAll(Iterable<E> iterable) => innerList.addAll(iterable);
 
-  Iterable<T> map<T>(T f(E e)) => innerList.map(f);
+  Iterable<T> map<T>(T Function(E e) f) => innerList.map(f);
 }
