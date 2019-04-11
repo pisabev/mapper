@@ -103,5 +103,6 @@ class Unit {
       .then((_) => _doNotifyUpdates())
       .then((_) => _doNotifyInserts())
       .then((_) => _resetNotifiers())
-      .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
+      .catchError((e, s) => (_started ? _rollback() : new Future.value())
+          .then((_) => new Future.error(e, s)));
 }
