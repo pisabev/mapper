@@ -31,6 +31,7 @@ class EntityContainer<E extends Entity> {
   bool get isUpdated => diff != null;
   bool get isDeleted => deleted;
   bool get isInserted => !isUpdated && !isDeleted;
+  Manager get manager => entity.manager;
 }
 
 class StreamObserver<E extends Entity> {
