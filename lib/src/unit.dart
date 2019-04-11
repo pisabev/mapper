@@ -67,11 +67,11 @@ class Unit {
 
   Future _doDeletes() => Future.forEach(_delete, (o) => o._mapper.delete(o));
 
-  void _doNotifyUpdates() => _notifyUpdate.forEach((k, v) => v());
+  void _doNotifyUpdates() => _notifyUpdate.values.forEach((v) => v());
 
-  void _doNotifyInserts() => _notifyInsert.forEach((k, v) => v());
+  void _doNotifyInserts() => _notifyInsert.values.forEach((v) => v());
 
-  void _doNotifyDeletes() => _notifyDelete.forEach((k, v) => v());
+  void _doNotifyDeletes() => _notifyDelete.values.forEach((v) => v());
 
   Future _begin() => !_started
       ? _manager._connection.execute('BEGIN').then((_) => _started = true)
@@ -97,10 +97,10 @@ class Unit {
       .then((_) => _resetEntities())
       .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
 
-  Future commit() => persist()
-      .then((_) => _commit())
-      .then((_) => _doNotifyDeletes())
-      .then((_) => _doNotifyUpdates())
-      .then((_) => _doNotifyInserts())
-      .then((_) => _resetNotifiers());
+  Future commit() => persist().then((_) => _commit()).then((_) {
+        _doNotifyDeletes();
+        _doNotifyUpdates();
+        _doNotifyInserts();
+        _resetNotifiers();
+      });
 }
