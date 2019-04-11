@@ -99,14 +99,14 @@ class Unit {
 
   Future commit() {
     Map notifyDelete;
-    Map notifyInsert;
     Map notifyUpdate;
+    Map notifyInsert;
     return persist()
         .then((_) => _commit())
         .then((_) {
           notifyDelete = new Map.from(_notifyDelete);
-          notifyInsert = new Map.from(_notifyInsert);
           notifyUpdate = new Map.from(_notifyUpdate);
+          notifyInsert = new Map.from(_notifyInsert);
           _resetNotifiers();
         })
         .then((_) => _doNotifyDeletes(notifyDelete))
