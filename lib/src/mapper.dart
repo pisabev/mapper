@@ -74,7 +74,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     setObject(object, result[0]);
     final d = readObject(object);
     _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
-    await _notifyCreate(object);
+    _notifyCreate(object);
     return object;
   }
 
@@ -90,7 +90,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         ..andWhere('${_escape(pkey)} = @$pkey')
         ..setParameter(pkey, data[pkey]);
     await execute(q);
-    await _notifyUpdate(object);
+    _notifyUpdate(object);
     return object;
   }
 
@@ -109,15 +109,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
 
   Future<bool> _deleteById(dynamic id, E object) async {
     _cacheClean(id.toString());
-    await _notifyDelete(object);
     await execute(deleteBuilder()
       ..where('${_escape(pkey)} = @$pkey')
       ..setParameter(pkey, id));
+    _notifyDelete(object);
     return true;
   }
 
   Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
-    await _notifyDelete(object);
     _cacheClean(ids.join(_SEP));
     final q = deleteBuilder();
     var i = 0;
@@ -129,6 +128,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       i++;
     });
     await execute(q);
+    _notifyDelete(object);
     return true;
   }
 
@@ -146,12 +146,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return diffm;
   }
 
-  Future _notifyUpdate(E obj) async {
+  void _notifyUpdate(E obj) {
     if (notifier != null) {
       final diffm = _readDiff(obj);
       if (diffm.isNotEmpty) {
         if (!manager.inTransaction)
-          await notifier._addUpdate(new EntityContainer(obj, diff: diffm));
+          notifier._addUpdate(new EntityContainer(obj, diff: diffm));
         else
           manager._unit._addNotifyUpdate(obj,
               () => notifier._addUpdate(new EntityContainer(obj, diff: diffm)));
@@ -159,20 +159,20 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  Future _notifyCreate(E obj) async {
+  void _notifyCreate(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
-        await notifier._addCreate(new EntityContainer(obj));
+        notifier._addCreate(new EntityContainer(obj));
       else
         manager._unit._addNotifyInsert(
             obj, () => notifier._addCreate(new EntityContainer(obj)));
     }
   }
 
-  Future _notifyDelete(E obj) async {
+  void _notifyDelete(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
-        await notifier._addDelete(new EntityContainer(obj, deleted: true));
+        notifier._addDelete(new EntityContainer(obj, deleted: true));
       else
         manager._unit._addNotifyDelete(obj,
             () => notifier._addDelete(new EntityContainer(obj, deleted: true)));
