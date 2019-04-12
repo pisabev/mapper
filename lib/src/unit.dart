@@ -67,11 +67,11 @@ class Unit {
 
   Future _doDeletes() => Future.forEach(_delete, (o) => o._mapper.delete(o));
 
-  Future _doNotifyUpdates(Map m) => Future.forEach(m.values, (v) => v());
+  void _doNotifyUpdates() => _notifyUpdate.values.forEach((v) => v());
 
-  Future _doNotifyInserts(Map m) => Future.forEach(m.values, (v) => v());
+  void _doNotifyInserts() => _notifyInsert.values.forEach((v) => v());
 
-  Future _doNotifyDeletes(Map m) => Future.forEach(m.values, (v) => v());
+  void _doNotifyDeletes() => _notifyDelete.values.forEach((v) => v());
 
   Future _begin() => !_started
       ? _manager._connection.execute('BEGIN').then((_) => _started = true)
@@ -97,22 +97,10 @@ class Unit {
       .then((_) => _resetEntities())
       .catchError((e, s) => _rollback().then((_) => new Future.error(e, s)));
 
-  Future commit() {
-    Map notifyDelete;
-    Map notifyUpdate;
-    Map notifyInsert;
-    return persist()
-        .then((_) => _commit())
-        .then((_) {
-          notifyDelete = new Map.from(_notifyDelete);
-          notifyUpdate = new Map.from(_notifyUpdate);
-          notifyInsert = new Map.from(_notifyInsert);
-          _resetNotifiers();
-        })
-        .then((_) => _doNotifyDeletes(notifyDelete))
-        .then((_) => _doNotifyUpdates(notifyUpdate))
-        .then((_) => _doNotifyInserts(notifyInsert))
-        .catchError((e, s) => (_started ? _rollback() : new Future.value())
-            .then((_) => new Future.error(e, s)));
-  }
+  Future commit() => persist().then((_) => _commit()).then((_) {
+        _doNotifyDeletes();
+        _doNotifyUpdates();
+        _doNotifyInserts();
+        _resetNotifiers();
+      });
 }

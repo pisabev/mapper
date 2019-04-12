@@ -113,8 +113,9 @@ main() {
       await manager.begin();
       //await manager.app.test3.insert(t);
       manager.addNew(t);
-      await manager.commit().catchError((e) {});
+      await manager.commit();
       var res = await manager.app.test3.find(1);
+      print(res.toMap());
     });
   });
 }
