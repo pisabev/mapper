@@ -49,7 +49,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Future<T> findWhere<T>(List<Expression> expr) {
     final b = selectBuilder();
     expr.forEach((e) => e._evaluate(b));
-    return T is C ? loadC(b) : loadE(b);
+    return T == C ? loadC(b) : loadE(b);
   }
 
   Future<C> findAll() => loadC(selectBuilder());
