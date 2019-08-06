@@ -302,11 +302,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  Future<String> genPatch(E entity) async {
+  Future<String> genPatch({String constraintKey}) async {
+    final constraint = constraintKey != null
+        ? 'ON CONSTRAINT $constraintKey'
+        : (pkey is List ? '(${pkey.join(',')})' : '($pkey)');
     final col = await findAll();
     final sb = new StringBuffer();
-    String _getJson(dynamic data) =>
-        (data != null) ? '\'${jsonEncode(data)}\'' : 'NULL';
     for (final object in col) {
       final m = object.toMap();
       sb
@@ -316,14 +317,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
           if (v is DateTime)
             return "'${v.toIso8601String()}'";
           else if (v is List || v is Map)
-            return _getJson(v);
+            return "'${jsonEncode(v)}'";
           else if (v is String) return "'$v'";
           return v;
         }).join(',')}) ')
-        ..write('ON CONFLICT ON CONSTRAINT ${table}_${pkey}_key ')
-        ..write('DO UPDATE SET ');
-      m.forEach((k, v) => sb.write('"$k" = EXCLUDED.$k, '));
-      sb.write(';\n');
+        ..write('ON CONFLICT $constraint ')
+        ..write('DO UPDATE SET ')
+        ..write(m.keys.map((k) => '"$k" = EXCLUDED.$k').join(','))
+        ..write(';\n');
     }
     return sb.toString();
   }
