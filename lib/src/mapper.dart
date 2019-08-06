@@ -301,4 +301,30 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       return object;
     }
   }
+
+  Future<String> genPatch(E entity) async {
+    final col = await findAll();
+    final sb = new StringBuffer();
+    String _getJson(dynamic data) =>
+        (data != null) ? '\'${jsonEncode(data)}\'' : 'NULL';
+    for (final object in col) {
+      final m = object.toMap();
+      sb
+        ..write('INSERT INTO $table ')
+        ..write('("${m.keys.join('","')}") VALUES ')
+        ..write('(${m.values.map((v) {
+          if (v is DateTime)
+            return "'${v.toIso8601String()}'";
+          else if (v is List || v is Map)
+            return _getJson(v);
+          else if (v is String) return "'$v'";
+          return v;
+        }).join(',')}) ')
+        ..write('ON CONFLICT ON CONSTRAINT ${table}_${pkey}_key ')
+        ..write('DO UPDATE SET ');
+      m.forEach((k, v) => sb.write('"$k" = EXCLUDED.$k, '));
+      sb.write(';\n');
+    }
+    return sb.toString();
+  }
 }

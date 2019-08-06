@@ -1,7 +1,7 @@
 library mapper_server;
 
 import 'dart:async';
-
+import 'dart:convert';
 import 'client.dart';
 import 'src/postgres.dart' as drv;
 
