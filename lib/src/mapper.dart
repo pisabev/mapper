@@ -302,12 +302,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  Future<String> genPatch({String constraintKey}) async {
+  Future<String> genPatch(
+      {String constraintKey, bool disableTriggers = true}) async {
     final constraint = constraintKey != null
         ? 'ON CONSTRAINT $constraintKey'
         : (pkey is List ? '(${pkey.join(',')})' : '($pkey)');
     final col = await findAll();
     final sb = new StringBuffer();
+    if (disableTriggers) sb.write('ALTER TABLE $table DISABLE TRIGGER USER;\n');
     for (final object in col) {
       final m = object.toMap();
       sb
@@ -326,6 +328,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
         ..write(m.keys.map((k) => '"$k" = EXCLUDED.$k').join(','))
         ..write(';\n');
     }
+    if (disableTriggers) sb.write('ALTER TABLE $table ENABLE TRIGGER USER;\n');
     return sb.toString();
   }
 }
