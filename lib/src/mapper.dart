@@ -303,14 +303,14 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<String> genPatch(
-      {String constraintKey, bool disableTriggers = true}) async {
+      {C collection, String constraintKey, bool disableTriggers = true}) async {
     final constraint = constraintKey != null
         ? 'ON CONSTRAINT $constraintKey'
         : (pkey is List ? '(${pkey.join(',')})' : '($pkey)');
-    final col = await findAll();
+    collection ??= await findAll();
     final sb = new StringBuffer();
     if (disableTriggers) sb.write('ALTER TABLE $table DISABLE TRIGGER USER;\n');
-    for (final object in col) {
+    for (final object in collection) {
       final m = object.toMap();
       sb
         ..write('INSERT INTO $table ')
