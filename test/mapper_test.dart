@@ -7,22 +7,28 @@ Manager<App> manager;
 
 class AppMixin {
   Manager m;
-  Test1Mapper get test1 => new Test1Mapper(m)
-    ..entity = (() => new Test1())
-    ..collection = () => new Test1Collection();
-  Test3Mapper get test3 => new Test3Mapper(m)
-    ..entity = (() => new Test3())
-    ..collection = (() => new Test3Collection())
-    ..notifier = noty;
+
+  Test1Mapper get test1 =>
+      new Test1Mapper(m)
+        ..entity = (() => new Test1())
+        ..collection = () => new Test1Collection();
+
+  Test3Mapper get test3 =>
+      new Test3Mapper(m)
+        ..entity = (() => new Test3())
+        ..collection = (() => new Test3Collection())
+        ..notifier = noty;
 }
 
 final noty = new EntityNotifier<Test3>();
 
 class AppMixin2 {
   Manager m;
-  Test2Mapper get test2 => new Test2Mapper(m)
-    ..entity = (() => new Test2())
-    ..collection = () => new Test2Collection();
+
+  Test2Mapper get test2 =>
+      new Test2Mapper(m)
+        ..entity = (() => new Test2())
+        ..collection = () => new Test2Collection();
 }
 
 class App extends Application with AppMixin {}
@@ -48,8 +54,11 @@ main() {
       t.field_string = 'test';
       t.field_int = test;
       t.field_bool = true;
-//      t.field_json = {'t': 1212,'t2': 'string'};
+      t.field_json = {'t': 1212,'t2': 'string'};
       t.field_jsonb = {'t': 1212, 't2': 'string'};
+      t.field_jsonb_obj = new Obj()
+        ..field1 = 'ddd'
+        ..field2 = 'bbb';
       t.field_date = new DateTime.now();
       t.field_list = [1, 2, 3];
 
@@ -63,6 +72,7 @@ main() {
       //print('got ${res2.field_int} expected: $test');
       expect(res2.field_int, test);
       expect(res2.field_bool, true);
+      expect(res2.field_jsonb_obj.field1, 'ddd');
 
       Test1 t2 = manager.app.test1.createObject();
       //t2.field_int = 11.3;
@@ -89,7 +99,9 @@ main() {
       await manager.app.test1.findAll();
       //await manager.query('select * from test1');
       var end = new DateTime.now();
-      print('${end.difference(start).inMilliseconds} ms');
+      print('${end
+          .difference(start)
+          .inMilliseconds} ms');
     });
   }, skip: true);
 
@@ -105,18 +117,19 @@ main() {
 //      print(manager3.app.test1);
     });
     tearDown(() {});
-    test('Notifiers', () async {
-      noty.onChange.listen((r) async {
-        throw new Exception('sds');
-      });
-      Test3 t = manager.app.test3.createObject()..field_string = 'testnnn';
-      await manager.begin();
-      //await manager.app.test3.insert(t);
-      manager.addNew(t);
-      await manager.commit();
-      var res = await manager.app.test3.find(1);
-      print(res.toMap());
-    });
+//    test('Notifiers', () async {
+//      noty.onChange.listen((r) async {
+//        throw new Exception('sds');
+//      });
+//      Test3 t = manager.app.test3.createObject()
+//        ..field_string = 'testnnn';
+//      await manager.begin();
+//      //await manager.app.test3.insert(t);
+//      manager.addNew(t);
+//      await manager.commit();
+//      var res = await manager.app.test3.find(1);
+//      print(res.toMap());
+//    });
   });
 }
 
@@ -126,8 +139,9 @@ CREATE TEMPORARY TABLE "test1" (
     "field_bool"      bool       ,
     "field_string"    text       ,
     "field_int"       decimal(12,6),
---    "field_json"      json       ,
+    "field_json"      json       ,
     "field_jsonb"     jsonb      ,
+    "field_jsonb_obj" jsonb      ,
     "field_date"      timestamptz,
     "field_list"      jsonb                
 );
@@ -142,7 +156,26 @@ CREATE TABLE "test3" (
 
 class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
   String table = 'test1';
+
   Test1Mapper(m) : super(m);
+}
+
+class Obj {
+  String field1;
+  String field2;
+
+  Obj();
+
+  factory Obj.fromMap(Map data) =>
+      new Obj()
+        ..field1 = data['field1']
+        ..field2 = data['field2'];
+
+  Map toMap() =>
+      {
+        'field1': field1,
+        'field2': field2
+      };
 }
 
 class Test1 with Entity {
@@ -150,8 +183,9 @@ class Test1 with Entity {
   bool field_bool;
   String field_string;
   num field_int;
-//  Map field_json;
+  Map field_json;
   Map field_jsonb;
+  Obj field_jsonb_obj;
   DateTime field_date;
   List field_list;
 
@@ -165,18 +199,22 @@ class Test1 with Entity {
     test1_id = data['test1_id'];
     field_string = data['field_string'];
     field_int = data['field_int'];
-//    field_json = data['field_json'];
+    field_json = data['field_json'];
     field_jsonb = data['field_jsonb'];
+    field_jsonb_obj = (data['field_jsonb_obj'] != null)? new Obj.fromMap(
+        data['field_jsonb_obj']) : null;
     field_date = data['field_date'];
     field_list = data['field_list'];
   }
 
-  toMap() => {
+  toMap() =>
+      {
         'test1_id': test1_id,
         'field_string': field_string,
         'field_int': field_int,
-//    'field_json': field_json,
+        'field_json': field_json,
         'field_jsonb': field_jsonb,
+        'field_jsonb_obj': field_jsonb_obj?.toMap(),
         'field_date': field_date,
         'field_list': field_list
       };
@@ -188,6 +226,7 @@ class Test1Collection extends Collection<Test1> {}
 
 class Test2Mapper extends Mapper<Test2, Test2Collection, App2> {
   String table = 'test1';
+
   Test2Mapper(m) : super(m);
 }
 
@@ -217,7 +256,8 @@ class Test2 with Entity {
     field_list = data['field_list'];
   }
 
-  toMap() => {
+  toMap() =>
+      {
         'test1_id': test1_id,
         'field_string': field_string,
         'field_int': field_int,
@@ -234,6 +274,7 @@ class Test2Collection extends Collection<Test2> {}
 
 class Test3Mapper extends Mapper<Test3, Test3Collection, App> {
   String table = 'test3';
+
   Test3Mapper(m) : super(m);
 }
 
@@ -252,7 +293,8 @@ class Test3 with Entity {
     field_string = data['field_string'];
   }
 
-  toMap() => {
+  toMap() =>
+      {
         'test3_id': test3_id,
         'field_string': field_string,
       };
