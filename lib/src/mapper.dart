@@ -257,12 +257,6 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     final insertList = data['insert'];
     final deleteList = data['delete'];
     final updateList = data['update'];
-    if (insertList != null) {
-      for (final r in insertList) {
-        if (fKey != null && fKeyValue != null) r[fKey] = fKeyValue;
-        await prepare(null, r);
-      }
-    }
     if (deleteList != null) {
       for (final r in deleteList) {
         final ent = await find(r[pkey]);
@@ -271,6 +265,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
     if (updateList != null) {
       for (final r in updateList) await prepare(r[pkey], r);
+    }
+    if (insertList != null) {
+      for (final r in insertList) {
+        if (fKey != null && fKeyValue != null) r[fKey] = fKeyValue;
+        await prepare(null, r);
+      }
     }
   }
 
