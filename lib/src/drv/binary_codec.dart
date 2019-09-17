@@ -1,9 +1,9 @@
 import 'dart:convert';
-
-import 'dart:typed_data';
 import 'dart:math';
-import 'package:mapper/src/postgres.dart';
+import 'dart:typed_data';
+
 import 'package:mapper/src/drv/types.dart';
+import 'package:mapper/src/postgres.dart';
 
 class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
   const PostgresBinaryEncoder(this.dataType);
@@ -104,6 +104,7 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
         }
 
       case PostgreSQLDataType.timestampWithoutTimezone:
+      case PostgreSQLDataType.timestampWithTimezone:
         {
           if (input is! DateTime) {
             throw new FormatException('Invalid type for parameter value. '
@@ -113,23 +114,6 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
           final bd = new ByteData(8);
           final diff = input.toUtc().difference(new DateTime.utc(2000));
           bd.setInt64(0, diff.inMicroseconds);
-          return bd.buffer.asUint8List();
-        }
-
-      case PostgreSQLDataType.timestampWithTimezone:
-        {
-          if (input is! DateTime) {
-            throw new FormatException('Invalid type for parameter value. '
-                'Expected: DateTime Got: ${input.runtimeType}');
-          }
-
-          final bd = new ByteData(8)
-            ..setInt64(
-                0,
-                input
-                    .toUtc()
-                    .difference(new DateTime.utc(2000))
-                    .inMicroseconds);
           return bd.buffer.asUint8List();
         }
 
@@ -377,6 +361,8 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
     21: PostgreSQLDataType.smallInteger,
     23: PostgreSQLDataType.integer,
     25: PostgreSQLDataType.text,
+    1042: PostgreSQLDataType.text,
+    1043: PostgreSQLDataType.text,
     700: PostgreSQLDataType.real,
     701: PostgreSQLDataType.double,
     1082: PostgreSQLDataType.date,

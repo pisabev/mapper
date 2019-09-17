@@ -183,10 +183,18 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     data.forEach((k, v) {
       if (v == null && insert)
         builder.set(_escape(k), 'DEFAULT');
-      else
-        builder
-          ..set(_escape(k), v is List ? '@$k:jsonb' : '@$k')
-          ..setParameter(k, v);
+      else {
+        if (v is String) {
+          builder.set(_escape(k), '@$k:text');
+        } else if (v is bool) {
+          builder.set(_escape(k), '@$k:bool');
+        } else if (v is List) {
+          builder.set(_escape(k), '@$k:jsonb');
+        } else {
+          builder.set(_escape(k), '@$k');
+        }
+        builder.setParameter(k, v);
+      }
     });
     return builder;
   }

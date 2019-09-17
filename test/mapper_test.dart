@@ -1,5 +1,5 @@
-import 'package:mapper/mapper.dart';
 import 'package:mapper/client.dart';
+import 'package:mapper/mapper.dart';
 import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
 
@@ -8,16 +8,14 @@ Manager<App> manager;
 class AppMixin {
   Manager m;
 
-  Test1Mapper get test1 =>
-      new Test1Mapper(m)
-        ..entity = (() => new Test1())
-        ..collection = () => new Test1Collection();
+  Test1Mapper get test1 => new Test1Mapper(m)
+    ..entity = (() => new Test1())
+    ..collection = () => new Test1Collection();
 
-  Test3Mapper get test3 =>
-      new Test3Mapper(m)
-        ..entity = (() => new Test3())
-        ..collection = (() => new Test3Collection())
-        ..notifier = noty;
+  Test3Mapper get test3 => new Test3Mapper(m)
+    ..entity = (() => new Test3())
+    ..collection = (() => new Test3Collection())
+    ..notifier = noty;
 }
 
 final noty = new EntityNotifier<Test3>();
@@ -25,10 +23,9 @@ final noty = new EntityNotifier<Test3>();
 class AppMixin2 {
   Manager m;
 
-  Test2Mapper get test2 =>
-      new Test2Mapper(m)
-        ..entity = (() => new Test2())
-        ..collection = () => new Test2Collection();
+  Test2Mapper get test2 => new Test2Mapper(m)
+    ..entity = (() => new Test2())
+    ..collection = () => new Test2Collection();
 }
 
 class App extends Application with AppMixin {}
@@ -51,15 +48,16 @@ main() {
     test('Basics', () async {
       double test = 320000.000032;
       Test1 t = manager.app.test1.createObject();
+      final date = new DateTime.now();
       t.field_string = 'test';
       t.field_int = test;
       t.field_bool = true;
-      t.field_json = {'t': 1212,'t2': 'string'};
+      t.field_json = {'t': 1212, 't2': 'string'};
       t.field_jsonb = {'t': 1212, 't2': 'string'};
       t.field_jsonb_obj = new Obj()
         ..field1 = 'ddd'
         ..field2 = 'bbb';
-      t.field_date = new DateTime.now();
+      t.field_date = date;
       t.field_list = [1, 2, 3];
 
       var res = await manager.app.test1.insert(t);
@@ -72,6 +70,8 @@ main() {
       //print('got ${res2.field_int} expected: $test');
       expect(res2.field_int, test);
       expect(res2.field_bool, true);
+      expect(
+          res2.field_date.toLocal().toIso8601String(), date.toIso8601String());
       expect(res2.field_jsonb_obj.field1, 'ddd');
 
       Test1 t2 = manager.app.test1.createObject();
@@ -87,7 +87,7 @@ main() {
       for (int i = 0; i < 10000; i++) {
         Test1 t = manager.app.test1.createObject();
         t.field_string = 'test';
-        t.field_int = 232.3;
+        t.field_int = 232;
         t.field_bool = true;
 //      t.field_json = {'t': 1212,'t2': 'string'};
         t.field_jsonb = {'t': 1212, 't2': 'string'};
@@ -99,12 +99,9 @@ main() {
       await manager.app.test1.findAll();
       //await manager.query('select * from test1');
       var end = new DateTime.now();
-      print('${end
-          .difference(start)
-          .inMilliseconds} ms');
+      print('${end.difference(start).inMilliseconds} ms');
     });
   }, skip: true);
-
 
   group('Mapper', () {
     setUp(() async {
@@ -166,16 +163,11 @@ class Obj {
 
   Obj();
 
-  factory Obj.fromMap(Map data) =>
-      new Obj()
-        ..field1 = data['field1']
-        ..field2 = data['field2'];
+  factory Obj.fromMap(Map data) => new Obj()
+    ..field1 = data['field1']
+    ..field2 = data['field2'];
 
-  Map toMap() =>
-      {
-        'field1': field1,
-        'field2': field2
-      };
+  Map toMap() => {'field1': field1, 'field2': field2};
 }
 
 class Test1 with Entity {
@@ -201,14 +193,14 @@ class Test1 with Entity {
     field_int = data['field_int'];
     field_json = data['field_json'];
     field_jsonb = data['field_jsonb'];
-    field_jsonb_obj = (data['field_jsonb_obj'] != null)? new Obj.fromMap(
-        data['field_jsonb_obj']) : null;
+    field_jsonb_obj = (data['field_jsonb_obj'] != null)
+        ? new Obj.fromMap(data['field_jsonb_obj'])
+        : null;
     field_date = data['field_date'];
     field_list = data['field_list'];
   }
 
-  toMap() =>
-      {
+  toMap() => {
         'test1_id': test1_id,
         'field_string': field_string,
         'field_int': field_int,
@@ -256,8 +248,7 @@ class Test2 with Entity {
     field_list = data['field_list'];
   }
 
-  toMap() =>
-      {
+  toMap() => {
         'test1_id': test1_id,
         'field_string': field_string,
         'field_int': field_int,
@@ -293,8 +284,7 @@ class Test3 with Entity {
     field_string = data['field_string'];
   }
 
-  toMap() =>
-      {
+  toMap() => {
         'test3_id': test3_id,
         'field_string': field_string,
       };
