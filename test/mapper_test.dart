@@ -189,6 +189,7 @@ class Test1 with Entity {
 
   init(Map data) {
     test1_id = data['test1_id'];
+    field_bool = data['field_bool'];
     field_string = data['field_string'];
     field_int = data['field_int'];
     field_json = data['field_json'];
@@ -202,6 +203,7 @@ class Test1 with Entity {
 
   toMap() => {
         'test1_id': test1_id,
+        'field_bool': field_bool,
         'field_string': field_string,
         'field_int': field_int,
         'field_json': field_json,
