@@ -186,10 +186,10 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       else {
 //        if (v is String) {
 //          builder.set(_escape(k), '@$k:text');
-//        } else if (v is bool) {
-//          builder.set(_escape(k), '@$k:boolean');
 //        } else
-        if (v is List) {
+        if (v is bool) {
+          builder.set(_escape(k), '@$k:boolean');
+        } else if (v is List) {
           builder.set(_escape(k), '@$k:jsonb');
         } else {
           builder.set(_escape(k), '@$k');
