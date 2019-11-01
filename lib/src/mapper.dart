@@ -261,11 +261,12 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     return object;
   }
 
-  Future<void> crud(Map<String, List> data,
+  Future<List<E>> crud(Map<String, List> data,
       [String fKey, dynamic fKeyValue]) async {
     final insertList = data['insert'];
     final deleteList = data['delete'];
     final updateList = data['update'];
+    final res = <E>[];
     if (deleteList != null) {
       for (final r in deleteList) {
         final ent = await find(r[pkey]);
@@ -273,14 +274,15 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
       }
     }
     if (updateList != null) {
-      for (final r in updateList) await prepare(r[pkey], r);
+      for (final r in updateList) res.add(await prepare(r[pkey], r));
     }
     if (insertList != null) {
       for (final r in insertList) {
         if (fKey != null && fKeyValue != null) r[fKey] = fKeyValue;
-        await prepare(null, r);
+        res.add(await prepare(null, r));
       }
     }
+    return res;
   }
 
   Future<E> prepare(dynamic vpkey, Map<String, dynamic> data,
