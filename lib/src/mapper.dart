@@ -313,6 +313,27 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
+  Future<void> mergePK(dynamic obsoletePk, dynamic newPk) async {
+    final col = await manager.execute(new Builder()
+      ..select('tc.table_name, kcu.column_name')
+      ..from('information_schema.table_constraints tc')
+      ..join('information_schema.key_column_usage kcu',
+          'tc.constraint_name = kcu.constraint_name')
+      ..join('information_schema.constraint_column_usage ccu',
+          'ccu.constraint_name = tc.constraint_name')
+      ..where("constraint_type = 'FOREIGN KEY'", "ccu.table_name='$table'"));
+    if (col.isNotEmpty) {
+      for (final r in col) {
+        await manager.execute(new Builder()
+          ..update(r['table_name'])
+          ..set(r['column_name'], newPk)
+          ..where('${r['column_name']} = @obs')
+          ..setParameter('obs', obsoletePk));
+      }
+      await deleteById(obsoletePk);
+    }
+  }
+
   Future<String> genPatch(
       {C collection, String constraintKey, bool disableTriggers = true}) async {
     final constraint = constraintKey != null
