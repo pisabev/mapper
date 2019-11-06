@@ -314,6 +314,7 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   }
 
   Future<void> mergePK(dynamic obsoletePk, dynamic newPk) async {
+    if (obsoletePk == newPk) return;
     final col = await manager.execute(new Builder()
       ..select('tc.table_name, kcu.column_name')
       ..from('information_schema.table_constraints tc')
