@@ -1,11 +1,9 @@
-/*
-  Adding a new type:
-
-  1. add item to this enumeration
-  2. update all switch statements on this type
-  3. add pg type code -> enumeration item in PostgresBinaryDecoder.typeMap (lookup type code: https://doxygen.postgresql.org/include_2catalog_2pg__type_8h_source.html)
-  4. add identifying key to PostgreSQLFormatIdentifier.typeStringToCodeMap.
- */
+/// Adding a new type:
+///
+/// 1. add item to this enumeration
+/// 2. update all switch statements on this type
+/// 3. add pg type code -> enumeration item in PostgresBinaryDecoder.typeMap (lookup type code: https://doxygen.postgresql.org/include_2catalog_2pg__type_8h_source.html)
+/// 4. add identifying key to PostgreSQLFormatIdentifier.typeStringToCodeMap.
 
 /// Supported data types.
 enum PostgreSQLDataType {
@@ -47,12 +45,14 @@ enum PostgreSQLDataType {
 
   /// Must be encodable via [json.encode].
   ///
-  /// Values will be encoded via [json.encode] before being sent to the database.
+  /// Values will be encoded via [json.encode] before being sent to the
+  /// database.
   jsonb,
 
   /// Must be encodable via [json.encode].
   ///
-  /// Values will be encoded via [json.encode] before being sent to the database.
+  /// Values will be encoded via [json.encode] before being sent to the
+  /// database.
   json,
 
   /// Must be a [List] of [int].
@@ -67,8 +67,9 @@ enum PostgreSQLDataType {
 
   /// Must be a [String].
   ///
-  /// Must contain 32 hexadecimal characters. May contain any number of '-' characters.
-  /// When returned from database, format will be xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+  /// Must contain 32 hexadecimal characters. May contain any number of
+  /// '-' characters. When returned from database, format will
+  /// be xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
   uuid,
 
   /// Must be a [double]

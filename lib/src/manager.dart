@@ -93,7 +93,7 @@ class Manager<A extends Application> {
   Future close() async {
     _cache = new Cache();
     if (_unit._started) await _unit._rollback();
-    _pool.release(_connection);
+    await _pool.release(_connection);
     _connection = null;
   }
 }

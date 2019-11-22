@@ -1,94 +1,97 @@
 import 'package:mapper/src/drv/text_codec.dart';
-import 'types.dart';
+
 import 'query.dart';
+import 'types.dart';
 
 class PostgreSQLFormat {
-  static int _AtSignCodeUnit = "@".codeUnitAt(0);
-  static int _AtGreaterThanCodeUnit = ">".codeUnitAt(0);
+  static final int _AtSignCodeUnit = '@'.codeUnitAt(0);
+  static final int _AtGreaterThanCodeUnit = '>'.codeUnitAt(0);
 
-  static String id(String name, {PostgreSQLDataType type: null}) {
+  static String id(String name, {PostgreSQLDataType type}) {
     if (type != null) {
-      return "@$name:${dataTypeStringForDataType(type)}";
+      return '@$name:${dataTypeStringForDataType(type)}';
     }
 
-    return "@$name";
+    return '@$name';
   }
 
   static String dataTypeStringForDataType(PostgreSQLDataType dt) {
     switch (dt) {
       case PostgreSQLDataType.text:
-        return "text";
+        return 'text';
       case PostgreSQLDataType.integer:
-        return "int4";
+        return 'int4';
       case PostgreSQLDataType.smallInteger:
-        return "int2";
+        return 'int2';
       case PostgreSQLDataType.bigInteger:
-        return "int8";
+        return 'int8';
       case PostgreSQLDataType.serial:
-        return "int4";
+        return 'int4';
       case PostgreSQLDataType.bigSerial:
-        return "int8";
+        return 'int8';
       case PostgreSQLDataType.real:
-        return "float4";
+        return 'float4';
       case PostgreSQLDataType.double:
-        return "float8";
+        return 'float8';
       case PostgreSQLDataType.boolean:
-        return "boolean";
+        return 'boolean';
       case PostgreSQLDataType.timestampWithoutTimezone:
-        return "timestamp";
+        return 'timestamp';
       case PostgreSQLDataType.timestampWithTimezone:
-        return "timestamptz";
+        return 'timestamptz';
       case PostgreSQLDataType.date:
-        return "date";
+        return 'date';
       case PostgreSQLDataType.jsonb:
-        return "jsonb";
+        return 'jsonb';
       case PostgreSQLDataType.json:
-        return "json";
+        return 'json';
       case PostgreSQLDataType.byteArray:
-        return "bytea";
+        return 'bytea';
       case PostgreSQLDataType.name:
-        return "name";
+        return 'name';
       case PostgreSQLDataType.uuid:
-        return "uuid";
+        return 'uuid';
       case PostgreSQLDataType.numeric:
-        return "numeric";
+        return 'numeric';
     }
 
     return null;
   }
 
   static String substitute(String fmtString, Map<String, dynamic> values,
-      {SQLReplaceIdentifierFunction replace: null}) {
-    final converter = new PostgresTextEncoder(true);
+      {SQLReplaceIdentifierFunction replace}) {
+    const converter = const PostgresTextEncoder(true);
     values ??= {};
     replace ??= (spec, index) => converter.convert(values[spec.name]);
 
-    var items = <PostgreSQLFormatToken>[];
-    PostgreSQLFormatToken currentPtr = null;
-    var iterator = new RuneIterator(fmtString);
-
-    iterator.moveNext();
+    final items = <PostgreSQLFormatToken>[];
+    PostgreSQLFormatToken currentPtr;
+    final iterator = new RuneIterator(fmtString)..moveNext();
     while (iterator.current != null) {
       if (currentPtr == null) {
         if (iterator.current == _AtSignCodeUnit) {
-          currentPtr = new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
+          currentPtr =
+              new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
           currentPtr.buffer.writeCharCode(iterator.current);
           items.add(currentPtr);
         } else {
-          currentPtr = new PostgreSQLFormatToken(PostgreSQLFormatTokenType.text);
+          currentPtr =
+              new PostgreSQLFormatToken(PostgreSQLFormatTokenType.text);
           currentPtr.buffer.writeCharCode(iterator.current);
           items.add(currentPtr);
         }
       } else if (currentPtr.type == PostgreSQLFormatTokenType.text) {
         if (iterator.current == _AtSignCodeUnit) {
-          currentPtr = new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
+          currentPtr =
+              new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
           currentPtr.buffer.writeCharCode(iterator.current);
           items.add(currentPtr);
         } else {
           currentPtr.buffer.writeCharCode(iterator.current);
         }
       } else if (currentPtr.type == PostgreSQLFormatTokenType.variable) {
-        if (iterator.current == _AtSignCodeUnit || iterator.current == _AtGreaterThanCodeUnit) {
+        if (iterator.current == _AtSignCodeUnit ||
+            iterator.current == _AtGreaterThanCodeUnit) {
           iterator.movePrevious();
           if (iterator.current == _AtSignCodeUnit) {
             iterator.moveNext();
@@ -96,7 +99,7 @@ class PostgreSQLFormat {
             currentPtr.type = PostgreSQLFormatTokenType.text;
           } else {
             currentPtr =
-            new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
+                new PostgreSQLFormatToken(PostgreSQLFormatTokenType.variable);
             currentPtr.buffer.writeCharCode(iterator.current);
             items.add(currentPtr);
             iterator.moveNext();
@@ -104,7 +107,8 @@ class PostgreSQLFormat {
         } else if (_isIdentifier(iterator.current)) {
           currentPtr.buffer.writeCharCode(iterator.current);
         } else {
-          currentPtr = new PostgreSQLFormatToken(PostgreSQLFormatTokenType.text);
+          currentPtr =
+              new PostgreSQLFormatToken(PostgreSQLFormatTokenType.text);
           currentPtr.buffer.writeCharCode(iterator.current);
           items.add(currentPtr);
         }
@@ -120,41 +124,39 @@ class PostgreSQLFormat {
       } else if (t.buffer.length == 1 && t.buffer.toString() == '@') {
         return t.buffer;
       } else {
-        var identifier = new PostgreSQLFormatIdentifier(t.buffer.toString());
+        final identifier = new PostgreSQLFormatIdentifier(t.buffer.toString());
 
         if (!values.containsKey(identifier.name)) {
-          throw new FormatException(
-              "Format string specified identifier with name ${identifier
-                  .name}, but key was not present in values. Format string: $fmtString");
+          throw new FormatException('Format string specified identifier with '
+              'name ${identifier.name}, but key was not '
+              'present in values. Format string: $fmtString');
         }
 
-        var val = replace(identifier, idx);
+        final val = replace(identifier, idx);
         idx++;
 
         if (identifier.typeCast != null) {
-          return val + "::" + identifier.typeCast;
+          return '$val::${identifier.typeCast}';
         }
 
         return val;
       }
-    }).join("");
+    }).join('');
   }
 
-  static int _lowercaseACodeUnit = "a".codeUnitAt(0);
-  static int _uppercaseACodeUnit = "A".codeUnitAt(0);
-  static int _lowercaseZCodeUnit = "z".codeUnitAt(0);
-  static int _uppercaseZCodeUnit = "Z".codeUnitAt(0);
-  static int _0CodeUnit = "0".codeUnitAt(0);
-  static int _9CodeUnit = "9".codeUnitAt(0);
-  static int _underscoreCodeUnit = "_".codeUnitAt(0);
-  static int _ColonCodeUnit = ":".codeUnitAt(0);
+  static final int _lowercaseACodeUnit = 'a'.codeUnitAt(0);
+  static final int _uppercaseACodeUnit = 'A'.codeUnitAt(0);
+  static final int _lowercaseZCodeUnit = 'z'.codeUnitAt(0);
+  static final int _uppercaseZCodeUnit = 'Z'.codeUnitAt(0);
+  static final int _0CodeUnit = '0'.codeUnitAt(0);
+  static final int _9CodeUnit = '9'.codeUnitAt(0);
+  static final int _underscoreCodeUnit = '_'.codeUnitAt(0);
+  static final int _ColonCodeUnit = ':'.codeUnitAt(0);
 
-  static bool _isIdentifier(int charCode) {
-    return (charCode >= _lowercaseACodeUnit &&
-            charCode <= _lowercaseZCodeUnit) ||
-        (charCode >= _uppercaseACodeUnit && charCode <= _uppercaseZCodeUnit) ||
-        (charCode >= _0CodeUnit && charCode <= _9CodeUnit) ||
-        (charCode == _underscoreCodeUnit) ||
-        (charCode == _ColonCodeUnit);
-  }
+  static bool _isIdentifier(int charCode) =>
+      (charCode >= _lowercaseACodeUnit && charCode <= _lowercaseZCodeUnit) ||
+      (charCode >= _uppercaseACodeUnit && charCode <= _uppercaseZCodeUnit) ||
+      (charCode >= _0CodeUnit && charCode <= _9CodeUnit) ||
+      (charCode == _underscoreCodeUnit) ||
+      (charCode == _ColonCodeUnit);
 }

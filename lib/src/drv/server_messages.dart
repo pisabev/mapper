@@ -11,18 +11,16 @@ abstract class ServerMessage {
 class ErrorResponseMessage implements ServerMessage {
   List<ErrorField> fields = [new ErrorField()];
 
-  void readBytes(Uint8List bytes) {
-    var lastByteRemovedList = new Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.length - 1);
+  void readBytes(Uint8List bytes) =>
+      new Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.length - 1)
+        ..forEach((byte) {
+          if (byte != 0) {
+            fields.last.add(byte);
+            return;
+          }
 
-    lastByteRemovedList.forEach((byte) {
-      if (byte != 0) {
-        fields.last.add(byte);
-        return;
-      }
-
-      fields.add(new ErrorField());
-    });
-  }
+          fields.add(new ErrorField());
+        });
 }
 
 class AuthenticationMessage implements ServerMessage {
@@ -40,7 +38,7 @@ class AuthenticationMessage implements ServerMessage {
   List<int> salt;
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
     type = view.getUint32(0);
 
     if (type == KindMD5Password) {
@@ -58,14 +56,15 @@ class ParameterStatusMessage extends ServerMessage {
 
   void readBytes(Uint8List bytes) {
     name = utf8.decode(bytes.sublist(0, bytes.indexOf(0)));
-    value = utf8.decode(bytes.sublist(bytes.indexOf(0) + 1, bytes.lastIndexOf(0)));
+    value =
+        utf8.decode(bytes.sublist(bytes.indexOf(0) + 1, bytes.lastIndexOf(0)));
   }
 }
 
 class ReadyForQueryMessage extends ServerMessage {
-  static const String StateIdle = "I";
-  static const String StateTransaction = "T";
-  static const String StateTransactionError = "E";
+  static const String StateIdle = 'I';
+  static const String StateTransaction = 'T';
+  static const String StateTransactionError = 'E';
 
   String state;
 
@@ -79,7 +78,7 @@ class BackendKeyMessage extends ServerMessage {
   int secretKey;
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
     processID = view.getUint32(0);
     secretKey = view.getUint32(4);
   }
@@ -89,14 +88,14 @@ class RowDescriptionMessage extends ServerMessage {
   List<FieldDescription> fieldDescriptions;
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
-    var offset = 0;
-    var fieldCount = view.getInt16(offset);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    int offset = 0;
+    final fieldCount = view.getInt16(offset);
     offset += 2;
 
     fieldDescriptions = <FieldDescription>[];
     for (var i = 0; i < fieldCount; i++) {
-      var rowDesc = new FieldDescription();
+      final rowDesc = new FieldDescription();
       offset = rowDesc.parse(view, offset);
       fieldDescriptions.add(rowDesc);
     }
@@ -107,13 +106,13 @@ class DataRowMessage extends ServerMessage {
   List<ByteData> values = [];
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
-    var offset = 0;
-    var fieldCount = view.getInt16(offset);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    int offset = 0;
+    final fieldCount = view.getInt16(offset);
     offset += 2;
 
     for (var i = 0; i < fieldCount; i++) {
-      var dataSize = view.getInt32(offset);
+      final dataSize = view.getInt32(offset);
       offset += 4;
 
       if (dataSize == 0) {
@@ -121,14 +120,15 @@ class DataRowMessage extends ServerMessage {
       } else if (dataSize == -1) {
         values.add(null);
       } else {
-        var rawBytes = new ByteData.view(bytes.buffer, bytes.offsetInBytes + offset, dataSize);
+        final rawBytes = new ByteData.view(
+            bytes.buffer, bytes.offsetInBytes + offset, dataSize);
         values.add(rawBytes);
         offset += dataSize;
       }
     }
   }
 
-  String toString() => "Data Row Message: ${values}";
+  String toString() => 'Data Row Message: $values';
 }
 
 class NotificationResponseMessage extends ServerMessage {
@@ -137,24 +137,25 @@ class NotificationResponseMessage extends ServerMessage {
   String payload;
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
     processID = view.getUint32(0);
     channel = utf8.decode(bytes.sublist(4, bytes.indexOf(0, 4)));
-    payload = utf8.decode(bytes.sublist(bytes.indexOf(0, 4) + 1, bytes.lastIndexOf(0)));
+    payload = utf8
+        .decode(bytes.sublist(bytes.indexOf(0, 4) + 1, bytes.lastIndexOf(0)));
   }
 }
 
 class CommandCompleteMessage extends ServerMessage {
   int rowsAffected;
 
-  static RegExp identifierExpression = new RegExp(r"[A-Z ]*");
+  static RegExp identifierExpression = new RegExp(r'[A-Z ]*');
 
   void readBytes(Uint8List bytes) {
-    var str = utf8.decode(bytes.sublist(0, bytes.length - 1));
+    final str = utf8.decode(bytes.sublist(0, bytes.length - 1));
 
-    var match = identifierExpression.firstMatch(str);
+    final match = identifierExpression.firstMatch(str);
     if (match.end < str.length) {
-      rowsAffected = int.parse(str.split(" ").last);
+      rowsAffected = int.parse(str.split(' ').last);
     } else {
       rowsAffected = 0;
     }
@@ -164,28 +165,28 @@ class CommandCompleteMessage extends ServerMessage {
 class ParseCompleteMessage extends ServerMessage {
   void readBytes(Uint8List bytes) {}
 
-  String toString() => "Parse Complete Message";
+  String toString() => 'Parse Complete Message';
 }
 
 class BindCompleteMessage extends ServerMessage {
   void readBytes(Uint8List bytes) {}
 
-  String toString() => "Bind Complete Message";
+  String toString() => 'Bind Complete Message';
 }
 
 class ParameterDescriptionMessage extends ServerMessage {
   List<int> parameterTypeIDs;
 
   void readBytes(Uint8List bytes) {
-    var view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
+    final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
 
     var offset = 0;
-    var count = view.getUint16(0);
+    final count = view.getUint16(0);
     offset += 2;
 
     parameterTypeIDs = [];
     for (var i = 0; i < count; i++) {
-      var v = view.getUint32(offset);
+      final v = view.getUint32(offset);
       offset += 4;
       parameterTypeIDs.add(v);
     }
@@ -195,7 +196,7 @@ class ParameterDescriptionMessage extends ServerMessage {
 class NoDataMessage extends ServerMessage {
   void readBytes(Uint8List bytes) {}
 
-  String toString() => "No Data Message";
+  String toString() => 'No Data Message';
 }
 
 class UnknownMessage extends ServerMessage {
@@ -207,12 +208,10 @@ class UnknownMessage extends ServerMessage {
   }
 
   @override
-  int get hashCode {
-    return bytes.hashCode;
-  }
+  int get hashCode => bytes.hashCode;
 
   @override
-  operator ==(dynamic other) {
+  bool operator ==(dynamic other) {
     if (bytes != null) {
       if (bytes.length != other.bytes.length) {
         return false;
@@ -252,21 +251,21 @@ class ErrorField {
 
   static PostgreSQLSeverity severityFromString(String str) {
     switch (str) {
-      case "ERROR":
+      case 'ERROR':
         return PostgreSQLSeverity.error;
-      case "FATAL":
+      case 'FATAL':
         return PostgreSQLSeverity.fatal;
-      case "PANIC":
+      case 'PANIC':
         return PostgreSQLSeverity.panic;
-      case "WARNING":
+      case 'WARNING':
         return PostgreSQLSeverity.warning;
-      case "NOTICE":
+      case 'NOTICE':
         return PostgreSQLSeverity.notice;
-      case "DEBUG":
+      case 'DEBUG':
         return PostgreSQLSeverity.debug;
-      case "INFO":
+      case 'INFO':
         return PostgreSQLSeverity.info;
-      case "LOG":
+      case 'LOG':
         return PostgreSQLSeverity.log;
     }
 
@@ -276,7 +275,7 @@ class ErrorField {
   int identificationToken;
 
   String get text => _buffer.toString();
-  StringBuffer _buffer = new StringBuffer();
+  final _buffer = new StringBuffer();
 
   void add(int byte) {
     if (identificationToken == null) {

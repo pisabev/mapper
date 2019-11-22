@@ -65,8 +65,11 @@ class Pool {
     }
   }
 
-  void _onConnectionReady(drv.PostgreSQLConnection conn) {
-    if (conn.isClosed || conn.isInTransaction) {
+  // forceClose - a bug in connection as after the result is fetched
+  // a stateChange is triggered to Idle and overriding the Close state.
+  void _onConnectionReady(drv.PostgreSQLConnection conn,
+      [bool forceClose = false]) {
+    if (conn.isClosed || conn.isInTransaction || forceClose) {
       connectionsIdle.remove(conn);
       connectionsBusy.remove(conn);
       connections.remove(conn);
@@ -81,7 +84,10 @@ class Pool {
     }
   }
 
-  void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
+  Future<void> release(drv.PostgreSQLConnection conn) async {
+    await conn.close();
+    _onConnectionReady(conn, true);
+  }
 
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     final completer = new Completer<drv.PostgreSQLConnection>();

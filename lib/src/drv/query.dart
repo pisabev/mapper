@@ -3,18 +3,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mapper/mapper.dart';
 import 'package:mapper/src/drv/binary_codec.dart';
 import 'package:mapper/src/drv/execution_context.dart';
-import 'package:mapper/mapper.dart';
-
 import 'package:mapper/src/drv/text_codec.dart';
-import 'types.dart';
+
+import 'client_messages.dart';
 import 'connection.dart';
 import 'substituter.dart';
-import 'client_messages.dart';
+import 'types.dart';
 
 class Query<T> {
-  Query(this.statement, this.substitutionValues, this.connection, this.transaction);
+  Query(this.statement, this.substitutionValues, this.connection,
+      this.transaction);
 
   bool onlyReturnAffectedRowCount = false;
 
@@ -28,23 +29,24 @@ class Query<T> {
   final PostgreSQLConnection connection;
 
   List<PostgreSQLDataType> specifiedParameterTypeCodes;
-  List<Map<String,dynamic>> rows = [];
+  List<Map<String, dynamic>> rows = [];
 
   CachedQuery cache;
 
-  Completer<T> _onComplete = new Completer.sync();
+  final Completer<T> _onComplete = new Completer.sync();
   List<FieldDescription> _fieldDescriptions;
 
   List<FieldDescription> get fieldDescriptions => _fieldDescriptions;
 
-  void set fieldDescriptions(List<FieldDescription> fds) {
+  set fieldDescriptions(List<FieldDescription> fds) {
     _fieldDescriptions = fds;
     cache?.fieldDescriptions = fds;
   }
 
   void sendSimple(Socket socket) {
-    var sqlString = PostgreSQLFormat.substitute(statement, substitutionValues);
-    var queryMessage = new QueryMessage(sqlString);
+    final sqlString =
+        PostgreSQLFormat.substitute(statement, substitutionValues);
+    final queryMessage = new QueryMessage(sqlString);
 
     socket.add(queryMessage.asBytes());
   }
@@ -57,20 +59,21 @@ class Query<T> {
       return;
     }
 
-    String statementName = (statementIdentifier ?? "");
-    var formatIdentifiers = <PostgreSQLFormatIdentifier>[];
-    var sqlString = PostgreSQLFormat.substitute(statement, substitutionValues,
-        replace: (PostgreSQLFormatIdentifier identifier, int index) {
+    final String statementName = statementIdentifier ?? '';
+    final formatIdentifiers = <PostgreSQLFormatIdentifier>[];
+    final sqlString = PostgreSQLFormat.substitute(statement, substitutionValues,
+        replace: (identifier, index) {
       formatIdentifiers.add(identifier);
-
-      return "\$$index";
+      return '\$$index';
     });
 
     specifiedParameterTypeCodes = formatIdentifiers.map((i) => i.type).toList();
 
-    var parameterList = formatIdentifiers.map((id) => new ParameterValue(id, substitutionValues)).toList();
+    final parameterList = formatIdentifiers
+        .map((id) => new ParameterValue(id, substitutionValues))
+        .toList();
 
-    var messages = [
+    final messages = [
       new ParseMessage(sqlString, statementName: statementName),
       new DescribeMessage(statementName: statementName),
       new BindMessage(parameterList, statementName: statementName),
@@ -85,33 +88,41 @@ class Query<T> {
     socket.add(ClientMessage.aggregateBytes(messages));
   }
 
-  void sendCachedQuery(Socket socket, CachedQuery cacheQuery, Map<String, dynamic> substitutionValues) {
-    var statementName = cacheQuery.preparedStatementName;
-    var parameterList =
-        cacheQuery.orderedParameters.map((identifier) => new ParameterValue(identifier, substitutionValues)).toList();
+  void sendCachedQuery(Socket socket, CachedQuery cacheQuery,
+      Map<String, dynamic> substitutionValues) {
+    final statementName = cacheQuery.preparedStatementName;
+    final parameterList = cacheQuery.orderedParameters
+        .map((identifier) => new ParameterValue(identifier, substitutionValues))
+        .toList();
 
-    var bytes = ClientMessage.aggregateBytes(
-        [new BindMessage(parameterList, statementName: statementName), new ExecuteMessage(), new SyncMessage()]);
+    final bytes = ClientMessage.aggregateBytes([
+      new BindMessage(parameterList, statementName: statementName),
+      new ExecuteMessage(),
+      new SyncMessage()
+    ]);
 
     socket.add(bytes);
   }
 
   PostgreSQLException validateParameters(List<int> parameterTypeIDs) {
-    var actualParameterTypeCodeIterator = parameterTypeIDs.iterator;
-    var parametersAreMismatched = specifiedParameterTypeCodes.map((specifiedType) {
+    final actualParameterTypeCodeIterator = parameterTypeIDs.iterator;
+    final parametersAreMismatched =
+        specifiedParameterTypeCodes.map((specifiedType) {
       actualParameterTypeCodeIterator.moveNext();
 
       if (specifiedType == null) {
         return true;
       }
 
-      final actualType = PostgresBinaryDecoder.typeMap[actualParameterTypeCodeIterator.current];
+      final actualType = PostgresBinaryDecoder
+          .typeMap[actualParameterTypeCodeIterator.current];
       return actualType == specifiedType;
     }).any((v) => v == false);
 
     if (parametersAreMismatched) {
       return new PostgreSQLException(
-          "Specified parameter types do not match column parameter types in query ${statement}");
+          'Specified parameter types do not match column parameter '
+          'types in query $statement');
     }
 
     return null;
@@ -122,11 +133,12 @@ class Query<T> {
       return;
     }
 
-    var iterator = fieldDescriptions.iterator;
-    var m = <String, dynamic>{};
-    for (var bd in rawRowData) {
+    final iterator = fieldDescriptions.iterator;
+    final m = <String, dynamic>{};
+    for (final bd in rawRowData) {
       iterator.moveNext();
-      m[iterator.current.fieldName] = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
+      m[iterator.current.fieldName] = iterator.current.converter
+          .convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
     }
 
     rows.add(m);
@@ -157,21 +169,22 @@ class Query<T> {
 }
 
 class QueryCollection<T> extends Query<T> {
-  Entity Function (Map<String, dynamic>) buildEntity;
+  Entity Function(Map<String, dynamic>) buildEntity;
   Collection<Entity> collection;
 
-  QueryCollection(statement, substitutionValues, connection, transaction) : super (statement, substitutionValues, connection, transaction);
+  QueryCollection(statement, substitutionValues, connection, transaction)
+      : super(statement, substitutionValues, connection, transaction);
 
   void addRow(List<ByteData> rawRowData) {
-    var iterator = fieldDescriptions.iterator;
-    var m = <String, dynamic>{};
-    for (var bd in rawRowData) {
+    final iterator = fieldDescriptions.iterator;
+    final m = <String, dynamic>{};
+    for (final bd in rawRowData) {
       iterator.moveNext();
-      m[iterator.current.fieldName] = iterator.current.converter.convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
+      m[iterator.current.fieldName] = iterator.current.converter
+          .convert(bd?.buffer?.asUint8List(bd.offsetInBytes, bd.lengthInBytes));
     }
 
-    if (m['__total__'] != null)
-      collection.totalResults = m['__total__'];
+    if (m['__total__'] != null) collection.totalResults = m['__total__'];
 
     collection.add(buildEntity(m));
   }
@@ -192,21 +205,25 @@ class CachedQuery {
   List<PostgreSQLFormatIdentifier> orderedParameters;
   List<FieldDescription> fieldDescriptions;
 
-  bool get isValid {
-    return preparedStatementName != null && orderedParameters != null && fieldDescriptions != null;
-  }
+  bool get isValid =>
+      preparedStatementName != null &&
+      orderedParameters != null &&
+      fieldDescriptions != null;
 }
 
 class ParameterValue {
-  factory ParameterValue(PostgreSQLFormatIdentifier identifier, Map<String, dynamic> substitutionValues) {
+  factory ParameterValue(PostgreSQLFormatIdentifier identifier,
+      Map<String, dynamic> substitutionValues) {
     if (identifier.type == null) {
       return new ParameterValue.text(substitutionValues[identifier.name]);
     }
 
-    return new ParameterValue.binary(substitutionValues[identifier.name], identifier.type);
+    return new ParameterValue.binary(
+        substitutionValues[identifier.name], identifier.type);
   }
 
-  ParameterValue.binary(dynamic value, PostgreSQLDataType postgresType) : isBinary = true {
+  ParameterValue.binary(dynamic value, PostgreSQLDataType postgresType)
+      : isBinary = true {
     final converter = new PostgresBinaryEncoder(postgresType);
     bytes = converter.convert(value);
     length = bytes?.length ?? 0;
@@ -214,7 +231,7 @@ class ParameterValue {
 
   ParameterValue.text(dynamic value) : isBinary = false {
     if (value != null) {
-      final converter = new PostgresTextEncoder(false);
+      const converter = const PostgresTextEncoder(false);
       bytes = utf8.encode(converter.convert(value));
     }
     length = bytes?.length;
@@ -240,7 +257,7 @@ class FieldDescription {
 
   int parse(ByteData byteData, int initialOffset) {
     var offset = initialOffset;
-    var buf = new StringBuffer();
+    final buf = new StringBuffer();
     var byte = 0;
     do {
       byte = byteData.getUint8(offset);
@@ -270,12 +287,12 @@ class FieldDescription {
     return offset;
   }
 
-  String toString() {
-    return "$fieldName $tableID $columnID $typeID $dataTypeSize $typeModifier $formatCode";
-  }
+  String toString() => '$fieldName $tableID $columnID $typeID $dataTypeSize '
+      '$typeModifier $formatCode';
 }
 
-typedef String SQLReplaceIdentifierFunction(PostgreSQLFormatIdentifier identifier, int index);
+typedef String SQLReplaceIdentifierFunction(
+    PostgreSQLFormatIdentifier identifier, int index);
 
 enum PostgreSQLFormatTokenType { text, variable }
 
@@ -287,48 +304,50 @@ class PostgreSQLFormatToken {
 }
 
 class PostgreSQLFormatIdentifier {
-
   static Map<String, PostgreSQLDataType> typeStringToCodeMap = {
-    "text": PostgreSQLDataType.text,
-    "int2": PostgreSQLDataType.smallInteger,
-    "int4": PostgreSQLDataType.integer,
-    "int8": PostgreSQLDataType.bigInteger,
-    "float4": PostgreSQLDataType.real,
-    "float8": PostgreSQLDataType.double,
-    "boolean": PostgreSQLDataType.boolean,
-    "date": PostgreSQLDataType.date,
-    "timestamp": PostgreSQLDataType.timestampWithoutTimezone,
-    "timestamptz": PostgreSQLDataType.timestampWithTimezone,
-    "jsonb": PostgreSQLDataType.jsonb,
-    "json": PostgreSQLDataType.json,
-    "numeric": PostgreSQLDataType.numeric,
-    "bytea": PostgreSQLDataType.byteArray,
-    "name": PostgreSQLDataType.name,
-    "uuid": PostgreSQLDataType.uuid
+    'text': PostgreSQLDataType.text,
+    'int2': PostgreSQLDataType.smallInteger,
+    'int4': PostgreSQLDataType.integer,
+    'int8': PostgreSQLDataType.bigInteger,
+    'float4': PostgreSQLDataType.real,
+    'float8': PostgreSQLDataType.double,
+    'boolean': PostgreSQLDataType.boolean,
+    'date': PostgreSQLDataType.date,
+    'timestamp': PostgreSQLDataType.timestampWithoutTimezone,
+    'timestamptz': PostgreSQLDataType.timestampWithTimezone,
+    'jsonb': PostgreSQLDataType.jsonb,
+    'json': PostgreSQLDataType.json,
+    'numeric': PostgreSQLDataType.numeric,
+    'bytea': PostgreSQLDataType.byteArray,
+    'name': PostgreSQLDataType.name,
+    'uuid': PostgreSQLDataType.uuid
   };
 
   PostgreSQLFormatIdentifier(String t) {
-    var components = t.split("::");
+    final components = t.split('::');
     if (components.length > 1) {
-      typeCast = components.sublist(1).join("");
+      typeCast = components.sublist(1).join('');
     }
 
-    var variableComponents = components.first.split(":");
+    final variableComponents = components.first.split(':');
     if (variableComponents.length == 1) {
       name = variableComponents.first;
     } else if (variableComponents.length == 2) {
       name = variableComponents.first;
 
-      var dataTypeString = variableComponents.last;
+      final dataTypeString = variableComponents.last;
       if (dataTypeString != null) {
         type = typeStringToCodeMap[dataTypeString];
         if (type == null) {
-          throw new FormatException("Invalid type code in substitution variable '$t'");
+          throw new FormatException(
+              "Invalid type code in substitution variable '$t'");
         }
       }
     } else {
       throw new FormatException(
-          "Invalid format string identifier, must contain identifier name and optionally one data type in format '@identifier:dataType' (offending identifier: ${t})");
+          'Invalid format string identifier, must contain identifier name '
+          "and optionally one data type in format '@identifier:dataType' "
+          '(offending identifier: $t)');
     }
 
     // Strip @

@@ -1,6 +1,6 @@
 import 'dart:async';
+
 import 'package:mapper/mapper.dart';
-import 'package:mapper/client.dart';
 import 'package:test/test.dart';
 
 main() {
@@ -107,6 +107,8 @@ main() {
     var con3 = await connection.obtain();
 
     await connection.release(con1);
+    expect(con1.isClosed, true);
+    await new Future.delayed(new Duration(seconds: 1));
     expect(connection.connectionsIdle.length, 1);
-  }, skip: false);
+  });
 }

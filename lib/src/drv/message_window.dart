@@ -1,5 +1,6 @@
-import 'dart:typed_data';
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'server_messages.dart';
 
 class MessageFrame {
@@ -22,6 +23,7 @@ class MessageFrame {
 
   int get bytesAvailable => packets.fold(0, (sum, v) => sum + v.lengthInBytes);
   List<Uint8List> packets = [];
+
   bool get hasReadHeader => type != null;
   int type;
   int expectedLength;
@@ -35,7 +37,7 @@ class MessageFrame {
     }
 
     if (bytesAvailable >= length) {
-      var firstPacket = packets.first;
+      final firstPacket = packets.first;
 
       // The packet exactly matches the size of the bytes needed,
       // remove & return it.
@@ -46,15 +48,16 @@ class MessageFrame {
       }
 
       if (firstPacket.lengthInBytes > length) {
-        // We have to split up this packet and remove & return the first portion of it,
-        // and replace it with the second portion of it.
-        var remainingOffset = firstPacket.offsetInBytes + length;
-        var bytesNeeded =
+        // We have to split up this packet and remove & return the first
+        // portion of it, and replace it with the second portion of it.
+        final remainingOffset = firstPacket.offsetInBytes + length;
+        final bytesNeeded =
             firstPacket.buffer.asByteData(firstPacket.offsetInBytes, length);
-        var bytesRemaining = firstPacket.buffer
+        final bytesRemaining = firstPacket.buffer
             .asUint8List(remainingOffset, firstPacket.lengthInBytes - length);
-        packets.removeAt(0);
-        packets.insert(0, bytesRemaining);
+        packets
+          ..removeAt(0)
+          ..insert(0, bytesRemaining);
 
         return bytesNeeded;
       }
@@ -66,11 +69,11 @@ class MessageFrame {
       // in which case if it has more bytes available, it gets replaced
       // with the remaining bytes.
 
-      var builder = new BytesBuilder(copy: false);
+      final builder = new BytesBuilder(copy: false);
       var bytesNeeded = length - builder.length;
       while (bytesNeeded > 0) {
-        var packet = packets.removeAt(0);
-        var bytesRemaining = packet.lengthInBytes;
+        final packet = packets.removeAt(0);
+        final bytesRemaining = packet.lengthInBytes;
 
         if (bytesRemaining <= bytesNeeded) {
           builder.add(packet.buffer
@@ -97,7 +100,7 @@ class MessageFrame {
     packets.add(packet);
 
     if (!hasReadHeader) {
-      ByteData headerBuffer = consumeNextBytes(HeaderByteSize);
+      final headerBuffer = consumeNextBytes(HeaderByteSize);
       if (headerBuffer == null) {
         return packet.lengthInBytes;
       }
@@ -110,7 +113,7 @@ class MessageFrame {
       return packet.lengthInBytes - bytesAvailable;
     }
 
-    var body = consumeNextBytes(expectedLength);
+    final body = consumeNextBytes(expectedLength);
     if (body == null) {
       return packet.lengthInBytes;
     }
@@ -121,11 +124,10 @@ class MessageFrame {
   }
 
   ServerMessage get message {
-    var msgMaker =
+    final msgMaker =
         messageTypeMap[type] ?? () => new UnknownMessage()..code = type;
 
-    ServerMessage msg = msgMaker();
-    msg.readBytes(data);
+    final ServerMessage msg = msgMaker()..readBytes(data);
     return msg;
   }
 }
@@ -138,7 +140,7 @@ class MessageFramer {
     var offsetIntoBytesRead = 0;
 
     do {
-      var byteList = new Uint8List.view(bytes.buffer, offsetIntoBytesRead);
+      final byteList = new Uint8List.view(bytes.buffer, offsetIntoBytesRead);
       offsetIntoBytesRead += messageInProgress.addBytes(byteList);
 
       if (messageInProgress.isComplete) {
@@ -150,7 +152,5 @@ class MessageFramer {
 
   bool get hasMessage => messageQueue.isNotEmpty;
 
-  MessageFrame popMessage() {
-    return messageQueue.removeAt(0);
-  }
+  MessageFrame popMessage() => messageQueue.removeAt(0);
 }

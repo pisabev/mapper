@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:mapper/src/postgres.dart';
 import 'package:mapper/src/drv/query.dart';
+import 'package:mapper/src/postgres.dart';
 
-class QueryQueue extends ListBase<Query<dynamic>> implements List<Query<dynamic>> {
+class QueryQueue extends ListBase<Query<dynamic>>
+    implements List<Query<dynamic>> {
   List<Query<dynamic>> _inner = [];
   bool _isCancelled = false;
 
-  PostgreSQLException get _cancellationException => new PostgreSQLException("Query cancelled due to the database connection closing.");
+  PostgreSQLException get _cancellationException => new PostgreSQLException(
+      'Query cancelled due to the database connection closing.');
 
   Query<dynamic> get pending {
     if (_inner.isEmpty) {
