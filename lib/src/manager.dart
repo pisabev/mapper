@@ -5,7 +5,7 @@ class Manager<A extends Application> {
 
   Cache _cache;
 
-  Pool _pool;
+  final Pool _pool;
 
   A app;
 
@@ -93,7 +93,7 @@ class Manager<A extends Application> {
   Future close() async {
     _cache = new Cache();
     if (_unit._started) await _unit._rollback();
-    await _pool.release(_connection);
+    _pool.release(_connection);
     _connection = null;
   }
 }

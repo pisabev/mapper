@@ -35,13 +35,13 @@ class Pool {
   Future destroy({bool graceful = true}) async {
     if (graceful) {
       if (connectionsBusy.isEmpty) {
-        await new Future.delayed(new Duration(milliseconds: 5000));
+        await new Future.delayed(const Duration(milliseconds: 5000));
         if (connectionsBusy.isEmpty) {
           await Future.wait(connections.map((conn) => conn.close()));
           return null;
         }
       }
-      return new Future.delayed(new Duration(milliseconds: 20), destroy);
+      return new Future.delayed(const Duration(milliseconds: 20), destroy);
     } else {
       await Future.wait(connections.map((conn) => conn.close()));
     }
@@ -73,6 +73,7 @@ class Pool {
       connectionsIdle.remove(conn);
       connectionsBusy.remove(conn);
       connections.remove(conn);
+      conn.close();
       _createProvide();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
@@ -84,10 +85,7 @@ class Pool {
     }
   }
 
-  Future<void> release(drv.PostgreSQLConnection conn) async {
-    await conn.close();
-    _onConnectionReady(conn, true);
-  }
+  void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn, true);
 
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     final completer = new Completer<drv.PostgreSQLConnection>();
