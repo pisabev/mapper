@@ -26,10 +26,7 @@ class Pool {
       this.timeZone = 'UTC'});
 
   Future start() async {
-    for (var i = 0; i < min; i++) {
-      _inCreateProcess++;
-      await _createConnection();
-    }
+    for (var i = 0; i < min; i++) await _createConnection();
   }
 
   Future destroy({bool graceful = true}) async {
@@ -48,6 +45,7 @@ class Pool {
   }
 
   Future _createConnection() async {
+    _inCreateProcess++;
     final conn = new drv.PostgreSQLConnection(host, port, database,
         username: user, password: password, timeZone: timeZone);
     await conn.open();
@@ -59,10 +57,7 @@ class Pool {
   void _createProvide() {
     if (connectionsIdle.isNotEmpty)
       _onConnectionReady(connectionsIdle.first);
-    else if (connections.length + _inCreateProcess < max) {
-      _inCreateProcess++;
-      _createConnection();
-    }
+    else if (connections.length + _inCreateProcess < max) _createConnection();
   }
 
   // forceClose - a bug in connection as after the result is fetched
@@ -74,7 +69,7 @@ class Pool {
       connectionsBusy.remove(conn);
       connections.remove(conn);
       conn.close();
-      _createProvide();
+      if (connections.length + _inCreateProcess < min) _createConnection();
     } else if (_waitQueue.isNotEmpty) {
       connectionsIdle.remove(conn);
       if (!connectionsBusy.contains(conn)) connectionsBusy.add(conn);
