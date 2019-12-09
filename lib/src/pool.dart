@@ -7,6 +7,7 @@ class Pool {
   String user;
   String password;
   String timeZone;
+  bool autoClose;
 
   final int min, max;
 
@@ -23,7 +24,8 @@ class Pool {
       this.password,
       this.min = 1,
       this.max = 5,
-      this.timeZone = 'UTC'});
+      this.timeZone = 'UTC',
+      this.autoClose = false});
 
   Future start() async {
     for (var i = 0; i < min; i++) await _createConnection();
@@ -62,9 +64,8 @@ class Pool {
 
   // forceClose - a bug in connection as after the result is fetched
   // a stateChange is triggered to Idle and overriding the Close state.
-  void _onConnectionReady(drv.PostgreSQLConnection conn,
-      [bool forceClose = false]) {
-    if (conn.isClosed || conn.isInTransaction || forceClose) {
+  void _onConnectionReady(drv.PostgreSQLConnection conn) {
+    if (conn.isClosed || conn.isInTransaction || autoClose) {
       connectionsIdle.remove(conn);
       connectionsBusy.remove(conn);
       connections.remove(conn);
@@ -80,7 +81,7 @@ class Pool {
     }
   }
 
-  void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn, true);
+  void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
 
   Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
     final completer = new Completer<drv.PostgreSQLConnection>();
