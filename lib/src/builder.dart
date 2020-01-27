@@ -10,9 +10,7 @@ class _Expression {
     addMultiple(parts);
   }
 
-  void addMultiple(List parts) {
-    parts.forEach(add);
-  }
+  void addMultiple(List parts) => parts.forEach(add);
 
   void add(dynamic part) {
     if (part != '' || (part is _Expression && part.count() > 0))
@@ -119,13 +117,9 @@ class Builder {
 
   int getType() => _type;
 
-  void setParameter(String key, dynamic value) {
-    _params[key] = value;
-  }
+  void setParameter(String key, dynamic value) => _params[key] = value;
 
-  void setParameters(Map<String, dynamic> params) {
-    _params = params;
-  }
+  void setParameters(Map<String, dynamic> params) => _params = params;
 
   Map<String, dynamic> getParameters() => _params;
 
@@ -157,17 +151,15 @@ class Builder {
     return sql;
   }
 
-  void offset(int offset) {
-    _offset = offset;
-  }
+  void offset(int offset) => _offset = offset;
 
   int getOffset() => _offset;
 
-  void limit(int limit) {
-    _limit = limit;
-  }
+  void limit(int limit) => _limit = limit;
 
   int getLimit() => _limit;
+
+  void setRaw(String query) => _sql = query;
 
   void add(String sqlPartName, dynamic sqlPart, [bool append = false]) {
     if ((sqlPart is String && sqlPart == '') ||
