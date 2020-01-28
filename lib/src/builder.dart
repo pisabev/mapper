@@ -422,33 +422,40 @@ class FilterRule {
   Map<String, String> map;
 }
 
+class CollectionMeta {
+  Map<String, dynamic> filter;
+  String orderField;
+  String orderWay;
+  int page;
+  int limit;
+}
+
 class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     A extends Application> {
   static int _unique = 0;
 
-  Builder query;
+  final Builder query;
 
-  MapperBase<E, C, A> mapper;
+  final MapperBase<E, C, A> mapper;
 
   Map<String, dynamic> filter = {};
 
+  CollectionMeta _collectionMeta;
+
   FilterRule filterRule;
-
-  String order_field;
-
-  String order_way;
-
-  int _page = 0;
-
-  int _limit = 0;
 
   C collection;
 
   CollectionBuilder(this.query, this.mapper);
 
-  set limit(int limit) => _limit = limit;
+  set collectionMeta(CollectionMeta cm) => _collectionMeta = cm;
 
-  set page(int page) => _page = (page > 0) ? page : 0;
+  CollectionMeta get collectionMeta =>
+      _collectionMeta = _collectionMeta ?? new CollectionMeta();
+
+  set limit(int limit) => collectionMeta.limit = limit;
+
+  set page(int page) => collectionMeta.page = page;
 
   @Deprecated('Use filterRule! instead')
   set filter_way(Map<String, List<String>> m) {
@@ -474,8 +481,9 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
 
   void order(String order, String way) {
     if (order != null) {
-      order_field = order;
-      order_way = way ?? 'ASC';
+      collectionMeta
+        ..orderField = order
+        ..orderWay = way;
     }
   }
 
@@ -529,15 +537,16 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   }
 
   void _queryFinalize(Builder query) {
-    if (_limit != null) {
-      query.limit(_limit);
-      if (_page > 0) query.offset((_page - 1) * _limit);
+    final meta = collectionMeta;
+    if (meta.limit != null) {
+      query.limit(meta.limit);
+      if (meta.page != null) query.offset((meta.page - 1) * meta.limit);
     }
-    if (order_field != null) {
-      var k = order_field;
+    if (meta.orderField != null) {
+      var k = meta.orderField;
       if (filterRule.map != null && filterRule.map.containsKey(k))
         k = filterRule.map[k];
-      query.orderBy(k, order_way);
+      query.orderBy(k, meta.orderWay ?? 'ASC');
     }
   }
 
