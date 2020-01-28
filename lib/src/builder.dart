@@ -501,7 +501,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
     return '$q\n${q._params}';
   }
 
-  int get total => collection.totalResults;
+  int get total => collection.totalResults ?? 0;
 
   void _queryFilter(Builder query) {
     if (filterRule == null) return;
