@@ -48,9 +48,11 @@ class Equals extends Expression {
     } else if (value is bool) {
       builder.andWhere('$key = ${value ? 'TRUE' : 'FALSE'}');
     } else if (value is List) {
-      builder
-        ..andWhere('$key IN (${value.join(',')})')
-        ..setParameter(par, value);
+      if (value is List<String>)
+        builder.andWhere('$key IN (\'${value.join('\',\'')}\')');
+      else
+        builder.andWhere('$key IN (${value.join(',')})');
+      builder.setParameter(par, value);
     } else {
       builder
         ..andWhere('$key = @$par')
