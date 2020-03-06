@@ -45,6 +45,8 @@ class Equals extends Expression {
     final par = builder.getUniqueKey();
     if (value == null) {
       if (applyIfNull) builder.andWhere('$key IS NULL');
+    } else if (value is bool) {
+      builder.andWhere('$key = ${value ? 'TRUE' : 'FALSE'}');
     } else if (value is List) {
       builder
         ..andWhere('$key IN (${value.join(',')})')
