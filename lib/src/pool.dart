@@ -7,7 +7,6 @@ class Pool {
   String user;
   String password;
   String timeZone;
-  int timeoutInSeconds;
   bool autoClose;
 
   final int min, max;
@@ -22,12 +21,11 @@ class Pool {
 
   Pool(this.host, this.port, this.database,
       {this.user,
-      this.password,
-      this.min = 1,
-      this.max = 5,
-      this.timeZone = 'UTC',
-      this.timeoutInSeconds = 30,
-      this.autoClose = false});
+        this.password,
+        this.min = 1,
+        this.max = 5,
+        this.timeZone = 'UTC',
+        this.autoClose = false});
 
   Future start() async {
     for (var i = 0; i < min; i++) await _createConnection();
@@ -51,10 +49,7 @@ class Pool {
   Future _createConnection() async {
     _inCreateProcess++;
     final conn = new drv.PostgreSQLConnection(host, port, database,
-        username: user,
-        password: password,
-        timeZone: timeZone,
-        timeoutInSeconds: timeoutInSeconds);
+        username: user, password: password, timeZone: timeZone);
     await conn.open();
     _inCreateProcess--;
     connections.add(conn);
