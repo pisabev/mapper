@@ -651,7 +651,9 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
       }
       if (value[1] != null) {
         var to = DateTime.parse(value[1]);
-        to = to.add(const Duration(seconds: 86400));
+        to = (to.isUtc)
+            ? new DateTime.utc(to.year, to.month, to.day + 1)
+            : new DateTime(to.year, to.month, to.day + 1);
         query
           ..andWhere('$key < @date_to')
           ..setParameter('date_to', to);
