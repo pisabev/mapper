@@ -107,7 +107,7 @@ main() {
     var con3 = await connection.obtain();
 
     await connection.release(con1);
-    expect(con1.isClosed, true);
+    expect(con1.isClosed, false);
     await new Future.delayed(new Duration(seconds: 1));
     expect(connection.connectionsIdle.length, 1);
   });
