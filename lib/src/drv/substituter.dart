@@ -67,7 +67,7 @@ class PostgreSQLFormat {
     final items = <PostgreSQLFormatToken>[];
     PostgreSQLFormatToken currentPtr;
     final iterator = new RuneIterator(fmtString)..moveNext();
-    while (iterator.current != null) {
+    while (iterator.current != -1) {
       if (currentPtr == null) {
         if (iterator.current == _AtSignCodeUnit) {
           currentPtr =
