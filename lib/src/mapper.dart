@@ -313,7 +313,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
     }
   }
 
-  Future<void> mergePK(dynamic obsoletePk, dynamic newPk) async {
+  Future<void> mergePK(dynamic obsoletePk, dynamic newPk,
+      {Set<String> exclude}) async {
     if (obsoletePk == newPk) return;
     final col = await manager.execute(new Builder()
       ..select('tc.table_name, kcu.column_name')
@@ -324,7 +325,8 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
           'ccu.constraint_name = tc.constraint_name')
       ..where("constraint_type = 'FOREIGN KEY'", "ccu.table_name='$table'"));
     if (col.isNotEmpty) {
-      for (final r in col) {
+      exclude ??= {};
+      for (final r in col.where((r) => !exclude.contains(r['table_name']))) {
         await manager.execute(new Builder()
           ..update(r['table_name'])
           ..set(r['column_name'], newPk)
