@@ -125,6 +125,8 @@ class Builder {
 
   void setParameters(Map<String, dynamic> params) => _params = params;
 
+  void addParameters(Map<String, dynamic> params) => _params.addAll(params);
+
   Map<String, dynamic> getParameters() => _params;
 
   dynamic getParameter(String key) => _params[key];
