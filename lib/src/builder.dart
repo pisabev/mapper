@@ -667,5 +667,6 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
   }
 
   String _cleanPlaceHolder(String key) =>
-      key.replaceAll(new RegExp(r'\.'), '_') + (++_unique).toString();
+      key.replaceAll(new RegExp(r'"'), '').replaceAll(new RegExp(r'\.'), '_') +
+      (++_unique).toString();
 }
