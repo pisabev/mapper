@@ -281,8 +281,9 @@ class Builder {
     _sql = '';
   }
 
-  bool isJoinPresent(String joinTable) {
+  bool isJoinPresent([String joinTable]) {
     final joins = getQueryPart('join');
+    if (joinTable == null) return joins.isNotEmpty;
     for (var i = 0; i < joins.length; i++)
       if (joins[i]['joinTable'] == joinTable) return true;
     return false;
@@ -516,6 +517,8 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
         var key = k;
         if (filterRule.map != null && filterRule.map.containsKey(k))
           key = filterRule.map[k];
+        else if (query.isJoinPresent())
+          key = '${query._sqlParts['from'].split(' ').last}.$k';
         if (filterRule.eq != null && filterRule.eq.contains(k))
           _setEq(query, key, value);
         else if (filterRule.gt != null && filterRule.gt.contains(k))
