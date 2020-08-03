@@ -518,7 +518,7 @@ class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
         if (filterRule.map != null && filterRule.map.containsKey(k))
           key = filterRule.map[k];
         else if (query.isJoinPresent())
-          key = '${query._sqlParts['from'].split(' ').last}.$k';
+          key = '${query._sqlParts['from'].last.split(' ').last}.$k';
         if (filterRule.eq != null && filterRule.eq.contains(k))
           _setEq(query, key, value);
         else if (filterRule.gt != null && filterRule.gt.contains(k))
