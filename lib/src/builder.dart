@@ -73,6 +73,7 @@ class TSquery {
     final parts = search.split(new RegExp(r'\s+')).map((e) => e
         .replaceAll('!', '\\!')
         .replaceAll(':', '\\:')
+        .replaceAll('<', '\\<')
         .replaceAll('\&', '\\&')
         .replaceAll('(', '\\(')
         .replaceAll(')', '\\)')
