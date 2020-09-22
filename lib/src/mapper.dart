@@ -1,7 +1,7 @@
 part of mapper_server;
 
-abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
-    A extends Application> extends MapperBase<E, C, A> {
+abstract class Mapper<E extends Entity, C extends Collection<E>>
+    extends MapperBase<E, C> {
   String table;
 
   dynamic pkey;
@@ -244,9 +244,9 @@ abstract class Mapper<E extends Entity<Application>, C extends Collection<E>,
   Map _cacheGetInitData(String k) =>
       manager.cacheGetInitData(runtimeType.toString() + k);
 
-  CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
     q ??= selectBuilder();
-    return new CollectionBuilder<E, C, A>(q, this);
+    return new CollectionBuilder<E, C>(q, this);
   }
 
   String _escape(String string) => '"$string"';

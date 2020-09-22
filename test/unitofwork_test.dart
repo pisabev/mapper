@@ -3,21 +3,12 @@ import 'package:mapper/client.dart';
 import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
 
-Manager<App> manager;
-
-class AppMixin {
-  Manager m;
-  Test1Mapper get test1 => new Test1Mapper(m)
-    ..entity = (() => new Test1())
-    ..collection = () => new Test1Collection();
-}
-
-class App extends Application with AppMixin {}
+Manager manager;
 
 main() {
   group('Unit of Work', () {
     setUp(() async {
-      manager = await testManager(new DatabaseConfig(), new App(),
+      manager = await testManager(new DatabaseConfig(),
           executeCreate: false, executeInit: false, sql: sql);
     });
     tearDown(() {});
@@ -55,7 +46,7 @@ CREATE TEMPORARY TABLE "test1" (
 );
 ''';
 
-class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
+class Test1Mapper extends Mapper<Test1, Test1Collection> {
   String table = 'test1';
 
   Test1Mapper(m) : super(m);
@@ -101,3 +92,9 @@ class Test1 with Entity {
 }
 
 class Test1Collection extends Collection<Test1> {}
+
+extension _AppExt on App {
+  Test1Mapper get test1 => new Test1Mapper(m)
+    ..entity = (() => new Test1())
+    ..collection = () => new Test1Collection();
+}

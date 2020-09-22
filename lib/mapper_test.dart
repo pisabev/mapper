@@ -33,7 +33,7 @@ Future<Pool> setup(DatabaseConfig c) async {
   return pool;
 }
 
-Future<Manager<A>> testManager<A extends Application>(DatabaseConfig c, A app,
+Future<Manager> testManager(DatabaseConfig c,
     {List<String> dataFiles,
     bool executeCreate = true,
     bool executeInit = true,
@@ -44,7 +44,7 @@ Future<Manager<A>> testManager<A extends Application>(DatabaseConfig c, A app,
       executeCreate: executeCreate,
       executeInit: executeInit);
   await setup(c);
-  final m = await new Database().init(app);
+  final m = await new Database().init();
   if (sql != null) await m.query(sql);
   return m;
 }

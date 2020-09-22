@@ -2,9 +2,8 @@ part of mapper_server;
 
 typedef EntityFunction<T> = T Function();
 
-abstract class MapperBase<E extends Entity<Application>,
-    C extends Collection<E>, A extends Application> {
-  final Manager<A> manager;
+abstract class MapperBase<E extends Entity, C extends Collection<E>> {
+  final Manager manager;
 
   EntityFunction<E> entity;
 
@@ -48,9 +47,9 @@ abstract class MapperBase<E extends Entity<Application>,
           query, _onStreamRow, createCollection(),
           substitutionValues: params);
 
-  CollectionBuilder<E, C, A> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
     q ??= new Builder();
-    return new CollectionBuilder<E, C, A>(q, this);
+    return new CollectionBuilder<E, C>(q, this);
   }
 
   E createObject([dynamic data]) {

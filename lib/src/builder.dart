@@ -437,13 +437,12 @@ class CollectionMeta {
   int limit;
 }
 
-class CollectionBuilder<E extends Entity<Application>, C extends Collection<E>,
-A extends Application> {
+class CollectionBuilder<E extends Entity, C extends Collection<E>> {
   static int _unique = 0;
 
   final Builder query;
 
-  final MapperBase<E, C, A> mapper;
+  final MapperBase<E, C> mapper;
 
   Map<String, dynamic> filter = {};
 
@@ -494,7 +493,7 @@ A extends Application> {
     }
   }
 
-  Future<CollectionBuilder<E, C, A>> process([bool total = false]) async {
+  Future<CollectionBuilder<E, C>> process([bool total = false]) async {
     _queryFilter(query);
     _queryFinalize(query);
     collection = await mapper.loadC(query, total);

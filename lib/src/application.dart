@@ -1,5 +1,7 @@
 part of mapper_server;
 
-abstract class Application {
-  Manager m;
+class App {
+  final Manager m;
+
+  App(this.m);
 }

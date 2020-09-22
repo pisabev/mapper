@@ -1,34 +1,25 @@
 part of mapper_server;
 
-class Manager<A extends Application> {
+class Manager {
   Unit _unit;
 
   Cache _cache;
 
   final Pool _pool;
 
-  A app;
+  App app;
 
   drv.PostgreSQLConnection _connection;
 
-  Manager(this._pool, [this.app]) {
+  Manager(this._pool) {
     _unit = new Unit(this);
     _cache = new Cache();
-    app?.m = this;
-  }
-
-  Manager._convert(
-      this._pool, this.app, this._connection, this._cache, this._unit) {
-    app.m = this;
+    app = new App(this);
   }
 
   Future init() async {
     _connection = await _pool.obtain();
   }
-
-  Manager<T> convert<T extends Application>(T app) => (app is A)
-      ? this
-      : new Manager<T>._convert(_pool, app, _connection, _cache, _unit);
 
   Future<List<Map<String, dynamic>>> query(String query, [Map params]) =>
       _connection
