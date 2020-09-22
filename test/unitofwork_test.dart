@@ -93,7 +93,7 @@ class Test1 with Entity {
 
 class Test1Collection extends Collection<Test1> {}
 
-extension _AppExt on App {
+extension AppExt on App {
   Test1Mapper get test1 => new Test1Mapper(m)
     ..entity = (() => new Test1())
     ..collection = () => new Test1Collection();
