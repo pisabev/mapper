@@ -74,11 +74,11 @@ class EntityNotifier<E extends Entity> {
 
 class Database {
   static const String _base = '_';
-  static Database instance;
+  static Database _instance;
 
   final Map<String, Pool> pools = {};
 
-  factory Database() => instance ??= new Database._();
+  factory Database() => _instance ??= new Database._();
 
   Database._();
 
