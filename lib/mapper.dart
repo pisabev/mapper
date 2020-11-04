@@ -86,9 +86,8 @@ class Database {
     _pools[namespace] = pool;
   }
 
-  Future<Manager<A>> init<A extends Application>(A app,
-      [String namespace = _base]) async {
-    final m = new Manager<A>(_pools[namespace], app);
+  Future<Manager> init([String namespace = _base]) async {
+    final m = new Manager(_pools[namespace]);
     await m.init();
     return m;
   }

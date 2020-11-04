@@ -3,14 +3,16 @@ import 'package:mapper/mapper.dart';
 import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
 
-Manager<App> manager;
+Manager manager;
 
-class AppMixin {
-  Manager m;
-
+extension AppExt on App {
   Test1Mapper get test1 => new Test1Mapper(m)
     ..entity = (() => new Test1())
     ..collection = () => new Test1Collection();
+
+  Test2Mapper get test2 => new Test2Mapper(m)
+    ..entity = (() => new Test2())
+    ..collection = () => new Test2Collection();
 
   Test3Mapper get test3 => new Test3Mapper(m)
     ..entity = (() => new Test3())
@@ -20,22 +22,10 @@ class AppMixin {
 
 final noty = new EntityNotifier<Test3>();
 
-class AppMixin2 {
-  Manager m;
-
-  Test2Mapper get test2 => new Test2Mapper(m)
-    ..entity = (() => new Test2())
-    ..collection = () => new Test2Collection();
-}
-
-class App extends Application with AppMixin {}
-
-class App2 extends Application with AppMixin, AppMixin2 {}
-
 main() {
   group('Mapper', () {
     setUp(() async {
-      manager = await testManager(new DatabaseConfig(), new App(),
+      manager = await testManager(new DatabaseConfig(),
           executeCreate: false, executeInit: false, sql: sql);
 
 //      var manager2 = manager.convert(new App2());
@@ -105,7 +95,7 @@ main() {
 
   group('Mapper', () {
     setUp(() async {
-      manager = await testManager(new DatabaseConfig(), new App(),
+      manager = await testManager(new DatabaseConfig(),
           executeCreate: false, executeInit: false, sql: sql2);
 
 //      var manager2 = manager.convert(new App2());
@@ -151,7 +141,7 @@ CREATE TABLE "test3" (
 );
 ''';
 
-class Test1Mapper extends Mapper<Test1, Test1Collection, App> {
+class Test1Mapper extends Mapper<Test1, Test1Collection> {
   String table = 'test1';
 
   Test1Mapper(m) : super(m);
@@ -218,7 +208,7 @@ class Test1 with Entity {
 
 class Test1Collection extends Collection<Test1> {}
 
-class Test2Mapper extends Mapper<Test2, Test2Collection, App2> {
+class Test2Mapper extends Mapper<Test2, Test2Collection> {
   String table = 'test1';
 
   Test2Mapper(m) : super(m);
@@ -265,7 +255,7 @@ class Test2 with Entity {
 
 class Test2Collection extends Collection<Test2> {}
 
-class Test3Mapper extends Mapper<Test3, Test3Collection, App> {
+class Test3Mapper extends Mapper<Test3, Test3Collection> {
   String table = 'test3';
 
   Test3Mapper(m) : super(m);

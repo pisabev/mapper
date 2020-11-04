@@ -1,11 +1,11 @@
 part of mapper_server;
 
-mixin Entity<A extends Application> {
+mixin Entity {
   dynamic _mapper;
 
   void init(Map data);
 
-  Manager<A> get manager => _mapper.manager;
+  Manager get manager => _mapper.manager;
 
   Map<String, dynamic> toMap();
 
