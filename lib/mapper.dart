@@ -76,18 +76,18 @@ class Database {
   static const String _base = '_';
   static Database instance;
 
-  final Map<String, Pool> _pools = {};
+  final Map<String, Pool> pools = {};
 
   factory Database() => instance ??= new Database._();
 
   Database._();
 
   void registerPool(Pool pool, [String namespace = _base]) {
-    _pools[namespace] = pool;
+    pools[namespace] = pool;
   }
 
   Future<Manager> init([String namespace = _base]) async {
-    final m = new Manager(_pools[namespace]);
+    final m = new Manager(pools[namespace]);
     await m.init();
     return m;
   }
