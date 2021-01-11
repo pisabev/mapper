@@ -84,7 +84,7 @@ class Manager {
   Future close() async {
     _cache = new Cache();
     if (_unit._started) await _unit._rollback();
-    if (_connection != null) _pool.release(_connection);
+    _pool.release(_connection);
     _connection = null;
   }
 }
