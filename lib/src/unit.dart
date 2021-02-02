@@ -49,9 +49,7 @@ class Unit {
   }
 
   void _addNotifyUpdate(Entity object, Function f) =>
-      (!_notifyInsert.containsKey(object) && !_notifyUpdate.containsKey(object))
-          ? _notifyUpdate[object] = f
-          : null;
+      (!_notifyInsert.containsKey(object)) ? _notifyUpdate[object] = f : null;
 
   void _addNotifyInsert(Entity object, Function f) =>
       (!_notifyInsert.containsKey(object)) ? _notifyInsert[object] = f : null;

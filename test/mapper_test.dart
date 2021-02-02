@@ -8,7 +8,8 @@ Manager manager;
 extension AppExt on App {
   Test1Mapper get test1 => new Test1Mapper(m)
     ..entity = (() => new Test1())
-    ..collection = () => new Test1Collection();
+    ..collection = (() => new Test1Collection())
+    ..notifier = noty;
 
   Test2Mapper get test2 => new Test2Mapper(m)
     ..entity = (() => new Test2())
@@ -16,11 +17,10 @@ extension AppExt on App {
 
   Test3Mapper get test3 => new Test3Mapper(m)
     ..entity = (() => new Test3())
-    ..collection = (() => new Test3Collection())
-    ..notifier = noty;
+    ..collection = (() => new Test3Collection());
 }
 
-final noty = new EntityNotifier<Test3>();
+final noty = new EntityNotifier<Test1>();
 
 main() {
   group('Mapper', () {
@@ -71,6 +71,53 @@ main() {
       expect(all.length, 2);
 
       expect(await manager.app.test1.delete(t2), true);
+    }, skip: true);
+
+    test('Basics 2', () async {
+      final manager = await testManager(new DatabaseConfig(),
+          executeCreate: false, executeInit: false, sql: sql);
+      noty.onChange.listen((e) {
+        print(e.diff);
+      });
+      final t = manager.app.test1.createObject()
+        ..field_string = 'test'
+        ..field_int = 1;
+
+      await manager.app.test1.insert(t);
+      await manager.close();
+
+      final manager2 = await new Database().init();
+      await manager2.begin();
+      final res = await manager2.app.test1.find(1);
+      res.field_int = 2;
+      await manager2.app.test1.update(res);
+      res.field_string = 'test3';
+      await manager2.app.test1.update(res);
+      await manager2.commit();
+    }, skip: true);
+
+    test('Basics 3', () async {
+      final manager = await testManager(new DatabaseConfig(),
+          executeCreate: false, executeInit: false, sql: sql);
+      noty.onChange.listen((e) {
+        print(e.diff);
+      });
+      final t = manager.app.test1.createObject()
+        ..field_string = 'test'
+        ..field_int = 1;
+
+      await manager.app.test1.insert(t);
+      await manager.close();
+
+      final manager2 = await new Database().init();
+      await manager2.begin();
+      final res = await manager2.app.test1.find(1);
+      res.field_int = 2;
+      final res2 = await manager2.app.test1.find(1);
+      res2.field_string = 'test4';
+      await manager2.app.test1.update(res2);
+      await manager2.app.test1.update(res);
+      await manager2.commit();
     }, skip: false);
 
     test('Performance', () async {
