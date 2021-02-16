@@ -251,11 +251,11 @@ class Builder {
 
   void orderBy(String sort, [String order = 'ASC']) {
     _sqlParts['orderBy'] = [];
-    return add('orderBy', '$sort $order NULLS LAST', true);
+    return add('orderBy', '$sort $order', true);
   }
 
   void addOrderBy(String sort, [String order = 'ASC']) =>
-      add('orderBy', '$sort $order NULLS LAST', true);
+      add('orderBy', '$sort $order', true);
 
   void setQueryPart(String queryPartName, dynamic queryPart) {
     _sqlParts[queryPartName] = queryPart;
