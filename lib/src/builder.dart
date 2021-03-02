@@ -500,6 +500,15 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
     return this;
   }
 
+  Future<int> count() async {
+    final q = query.clone();
+    _queryFilter(q);
+    _queryFinalize(q);
+    final res =
+        await mapper.manager.execute(q..select('COUNT(*) OVER() AS total'));
+    return res.isNotEmpty ? res.first['total'] : 0;
+  }
+
   String queryToString() {
     final q = query.clone();
     _queryFilter(q);
