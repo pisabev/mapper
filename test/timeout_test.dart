@@ -73,5 +73,5 @@ void main() {
   test("Query that fails does not timeout", () async {
     await conn.query("INSERT INTO t (id) VALUES ('foo')", timeoutInSeconds: 1).catchError((_) => null);
     expect(new Future.delayed(new Duration(seconds: 2)), completes);
-  });
+  }, solo: true);
 }

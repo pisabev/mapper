@@ -44,7 +44,7 @@ abstract class PostgreSQLExecutionContext {
   /// necessary information required to reuse queries without intervention.
   /// (The [fmtString] is the unique identifier to look up reuse information.)
   /// You can disable reuse by passing false for [allowReuse].
-  Future<List<Map<String, dynamic>>?> query(String fmtString,
+  Future<List<Map<String, dynamic>>> query(String fmtString,
       {Map<String, dynamic> substitutionValues,
       bool allowReuse = true,
       int timeoutInSeconds});

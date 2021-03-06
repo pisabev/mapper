@@ -53,7 +53,7 @@ class Test1Mapper extends Mapper<Test1, Test1Collection> {
 }
 
 class Test1 with Entity {
-  late int test1_id;
+  int? test1_id;
   bool? field_bool;
   String? field_string;
   double? field_int;
