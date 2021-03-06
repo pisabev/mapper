@@ -15,7 +15,7 @@ void main() {
     });
 
     tearDown(() async {
-      await conn?.close();
+      await conn.close();
     });
 
     test("Rows are Lists of column values", () async {

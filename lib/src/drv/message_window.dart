@@ -26,7 +26,7 @@ class MessageFrame {
 
   bool get hasReadHeader => type != null;
   int? type;
-  int expectedLength = 0;
+  int expectedLength = -1;
 
   bool get isComplete => data != null || expectedLength == 0;
   Uint8List? data;
