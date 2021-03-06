@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'dart:async';
 
 void main() {
-  PostgreSQLConnection conn;
+  late PostgreSQLConnection conn;
 
   setUp(() async {
     conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -12,7 +12,7 @@ void main() {
   });
 
   tearDown(() async {
-    await conn?.close();
+    await conn.close();
   });
 
   test("Timeout fires on query while in queue does not execute query, query throws exception", () async {

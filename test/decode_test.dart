@@ -2,7 +2,7 @@ import 'package:mapper/src/postgres.dart';
 import 'package:test/test.dart';
 
 void main() {
-  PostgreSQLConnection connection;
+  late PostgreSQLConnection connection;
   setUp(() async {
     connection = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
     await connection.open();
@@ -30,7 +30,7 @@ void main() {
         "VALUES (null, null, null, null, null, null, null, null, null, null, null, null, null)");
   });
   tearDown(() async {
-    await connection?.close();
+    await connection.close();
   });
 
   test("Fetch em", () async {

@@ -9,12 +9,12 @@ class QueryCache {
       return;
     }
 
-    if (query.cache.isValid) {
-      queries[query.statement] = query.cache;
+    if (query.cache!.isValid) {
+      queries[query.statement] = query.cache!;
     }
   }
 
-  CachedQuery operator [](String statementId) {
+  CachedQuery? operator [](String? statementId) {
     if (statementId == null) {
       return null;
     }
@@ -22,7 +22,7 @@ class QueryCache {
     return queries[statementId];
   }
 
-  String identifierForQuery(Query<dynamic> query) {
+  String? identifierForQuery(Query<dynamic> query) {
     final existing = queries[query.statement];
     if (existing != null) {
       return existing.preparedStatementName;

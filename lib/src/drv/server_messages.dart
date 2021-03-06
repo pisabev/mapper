@@ -33,26 +33,26 @@ class AuthenticationMessage implements ServerMessage {
   static const int KindGSSContinue = 8;
   static const int KindSSPI = 9;
 
-  int type;
+  late int type;
 
-  List<int> salt;
+  List<int>? salt;
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
     type = view.getUint32(0);
 
     if (type == KindMD5Password) {
-      salt = new List<int>(4);
+      salt = new List.filled(4, 0);
       for (var i = 0; i < 4; i++) {
-        salt[i] = view.getUint8(4 + i);
+        salt![i] = view.getUint8(4 + i);
       }
     }
   }
 }
 
 class ParameterStatusMessage extends ServerMessage {
-  String name;
-  String value;
+  late String name;
+  late String value;
 
   void readBytes(Uint8List bytes) {
     name = utf8.decode(bytes.sublist(0, bytes.indexOf(0)));
@@ -66,7 +66,7 @@ class ReadyForQueryMessage extends ServerMessage {
   static const String StateTransaction = 'T';
   static const String StateTransactionError = 'E';
 
-  String state;
+  late String state;
 
   void readBytes(Uint8List bytes) {
     state = utf8.decode(bytes);
@@ -74,8 +74,8 @@ class ReadyForQueryMessage extends ServerMessage {
 }
 
 class BackendKeyMessage extends ServerMessage {
-  int processID;
-  int secretKey;
+  late int processID;
+  late int secretKey;
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
@@ -85,7 +85,7 @@ class BackendKeyMessage extends ServerMessage {
 }
 
 class RowDescriptionMessage extends ServerMessage {
-  List<FieldDescription> fieldDescriptions;
+  late List<FieldDescription> fieldDescriptions;
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
@@ -103,7 +103,7 @@ class RowDescriptionMessage extends ServerMessage {
 }
 
 class DataRowMessage extends ServerMessage {
-  List<ByteData> values = [];
+  List<ByteData?> values = [];
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
@@ -132,9 +132,9 @@ class DataRowMessage extends ServerMessage {
 }
 
 class NotificationResponseMessage extends ServerMessage {
-  int processID;
-  String channel;
-  String payload;
+  late int processID;
+  late String channel;
+  late String payload;
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
@@ -146,7 +146,7 @@ class NotificationResponseMessage extends ServerMessage {
 }
 
 class CommandCompleteMessage extends ServerMessage {
-  int rowsAffected;
+  late int rowsAffected;
 
   static RegExp identifierExpression = new RegExp(r'[A-Z ]*');
 
@@ -154,7 +154,7 @@ class CommandCompleteMessage extends ServerMessage {
     final str = utf8.decode(bytes.sublist(0, bytes.length - 1));
 
     final match = identifierExpression.firstMatch(str);
-    if (match.end < str.length) {
+    if (match != null && match.end < str.length) {
       rowsAffected = int.parse(str.split(' ').last);
     } else {
       rowsAffected = 0;
@@ -163,19 +163,19 @@ class CommandCompleteMessage extends ServerMessage {
 }
 
 class ParseCompleteMessage extends ServerMessage {
-  void readBytes(Uint8List bytes) {}
+  void readBytes(Uint8List? bytes) {}
 
   String toString() => 'Parse Complete Message';
 }
 
 class BindCompleteMessage extends ServerMessage {
-  void readBytes(Uint8List bytes) {}
+  void readBytes(Uint8List? bytes) {}
 
   String toString() => 'Bind Complete Message';
 }
 
 class ParameterDescriptionMessage extends ServerMessage {
-  List<int> parameterTypeIDs;
+  late List<int> parameterTypeIDs;
 
   void readBytes(Uint8List bytes) {
     final view = new ByteData.view(bytes.buffer, bytes.offsetInBytes);
@@ -194,16 +194,16 @@ class ParameterDescriptionMessage extends ServerMessage {
 }
 
 class NoDataMessage extends ServerMessage {
-  void readBytes(Uint8List bytes) {}
+  void readBytes(Uint8List? bytes) {}
 
   String toString() => 'No Data Message';
 }
 
 class UnknownMessage extends ServerMessage {
-  Uint8List bytes;
-  int code;
+  Uint8List? bytes;
+  int? code;
 
-  void readBytes(Uint8List bytes) {
+  void readBytes(Uint8List? bytes) {
     this.bytes = bytes;
   }
 
@@ -213,11 +213,11 @@ class UnknownMessage extends ServerMessage {
   @override
   bool operator ==(dynamic other) {
     if (bytes != null) {
-      if (bytes.length != other.bytes.length) {
+      if (bytes!.length != other.bytes.length) {
         return false;
       }
-      for (var i = 0; i < bytes.length; i++) {
-        if (bytes[i] != other.bytes[i]) {
+      for (var i = 0; i < bytes!.length; i++) {
+        if (bytes![i] != other.bytes[i]) {
           return false;
         }
       }
@@ -249,7 +249,7 @@ class ErrorField {
   static const int LineIdentifier = 76;
   static const int RoutineIdentifier = 82;
 
-  static PostgreSQLSeverity severityFromString(String str) {
+  static PostgreSQLSeverity severityFromString(String? str) {
     switch (str) {
       case 'ERROR':
         return PostgreSQLSeverity.error;
@@ -272,7 +272,7 @@ class ErrorField {
     return PostgreSQLSeverity.unknown;
   }
 
-  int identificationToken;
+  int? identificationToken;
 
   String get text => _buffer.toString();
   final _buffer = new StringBuffer();

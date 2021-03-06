@@ -3,7 +3,7 @@ import 'package:mapper/client.dart';
 import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
 
-Manager manager;
+late Manager manager;
 
 main() {
   group('Unit of Work', () {
@@ -53,14 +53,14 @@ class Test1Mapper extends Mapper<Test1, Test1Collection> {
 }
 
 class Test1 with Entity {
-  int test1_id;
-  bool field_bool;
-  String field_string;
-  double field_int;
-  Map field_json;
-  Map field_jsonb;
-  DateTime field_date;
-  List field_list;
+  late int test1_id;
+  bool? field_bool;
+  String? field_string;
+  double? field_int;
+  Map? field_json;
+  Map? field_jsonb;
+  DateTime? field_date;
+  List? field_list;
 
   Test1();
 

@@ -80,8 +80,8 @@ void main() {
       int totalCountResponse = 0;
       Completer finishExecute = new Completer();
       connection.notifications.listen((msg){
-        int count = countResponse[msg.channel];
-        countResponse[msg.channel] = (count ?? 0) + 1;
+        int count = countResponse[msg.channel] ?? 0;
+        countResponse[msg.channel] = count + 1;
         totalCountResponse++;
         if(totalCountResponse == 20)
           finishExecute.complete();

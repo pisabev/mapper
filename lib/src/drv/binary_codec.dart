@@ -5,13 +5,13 @@ import 'dart:typed_data';
 import 'package:mapper/src/drv/types.dart';
 import 'package:mapper/src/postgres.dart';
 
-class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
+class PostgresBinaryEncoder extends Converter<dynamic, Uint8List?> {
   const PostgresBinaryEncoder(this.dataType);
 
   final PostgreSQLDataType dataType;
 
   @override
-  Uint8List convert(dynamic input) {
+  Uint8List? convert(dynamic input) {
     if (input == null) {
       return null;
     }
@@ -67,7 +67,7 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
                 'Expected: String Got: ${input.runtimeType}');
           }
 
-          return utf8.encode(input);
+          return utf8.encode(input) as Uint8List;
         }
       case PostgreSQLDataType.real:
         {
@@ -146,7 +146,7 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
             throw new FormatException('Invalid type for parameter value. '
                 'Expected: List<int> Got: ${input.runtimeType}');
           }
-          return new Uint8List.fromList(input);
+          return new Uint8List.fromList(input as List<int>);
         }
 
       case PostgreSQLDataType.uuid:
@@ -157,7 +157,7 @@ class PostgresBinaryEncoder extends Converter<dynamic, Uint8List> {
           }
 
           final dashUnit = '-'.codeUnits.first;
-          final hexBytes = (input as String)
+          final hexBytes = input
               .toLowerCase()
               .codeUnits
               .where((c) => c != dashUnit)
@@ -202,7 +202,7 @@ class PostgresBinaryDecoder extends Converter<Uint8List, dynamic> {
   final int typeCode;
 
   @override
-  dynamic convert(Uint8List input) {
+  dynamic convert(Uint8List? input) {
     final dataType = typeMap[typeCode];
 
     if (input == null) {

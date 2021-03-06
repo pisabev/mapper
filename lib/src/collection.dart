@@ -3,7 +3,7 @@ part of mapper_shared;
 class Collection<E> extends ListBase<E> {
   List<E> innerList = [];
 
-  int totalResults;
+  int? totalResults;
 
   int get length => innerList.length;
 

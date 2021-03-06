@@ -20,12 +20,12 @@ class Pool {
   final List<Completer> _waitQueue = [];
 
   Pool(this.host, this.port, this.database,
-      {this.user,
-        this.password,
-        this.min = 1,
-        this.max = 5,
-        this.timeZone = 'UTC',
-        this.autoClose = false});
+      {required this.user,
+      required this.password,
+      this.min = 1,
+      this.max = 5,
+      this.timeZone = 'UTC',
+      this.autoClose = false});
 
   Future start() async {
     for (var i = 0; i < min; i++) await _createConnection();
@@ -83,7 +83,7 @@ class Pool {
 
   void release(drv.PostgreSQLConnection conn) => _onConnectionReady(conn);
 
-  Future<drv.PostgreSQLConnection> obtain({Duration timeout}) {
+  Future<drv.PostgreSQLConnection> obtain({Duration? timeout}) {
     final completer = new Completer<drv.PostgreSQLConnection>();
     if (timeout != null) completer.future.timeout(timeout);
     _waitQueue.add(completer);

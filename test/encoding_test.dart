@@ -9,7 +9,7 @@ import 'package:mapper/src/drv/text_codec.dart';
 import 'package:mapper/src/drv/types.dart';
 import 'package:mapper/src/drv/utf8_backed_string.dart';
 
-PostgreSQLConnection conn;
+late PostgreSQLConnection conn;
 
 void main() {
   group("Binary encoders", () {
@@ -20,7 +20,6 @@ void main() {
 
     tearDown(() async {
       await conn.close();
-      conn = null;
     });
 
     // expectInverse ensures that:

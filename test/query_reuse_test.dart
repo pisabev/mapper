@@ -8,7 +8,7 @@ String sid(String id, PostgreSQLDataType dt) =>
 
 void main() {
   group("Retaining type information", () {
-    PostgreSQLConnection connection;
+   late PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "test",
@@ -278,7 +278,7 @@ void main() {
   });
 
   group("Mixing prepared statements", () {
-    PostgreSQLConnection connection;
+    late PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "test",

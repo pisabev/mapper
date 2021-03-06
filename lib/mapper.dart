@@ -9,20 +9,30 @@ import 'src/postgres.dart' as drv;
 export 'client.dart';
 
 part 'src/application.dart';
+
 part 'src/builder.dart';
+
 part 'src/cache.dart';
+
 part 'src/entity.dart';
+
 part 'src/exception.dart';
+
 part 'src/manager.dart';
+
 part 'src/mapper.dart';
+
 part 'src/mapper_base.dart';
+
 part 'src/mapper_view.dart';
+
 part 'src/pool.dart';
+
 part 'src/unit.dart';
 
 class EntityContainer<E extends Entity> {
   final E entity;
-  final Map<String, dynamic> diff;
+  final Map<String, dynamic>? diff;
   final bool deleted;
 
   const EntityContainer(this.entity, {this.diff, this.deleted = false});
@@ -44,10 +54,10 @@ class EntityNotifier<E extends Entity> {
   final StreamController<EntityContainer<E>> _contr_delete =
       new StreamController.broadcast();
 
-  Stream<EntityContainer<E>> onChange;
-  Stream<EntityContainer<E>> onUpdate;
-  Stream<EntityContainer<E>> onCreate;
-  Stream<EntityContainer<E>> onDelete;
+  late Stream<EntityContainer<E>> onChange;
+  late Stream<EntityContainer<E>> onUpdate;
+  late Stream<EntityContainer<E>> onCreate;
+  late Stream<EntityContainer<E>> onDelete;
 
   EntityNotifier() {
     onChange = _contr_change.stream;
@@ -74,7 +84,7 @@ class EntityNotifier<E extends Entity> {
 
 class Database {
   static const String _base = '_';
-  static Database _instance;
+  static Database? _instance;
 
   final Map<String, Pool> pools = {};
 
@@ -87,7 +97,7 @@ class Database {
   }
 
   Future<Manager> init([String namespace = _base]) async {
-    final m = new Manager(pools[namespace]);
+    final m = new Manager(pools[namespace]!);
     await m.init();
     return m;
   }
