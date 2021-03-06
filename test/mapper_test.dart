@@ -138,7 +138,7 @@ main() {
       var end = new DateTime.now();
       print('${end.difference(start).inMilliseconds} ms');
     });
-  }, skip: true);
+  });
 
   group('Mapper', () {
     setUp(() async {

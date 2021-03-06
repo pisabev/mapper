@@ -26,7 +26,7 @@ class MessageFrame {
 
   bool get hasReadHeader => type != null;
   int? type;
-  int expectedLength = -1;
+  int? expectedLength;
 
   bool get isComplete => data != null || expectedLength == 0;
   Uint8List? data;
@@ -113,7 +113,7 @@ class MessageFrame {
       return packet.lengthInBytes - bytesAvailable;
     }
 
-    final body = consumeNextBytes(expectedLength);
+    final body = consumeNextBytes(expectedLength!);
     if (body == null) {
       return packet.lengthInBytes;
     }
