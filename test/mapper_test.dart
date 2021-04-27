@@ -56,7 +56,7 @@ main() {
 
       //await manager.init();
       var res2 = await manager.app.test1.find(1);
-      expect(res2.field_list is List, true);
+      expect(res2!.field_list is List, true);
       //print('got ${res2.field_int} expected: $test');
       expect(res2.field_int, test);
       expect(res2.field_bool, true);
@@ -89,7 +89,7 @@ main() {
       final manager2 = await new Database().init();
       await manager2.begin();
       final res = await manager2.app.test1.find(1);
-      res.field_int = 2;
+      res!.field_int = 2;
       await manager2.app.test1.update(res);
       res.field_string = 'test3';
       await manager2.app.test1.update(res);
@@ -112,9 +112,9 @@ main() {
       final manager2 = await new Database().init();
       await manager2.begin();
       final res = await manager2.app.test1.find(1);
-      res.field_int = 2;
+      res!.field_int = 2;
       final res2 = await manager2.app.test1.find(1);
-      res2.field_string = 'test4';
+      res2!.field_string = 'test4';
       await manager2.app.test1.update(res2);
       await manager2.app.test1.update(res);
       await manager2.commit();

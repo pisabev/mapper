@@ -14,7 +14,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     pkey ??= '${table}_id';
   }
 
-  Future<E> find(dynamic id, [bool no_cache = false]) {
+  Future<E?> find(dynamic id, [bool no_cache = false]) {
     if (id is List) return findComposite(id);
     final cache_key = id.toString();
     final e = _cacheGet(cache_key);
@@ -27,7 +27,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     }
   }
 
-  Future<E> findComposite(Iterable<dynamic> ids, [bool no_cache = false]) {
+  Future<E?> findComposite(Iterable<dynamic> ids, [bool no_cache = false]) {
     final cache_key = ids.join(_SEP);
     final e = _cacheGet(cache_key);
     if (e != null) {
@@ -306,7 +306,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
         manager.addNew(object);
         return object;
       } else {
-        mergeData(object, data);
+        mergeData(object!, data);
         manager.addDirty(object);
         return object;
       }
