@@ -39,7 +39,7 @@ abstract class Expression {
 class Equals extends Expression {
   bool applyIfNull;
 
-  Equals(String k, Object v, {this.applyIfNull = true}) : super(k, v);
+  Equals(String k, dynamic v, {this.applyIfNull = true}) : super(k, v);
 
   void _evaluate(Builder builder) {
     final par = builder.getUniqueKey();
