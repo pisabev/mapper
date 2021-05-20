@@ -1,24 +1,23 @@
 part of mapper_server;
 
 class Unit {
-  Manager _manager;
+  final Manager _manager;
 
-  List<Entity> _dirty;
+  late List<Entity> _dirty;
 
-  List<Entity> _new;
+  late List<Entity> _new;
 
-  List<Entity> _delete;
+  late List<Entity> _delete;
 
-  Map<Entity, Function> _notifyInsert;
+  late Map<Entity, Function> _notifyInsert;
 
-  Map<Entity, Function> _notifyUpdate;
+  late Map<Entity, Function> _notifyUpdate;
 
-  Map<Entity, Function> _notifyDelete;
+  late Map<Entity, Function> _notifyDelete;
 
   bool _started = false;
 
-  Unit(Manager manager) {
-    _manager = manager;
+  Unit(this._manager) {
     _resetEntities();
     _resetNotifiers();
   }
@@ -59,11 +58,14 @@ class Unit {
     if (_notifyInsert.containsKey(object)) _notifyInsert.remove(object);
   }
 
-  Future _doUpdates() => Future.forEach(_dirty, (o) => o._mapper.update(o));
+  Future _doUpdates() =>
+      Future.forEach<Entity>(_dirty, (o) => o._mapper.update(o));
 
-  Future _doInserts() => Future.forEach(_new, (o) => o._mapper.insert(o));
+  Future _doInserts() =>
+      Future.forEach<Entity>(_new, (o) => o._mapper.insert(o));
 
-  Future _doDeletes() => Future.forEach(_delete, (o) => o._mapper.delete(o));
+  Future _doDeletes() =>
+      Future.forEach<Entity>(_delete, (o) => o._mapper.delete(o));
 
   void _doNotifyUpdates() => _notifyUpdate.values.forEach((v) => v());
 
@@ -72,21 +74,21 @@ class Unit {
   void _doNotifyDeletes() => _notifyDelete.values.forEach((v) => v());
 
   Future _begin() => !_started
-      ? _manager._connection.execute('BEGIN').then((_) => _started = true)
+      ? _manager._connection!.execute('BEGIN').then((_) => _started = true)
       : new Future.value();
 
   Future _commit() =>
-      _manager._connection.execute('COMMIT').then((_) => _started = false);
+      _manager._connection!.execute('COMMIT').then((_) => _started = false);
 
   Future _savePoint(String savePoint) =>
-      _manager._connection.execute('SAVEPOINT $savePoint');
+      _manager._connection!.execute('SAVEPOINT $savePoint');
 
   Future _releaseSavePoint(String savePoint) =>
-      _manager._connection.execute('RELEASE SAVEPOINT $savePoint');
+      _manager._connection!.execute('RELEASE SAVEPOINT $savePoint');
 
-  Future _rollback([String savePoint]) => savePoint != null
-      ? _manager._connection.execute('ROLLBACK TO SAVEPOINT $savePoint')
-      : _manager._connection.execute('ROLLBACK').then((_) => _started = false);
+  Future _rollback([String? savePoint]) => savePoint != null
+      ? _manager._connection!.execute('ROLLBACK TO SAVEPOINT $savePoint')
+      : _manager._connection!.execute('ROLLBACK').then((_) => _started = false);
 
   Future persist() => _begin()
       .then((_) => _doDeletes())

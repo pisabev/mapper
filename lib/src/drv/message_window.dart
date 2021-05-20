@@ -25,13 +25,13 @@ class MessageFrame {
   List<Uint8List> packets = [];
 
   bool get hasReadHeader => type != null;
-  int type;
-  int expectedLength;
+  int? type;
+  int? expectedLength;
 
   bool get isComplete => data != null || expectedLength == 0;
-  Uint8List data;
+  Uint8List? data;
 
-  ByteData consumeNextBytes(int length) {
+  ByteData? consumeNextBytes(int length) {
     if (length == 0) {
       return null;
     }
@@ -113,7 +113,7 @@ class MessageFrame {
       return packet.lengthInBytes - bytesAvailable;
     }
 
-    final body = consumeNextBytes(expectedLength);
+    final body = consumeNextBytes(expectedLength!);
     if (body == null) {
       return packet.lengthInBytes;
     }

@@ -9,7 +9,7 @@ Future<void> drop(DatabaseConfig c) async {
 }
 
 Future<void> create(DatabaseConfig c,
-    {List<String> dataFiles,
+    {List<String>? dataFiles,
     bool executeCreate = true,
     bool executeInit = true}) async {
   run(await Process.run('psql', [c.userUrl, '-c', 'CREATE SCHEMA PUBLIC']));
@@ -34,10 +34,10 @@ Future<Pool> setup(DatabaseConfig c) async {
 }
 
 Future<Manager> testManager(DatabaseConfig c,
-    {List<String> dataFiles,
+    {List<String>? dataFiles,
     bool executeCreate = true,
     bool executeInit = true,
-    String sql}) async {
+    String? sql}) async {
   await drop(c);
   await create(c,
       dataFiles: dataFiles,

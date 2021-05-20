@@ -8,7 +8,7 @@ String sid(String id, PostgreSQLDataType dt) =>
 
 void main() {
   group("Retaining type information", () {
-    PostgreSQLConnection connection;
+   late PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "test",
@@ -278,7 +278,7 @@ void main() {
   });
 
   group("Mixing prepared statements", () {
-    PostgreSQLConnection connection;
+    late PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "test",
@@ -544,7 +544,9 @@ void main() {
           var string = "select i1, i2 from u where i1 = @i:int4";
           // ignore: unawaited_futures
           connection
-              .query(string, substitutionValues: {"i": "foo"}).catchError((e) {});
+              .query(string, substitutionValues: {"i": "foo"}).catchError((e) {
+                return new Future.value([{'no': 'res'}]);
+          });
 
           var results =
           await connection.query(string, substitutionValues: {"i": 1});

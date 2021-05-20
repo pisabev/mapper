@@ -7,7 +7,7 @@ class PostgreSQLFormat {
   static final int _AtSignCodeUnit = '@'.codeUnitAt(0);
   static final int _AtGreaterThanCodeUnit = '>'.codeUnitAt(0);
 
-  static String id(String name, {PostgreSQLDataType type}) {
+  static String id(String name, {PostgreSQLDataType? type}) {
     if (type != null) {
       return '@$name:${dataTypeStringForDataType(type)}';
     }
@@ -15,7 +15,7 @@ class PostgreSQLFormat {
     return '@$name';
   }
 
-  static String dataTypeStringForDataType(PostgreSQLDataType dt) {
+  static String? dataTypeStringForDataType(PostgreSQLDataType dt) {
     switch (dt) {
       case PostgreSQLDataType.text:
         return 'text';
@@ -54,18 +54,16 @@ class PostgreSQLFormat {
       case PostgreSQLDataType.numeric:
         return 'numeric';
     }
-
-    return null;
   }
 
-  static String substitute(String fmtString, Map<String, dynamic> values,
-      {SQLReplaceIdentifierFunction replace}) {
+  static String substitute(String fmtString, Map<String, dynamic>? values,
+      {SQLReplaceIdentifierFunction? replace}) {
     const converter = const PostgresTextEncoder(true);
     values ??= {};
-    replace ??= (spec, index) => converter.convert(values[spec.name]);
+    replace ??= (spec, index) => converter.convert(values![spec.name]);
 
     final items = <PostgreSQLFormatToken>[];
-    PostgreSQLFormatToken currentPtr;
+    PostgreSQLFormatToken? currentPtr;
     final iterator = new RuneIterator(fmtString);
     while (iterator.moveNext()) {
       if (currentPtr == null) {
@@ -113,7 +111,6 @@ class PostgreSQLFormat {
           items.add(currentPtr);
         }
       }
-
     }
 
     var idx = 1;
@@ -125,13 +122,13 @@ class PostgreSQLFormat {
       } else {
         final identifier = new PostgreSQLFormatIdentifier(t.buffer.toString());
 
-        if (!values.containsKey(identifier.name)) {
+        if (!values!.containsKey(identifier.name)) {
           throw new FormatException('Format string specified identifier with '
               'name ${identifier.name}, but key was not '
               'present in values. Format string: $fmtString');
         }
 
-        final val = replace(identifier, idx);
+        final val = replace!(identifier, idx);
         idx++;
 
         if (identifier.typeCast != null) {

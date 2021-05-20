@@ -5,9 +5,9 @@ typedef EntityFunction<T> = T Function();
 abstract class MapperBase<E extends Entity, C extends Collection<E>> {
   final Manager manager;
 
-  EntityFunction<E> entity;
+  late EntityFunction<E> entity;
 
-  EntityFunction<C> collection;
+  late EntityFunction<C> collection;
 
   MapperBase(this.manager);
 
@@ -20,12 +20,12 @@ abstract class MapperBase<E extends Entity, C extends Collection<E>> {
 
   E _onStreamRow(data) => createObject(data);
 
-  Future<List> execute(Builder builder) => manager._connection
+  Future<List> execute(Builder builder) => manager._connection!
       .query(builder.getSQL(), substitutionValues: builder._params)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<E> _streamToEntity(Builder builder) async {
-    final res = await manager._connection
+    final res = await manager._connection!
         .queryToEntityCollection(
             builder.getSQL(), _onStreamRow, createCollection(),
             substitutionValues: builder._params)
@@ -36,18 +36,18 @@ abstract class MapperBase<E extends Entity, C extends Collection<E>> {
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
     if (calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
-    return manager._connection.queryToEntityCollection(
+    return manager._connection!.queryToEntityCollection(
         builder.getSQL(), _onStreamRow, createCollection(),
         substitutionValues: builder._params);
   }
 
   Future<C> queryToEntityCollection(
           String query, Map<String, dynamic> params) async =>
-      manager._connection.queryToEntityCollection(
+      manager._connection!.queryToEntityCollection(
           query, _onStreamRow, createCollection(),
           substitutionValues: params);
 
-  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C> collectionBuilder([Builder? q]) {
     q ??= new Builder();
     return new CollectionBuilder<E, C>(q, this);
   }

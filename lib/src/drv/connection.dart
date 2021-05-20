@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:mapper/mapper.dart';
 import 'package:mapper/src/drv/execution_context.dart';
 import 'package:mapper/src/drv/query_cache.dart';
@@ -63,10 +64,10 @@ class PostgreSQLConnection extends Object
   String databaseName;
 
   /// Username for authenticating this connection.
-  String username;
+  String? username;
 
   /// Password for authenticating this connection.
-  String password;
+  String? password;
 
   /// Whether or not this connection should connect securely.
   bool useSSL;
@@ -80,7 +81,7 @@ class PostgreSQLConnection extends Object
   String timeZone;
 
   /// The processID of this backend.
-  int processID;
+  int? processID;
 
   /// Stream of notification from the database.
   ///
@@ -109,15 +110,15 @@ class PostgreSQLConnection extends Object
   Map<String, String> settings = {};
 
   final QueryCache _cache = new QueryCache();
-  Socket _socket;
+  Socket? _socket;
   MessageFramer _framer = new MessageFramer();
-  int _secretKey;
-  List<int> _salt;
+  int? _secretKey;
+  List<int>? _salt;
 
   bool _hasConnectedPreviously = false;
-  _PostgreSQLConnectionState _connectionState;
+  late _PostgreSQLConnectionState _connectionState;
 
-  PostgreSQLExecutionContext get _transaction => null;
+  PostgreSQLExecutionContext? get _transaction => null;
 
   PostgreSQLConnection get _connection => this;
 
@@ -144,11 +145,12 @@ class PostgreSQLConnection extends Object
 
       _framer = new MessageFramer();
       if (useSSL) {
-        _socket = await _upgradeSocketToSSL(_socket, timeout: timeoutInSeconds);
+        _socket =
+            await _upgradeSocketToSSL(_socket!, timeout: timeoutInSeconds);
       }
 
       final connectionComplete = new Completer();
-      _socket.listen(_readData, onError: _close, onDone: _close);
+      _socket!.listen(_readData, onError: _close, onDone: _close);
 
       _transitionToState(
           new _PostgreSQLConnectionStateSocketConnected(connectionComplete));
@@ -220,7 +222,7 @@ class PostgreSQLConnection extends Object
     return proxy.completer.future;
   }
 
-  void cancelTransaction({String reason}) {
+  void cancelTransaction({String? reason}) {
     // Default is no-op
   }
 
@@ -238,16 +240,16 @@ class PostgreSQLConnection extends Object
     _connectionState = _connectionState.onEnter()..connection = this;
   }
 
-  Future _close([dynamic error, StackTrace trace]) async {
+  Future _close([dynamic error, StackTrace? trace]) async {
     _connectionState = new _PostgreSQLConnectionStateClosed();
 
     await _socket?.close();
-    await _notifications?.close();
+    await _notifications.close();
 
-    _queue?.cancel(error, trace);
+    _queue.cancel(error, trace);
   }
 
-  void _readData(List<int> bytes) {
+  void _readData(Uint8List bytes) {
     // Note that the way this method works, if a query is in-flight, and we
     // move to the closed state manually, the delivery of the bytes from the
     // socket is sent to the 'Closed State', and the state node managing
@@ -312,7 +314,7 @@ class PostgreSQLConnection extends Object
 class _TransactionRollbackException implements Exception {
   _TransactionRollbackException(this.reason);
 
-  String reason;
+  String? reason;
 }
 
 /// Represents a notification from PostgreSQL.
@@ -339,10 +341,10 @@ mixin _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionContext {
 
   PostgreSQLConnection get _connection;
 
-  PostgreSQLExecutionContext get _transaction;
+  PostgreSQLExecutionContext? get _transaction;
 
   Future<List<Map<String, dynamic>>> query(String fmtString,
-      {Map<String, dynamic> substitutionValues,
+      {Map<String, dynamic>? substitutionValues,
       bool allowReuse = true,
       int timeoutInSeconds = 30}) async {
     if (_connection.isClosed) {
@@ -360,8 +362,8 @@ mixin _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionContext {
   }
 
   Future<C> queryToEntityCollection<C extends Collection>(String fmtString,
-      Entity Function(Map<String, dynamic>) build, Collection col,
-      {Map<String, dynamic> substitutionValues,
+      Entity Function(Map<String, dynamic>) build, Collection<Entity> col,
+      {Map<String, dynamic>? substitutionValues,
       bool allowReuse = true,
       int timeoutInSeconds = 30}) async {
     if (_connection.isClosed) {
@@ -381,7 +383,7 @@ mixin _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionContext {
   }
 
   Future<int> execute(String fmtString,
-      {Map<String, dynamic> substitutionValues, int timeoutInSeconds = 30}) {
+      {Map<String, dynamic>? substitutionValues, int timeoutInSeconds = 30}) {
     if (_connection.isClosed) {
       throw new PostgreSQLException(
           'Attempting to execute query, but connection is not open.');
@@ -420,5 +422,5 @@ mixin _PostgreSQLExecutionContextMixin implements PostgreSQLExecutionContext {
     }
   }
 
-  Future _onQueryError(Query query, dynamic error, [StackTrace trace]) async {}
+  Future _onQueryError(Query query, dynamic error, [StackTrace? trace]) async {}
 }

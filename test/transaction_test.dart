@@ -6,7 +6,7 @@ import 'dart:async';
 
 void main() {
   group("Transaction behavior", () {
-    PostgreSQLConnection conn = null;
+    late PostgreSQLConnection conn;
 
     setUp(() async {
       conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -15,7 +15,7 @@ void main() {
     });
 
     tearDown(() async {
-      await conn?.close();
+      await conn.close();
     });
 
     test("Rows are Lists of column values", () async {
@@ -286,7 +286,7 @@ void main() {
   // After a transaction fails, the changes must be rolled back, it should continue with pending queries, pending transactions, later queries, later transactions
 
   group("Transaction:Query recovery", () {
-    PostgreSQLConnection conn = null;
+    late PostgreSQLConnection conn;
 
     setUp(() async {
       conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -295,7 +295,7 @@ void main() {
     });
 
     tearDown(() async {
-      await conn?.close();
+      await conn.close();
     });
 
     test("Is rolled back/executes later query", () async {
@@ -384,7 +384,7 @@ void main() {
   });
 
   group("Transaction:Exception recovery", () {
-    PostgreSQLConnection conn = null;
+    late PostgreSQLConnection conn;
 
     setUp(() async {
       conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -514,7 +514,7 @@ void main() {
   });
 
   group("Transaction:Rollback recovery", () {
-    PostgreSQLConnection conn = null;
+    late PostgreSQLConnection conn;
 
     setUp(() async {
       conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -546,7 +546,7 @@ void main() {
         orderEnsurer.add(1);
         await c.query("INSERT INTO t (id) VALUES (1)");
         orderEnsurer.add(2);
-        await c.cancelTransaction();
+        c.cancelTransaction();
         await c.query("INSERT INTO t (id) VALUES (2)");
       });
 
@@ -565,7 +565,7 @@ void main() {
         orderEnsurer.add(1);
         await c.query("INSERT INTO t (id) VALUES (1)");
         orderEnsurer.add(2);
-        await c.cancelTransaction();
+        c.cancelTransaction();
         await c.query("INSERT INTO t (id) VALUES (2)");
         orderEnsurer.add(3);
       });

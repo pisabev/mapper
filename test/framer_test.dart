@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'dart:io';
 
 void main() {
-  MessageFramer framer;
+  late MessageFramer framer;
   setUp(() {
     framer = new MessageFramer();
   });
@@ -212,13 +212,13 @@ List<int> messageWithBytes(List<int> bytes, int messageID) {
   return buffer.toBytes();
 }
 
-List<List<int>> fragmentedMessageBuffer(List<int> message, int pivotPoint) {
-  var l1 = message.sublist(0, pivotPoint);
-  var l2 = message.sublist(pivotPoint, message.length);
+List<Uint8List> fragmentedMessageBuffer(List<int> message, int pivotPoint) {
+  var l1 = message.sublist(0, pivotPoint) as Uint8List;
+  var l2 = message.sublist(pivotPoint, message.length) as Uint8List;
   return [l1, l2];
 }
 
-List<int> bufferWithMessages(List<List<int>> messages) {
+Uint8List bufferWithMessages(List<List<int>> messages) {
   return new Uint8List.fromList(messages.expand((l) => l).toList());
 }
 

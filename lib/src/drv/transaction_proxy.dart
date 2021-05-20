@@ -7,7 +7,7 @@ class _TransactionProxy extends Object
     with _PostgreSQLExecutionContextMixin
     implements PostgreSQLExecutionContext {
   _TransactionProxy(this._connection, this.executionBlock) {
-    beginQuery = new Query<int>("BEGIN", {}, _connection, this)
+    beginQuery = new Query<int>('BEGIN', {}, _connection, this)
       ..onlyReturnAffectedRowCount = true;
 
     beginQuery.future.then(startTransaction).catchError((err, st) {
@@ -17,7 +17,7 @@ class _TransactionProxy extends Object
     });
   }
 
-  Query<dynamic> beginQuery;
+  late Query<dynamic> beginQuery;
   Completer completer = new Completer();
 
   Future get future => completer.future;
@@ -30,12 +30,12 @@ class _TransactionProxy extends Object
   bool _hasFailed = false;
   bool _hasRolledBack = false;
 
-  void cancelTransaction({String reason: null}) {
+  void cancelTransaction({String? reason}) {
     throw new _TransactionRollbackException(reason);
   }
 
   Future startTransaction(dynamic _) async {
-    var result;
+    dynamic result;
     try {
       result = await executionBlock(this);
 
@@ -55,41 +55,43 @@ class _TransactionProxy extends Object
     // If we have queries pending, we need to wait for them to complete
     // before finishing !!!!
     if (_queue.isNotEmpty) {
-      // ignore the error from this query if there is one, it'll pop up elsewhere
+      // ignore the error from this query if there is one,
+      // it'll pop up elsewhere
       await _queue.last.future.catchError((_) {});
     }
 
     if (!_hasRolledBack && !_hasFailed) {
-      await execute("COMMIT");
+      await execute('COMMIT');
       completer.complete(result);
     }
   }
 
-  Future _cancelAndRollback(dynamic object, [StackTrace trace]) async {
+  Future _cancelAndRollback(dynamic object, [StackTrace? trace]) async {
     if (_hasRolledBack) {
       return;
     }
 
     _hasRolledBack = true;
-    // We'll wrap each query in an error handler here to make sure the query cancellation error
+    // We'll wrap each query in an error handler here to make sure
+    // the query cancellation error
     // is only emitted from the transaction itself.
     _queue.forEach((q) {
       q.future.catchError((_) {});
     });
 
-    final err = new PostgreSQLException("Query failed prior to execution. "
-        "This query's transaction encountered an error earlier in the transaction "
-        "that prevented this query from executing.");
+    final err = new PostgreSQLException('Query failed prior to execution. '
+        'This query\'s transaction encountered an error earlier in '
+        'the transaction that prevented this query from executing.');
     _queue.cancel(err);
 
-    var rollback = new Query<int>("ROLLBACK", {}, _connection, _transaction)
+    final rollback = new Query<int>('ROLLBACK', {}, _connection, _transaction)
       ..onlyReturnAffectedRowCount = true;
     _queue.addEvenIfCancelled(rollback);
 
     _connection._transitionToState(_connection._connectionState.awake());
 
     try {
-      await rollback.future.timeout(new Duration(seconds: 30));
+      await rollback.future.timeout(const Duration(seconds: 30));
     } finally {
       _queue.remove(rollback);
     }
@@ -101,7 +103,7 @@ class _TransactionProxy extends Object
     }
   }
 
-  Future _transactionFailed(dynamic error, [StackTrace trace]) async {
+  Future _transactionFailed(dynamic error, [StackTrace? trace]) async {
     if (_hasFailed) {
       return;
     }
@@ -112,9 +114,8 @@ class _TransactionProxy extends Object
   }
 
   @override
-  Future _onQueryError(Query query, dynamic error, [StackTrace trace]) {
-    return _transactionFailed(error, trace);
-  }
+  Future _onQueryError(Query query, dynamic error, [StackTrace? trace]) =>
+      _transactionFailed(error, trace);
 }
 
 /// Represents a rollback from a transaction.
@@ -126,5 +127,5 @@ class PostgreSQLRollback {
   PostgreSQLRollback._(this.reason);
 
   /// The reason the transaction was cancelled.
-  String reason;
+  String? reason;
 }

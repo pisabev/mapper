@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'dart:async';
 
 void main() {
-  PostgreSQLConnection conn;
+  late PostgreSQLConnection conn;
 
   setUp(() async {
     conn = new PostgreSQLConnection("localhost", 5432, "test", username: "user", password: "user");
@@ -12,7 +12,7 @@ void main() {
   });
 
   tearDown(() async {
-    await conn?.close();
+    await conn.close();
   });
 
   test("Timeout fires on query while in queue does not execute query, query throws exception", () async {
@@ -71,7 +71,9 @@ void main() {
   });
 
   test("Query that fails does not timeout", () async {
-    await conn.query("INSERT INTO t (id) VALUES ('foo')", timeoutInSeconds: 1).catchError((_) => null);
+    await conn.query("INSERT INTO t (id) VALUES ('foo')", timeoutInSeconds: 1).catchError((_) {
+      return new Future.value([{'no': 'res'}]);
+    });
     expect(new Future.delayed(new Duration(seconds: 2)), completes);
-  });
+  }, solo: true);
 }

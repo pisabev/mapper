@@ -3,7 +3,7 @@ import 'package:mapper/mapper.dart';
 import 'package:mapper/mapper_test.dart';
 import 'package:test/test.dart';
 
-Manager manager;
+late Manager manager;
 
 extension AppExt on App {
   Test1Mapper get test1 => new Test1Mapper(m)
@@ -56,13 +56,13 @@ main() {
 
       //await manager.init();
       var res2 = await manager.app.test1.find(1);
-      expect(res2.field_list is List, true);
+      expect(res2!.field_list is List, true);
       //print('got ${res2.field_int} expected: $test');
       expect(res2.field_int, test);
       expect(res2.field_bool, true);
       expect(
-          res2.field_date.toLocal().toIso8601String(), date.toIso8601String());
-      expect(res2.field_jsonb_obj.field1, 'ddd');
+          res2.field_date?.toLocal().toIso8601String(), date.toIso8601String());
+      expect(res2.field_jsonb_obj?.field1, 'ddd');
 
       Test1 t2 = manager.app.test1.createObject();
       //t2.field_int = 11.3;
@@ -89,7 +89,7 @@ main() {
       final manager2 = await new Database().init();
       await manager2.begin();
       final res = await manager2.app.test1.find(1);
-      res.field_int = 2;
+      res!.field_int = 2;
       await manager2.app.test1.update(res);
       res.field_string = 'test3';
       await manager2.app.test1.update(res);
@@ -112,9 +112,9 @@ main() {
       final manager2 = await new Database().init();
       await manager2.begin();
       final res = await manager2.app.test1.find(1);
-      res.field_int = 2;
+      res!.field_int = 2;
       final res2 = await manager2.app.test1.find(1);
-      res2.field_string = 'test4';
+      res2!.field_string = 'test4';
       await manager2.app.test1.update(res2);
       await manager2.app.test1.update(res);
       await manager2.commit();
@@ -138,7 +138,7 @@ main() {
       var end = new DateTime.now();
       print('${end.difference(start).inMilliseconds} ms');
     });
-  }, skip: true);
+  });
 
   group('Mapper', () {
     setUp(() async {
@@ -195,8 +195,8 @@ class Test1Mapper extends Mapper<Test1, Test1Collection> {
 }
 
 class Obj {
-  String field1;
-  String field2;
+  String? field1;
+  String? field2;
 
   Obj();
 
@@ -208,15 +208,15 @@ class Obj {
 }
 
 class Test1 with Entity {
-  int test1_id;
-  bool field_bool;
-  String field_string;
-  num field_int;
-  Map field_json;
-  Map field_jsonb;
-  Obj field_jsonb_obj;
-  DateTime field_date;
-  List field_list;
+  int? test1_id;
+  bool? field_bool;
+  String? field_string;
+  num? field_int;
+  Map? field_json;
+  Map? field_jsonb;
+  Obj? field_jsonb_obj;
+  DateTime? field_date;
+  List? field_list;
 
   Test1();
 
@@ -262,14 +262,14 @@ class Test2Mapper extends Mapper<Test2, Test2Collection> {
 }
 
 class Test2 with Entity {
-  int test1_id;
-  bool field_bool;
-  String field_string;
-  double field_int;
-  Map field_json;
-  Map field_jsonb;
-  DateTime field_date;
-  List field_list;
+  int? test1_id;
+  bool? field_bool;
+  String? field_string;
+  double? field_int;
+  Map? field_json;
+  Map? field_jsonb;
+  DateTime? field_date;
+  List? field_list;
 
   Test2();
 
@@ -309,8 +309,8 @@ class Test3Mapper extends Mapper<Test3, Test3Collection> {
 }
 
 class Test3 with Entity {
-  int test3_id;
-  String field_string;
+  late int test3_id;
+  late String field_string;
 
   Test3();
 

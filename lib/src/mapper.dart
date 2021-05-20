@@ -2,19 +2,19 @@ part of mapper_server;
 
 abstract class Mapper<E extends Entity, C extends Collection<E>>
     extends MapperBase<E, C> {
-  String table;
+  late String table;
 
   dynamic pkey;
 
   static const String _SEP = '.';
 
-  EntityNotifier<E> notifier;
+  EntityNotifier<E>? notifier;
 
   Mapper(manager) : super(manager) {
     pkey ??= '${table}_id';
   }
 
-  Future<E> find(dynamic id, [bool no_cache = false]) {
+  Future<E?> find(dynamic id, [bool no_cache = false]) {
     if (id is List) return findComposite(id);
     final cache_key = id.toString();
     final e = _cacheGet(cache_key);
@@ -27,7 +27,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     }
   }
 
-  Future<E> findComposite(List<dynamic> ids, [bool no_cache = false]) {
+  Future<E?> findComposite(Iterable<dynamic> ids, [bool no_cache = false]) {
     final cache_key = ids.join(_SEP);
     final e = _cacheGet(cache_key);
     if (e != null) {
@@ -49,12 +49,12 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   Future<T> findWhere<T>(List<Expression> expr) {
     final b = selectBuilder();
     expr.forEach((e) => e._evaluate(b));
-    return T == C ? loadC(b) : loadE(b);
+    return (T == C ? loadC(b) : loadE(b)) as Future<T>;
   }
 
   Future<C> findAll() => loadC(selectBuilder());
 
-  Builder selectBuilder([String select]) {
+  Builder selectBuilder([String? select]) {
     final tbl = _escape(table);
     select ??= '$tbl.*';
     return new Builder()
@@ -94,7 +94,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     return object;
   }
 
-  Future<bool> delete(E object) async {
+  Future<bool> delete(E? object) async {
     if (object == null) return false;
     final data = readObject(object);
     return (pkey is List)
@@ -116,7 +116,8 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     return true;
   }
 
-  Future<bool> _deleteComposite(Iterable<dynamic> ids, E object) async {
+  Future<bool> _deleteComposite(Iterable<dynamic> ids, E? object) async {
+    if (object == null) return false;
     _cacheClean(ids.join(_SEP));
     final q = deleteBuilder();
     var i = 0;
@@ -151,10 +152,12 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
       final diffm = _readDiff(obj);
       if (diffm.isNotEmpty) {
         if (!manager.inTransaction)
-          notifier._addUpdate(new EntityContainer(obj, diff: diffm));
+          notifier!._addUpdate(new EntityContainer(obj, diff: diffm));
         else
-          manager._unit._addNotifyUpdate(obj,
-              () => notifier._addUpdate(new EntityContainer(obj, diff: diffm)));
+          manager._unit._addNotifyUpdate(
+              obj,
+              () =>
+                  notifier!._addUpdate(new EntityContainer(obj, diff: diffm)));
       }
     }
   }
@@ -162,20 +165,22 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   void _notifyCreate(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
-        notifier._addCreate(new EntityContainer(obj));
+        notifier!._addCreate(new EntityContainer(obj));
       else
         manager._unit._addNotifyInsert(
-            obj, () => notifier._addCreate(new EntityContainer(obj)));
+            obj, () => notifier!._addCreate(new EntityContainer(obj)));
     }
   }
 
   void _notifyDelete(E obj) {
     if (notifier != null) {
       if (!manager.inTransaction)
-        notifier._addDelete(new EntityContainer(obj, deleted: true));
+        notifier!._addDelete(new EntityContainer(obj, deleted: true));
       else
-        manager._unit._addNotifyDelete(obj,
-            () => notifier._addDelete(new EntityContainer(obj, deleted: true)));
+        manager._unit._addNotifyDelete(
+            obj,
+            () =>
+                notifier!._addDelete(new EntityContainer(obj, deleted: true)));
     }
   }
 
@@ -202,7 +207,6 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
 
   E _onStreamRow(data) {
     final key = _cacheKeyFromData(data);
-    if (key == null) throw new Exception('Pkey value not found!');
     var object = _cacheGet(key);
     if (object != null) return object;
     object = createObject(data);
@@ -211,7 +215,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   }
 
   Future<E> _streamToEntity(Builder builder) async {
-    final res = await manager._connection
+    final res = await manager._connection!
         .queryToEntityCollection(
             builder.getSQL(), _onStreamRow, createCollection(),
             substitutionValues: builder._params)
@@ -222,7 +226,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
 
   Future<C> _streamToCollection(Builder builder, [calcTotal = false]) async {
     if (calcTotal) builder.addSelect('COUNT(*) OVER() AS __total__');
-    return manager._connection.queryToEntityCollection(
+    return manager._connection!.queryToEntityCollection(
         builder.getSQL(), _onStreamRow, createCollection(),
         substitutionValues: builder._params);
   }
@@ -231,7 +235,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
       ? pkey.map((k) => data[k]).join(_SEP)
       : data[pkey].toString();
 
-  void _cacheAdd(String k, E e, Map initData) {
+  void _cacheAdd(String k, E e, Map<String, dynamic>? initData) {
     manager.cacheAdd(runtimeType.toString() + k, e, initData);
   }
 
@@ -239,12 +243,12 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     manager.cacheClean(runtimeType.toString() + k);
   }
 
-  E _cacheGet(String k) => manager.cacheGet(runtimeType.toString() + k);
+  E? _cacheGet(String k) => manager.cacheGet(runtimeType.toString() + k) as E?;
 
-  Map _cacheGetInitData(String k) =>
+  Map? _cacheGetInitData(String k) =>
       manager.cacheGetInitData(runtimeType.toString() + k);
 
-  CollectionBuilder<E, C> collectionBuilder([Builder q]) {
+  CollectionBuilder<E, C> collectionBuilder([Builder? q]) {
     q ??= selectBuilder();
     return new CollectionBuilder<E, C>(q, this);
   }
@@ -262,7 +266,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   }
 
   Future<List<E>> crud(Map<String, List> data,
-      [String fKey, dynamic fKeyValue]) async {
+      [String? fKey, dynamic fKeyValue]) async {
     final insertList = data['insert'];
     final deleteList = data['delete'];
     final updateList = data['update'];
@@ -270,7 +274,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     if (deleteList != null) {
       for (final r in deleteList) {
         final ent = await find(r[pkey]);
-        manager.addDelete(ent);
+        if (ent != null) manager.addDelete(ent);
       }
     }
     if (updateList != null) {
@@ -288,7 +292,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   Future<E> prepare(dynamic vpkey, Map<String, dynamic> data,
       {bool forceInsert = false}) async {
     if (vpkey != null) {
-      E object;
+      E? object;
       if (vpkey is List) {
         object = await findComposite(vpkey);
         for (var i = 0; i < (pkey as List).length; i++)
@@ -302,7 +306,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
         manager.addNew(object);
         return object;
       } else {
-        mergeData(object, data);
+        mergeData(object!, data);
         manager.addDirty(object);
         return object;
       }
@@ -314,7 +318,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   }
 
   Future<void> mergePK(dynamic obsoletePk, dynamic newPk,
-      {Set<String> exclude}) async {
+      {Set<String>? exclude}) async {
     if (obsoletePk == newPk) return;
     final col = await manager.execute(new Builder()
       ..select('tc.table_name, kcu.column_name')
@@ -326,7 +330,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
       ..where("constraint_type = 'FOREIGN KEY'", "ccu.table_name='$table'"));
     if (col.isNotEmpty) {
       exclude ??= {};
-      for (final r in col.where((r) => !exclude.contains(r['table_name']))) {
+      for (final r in col.where((r) => !exclude!.contains(r['table_name']))) {
         await manager.execute(new Builder()
           ..update(r['table_name'])
           ..set(r['column_name'], newPk)
@@ -338,7 +342,9 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   }
 
   Future<String> genPatch(
-      {C collection, String constraintKey, bool disableTriggers = true}) async {
+      {C? collection,
+      String? constraintKey,
+      bool disableTriggers = true}) async {
     final constraint = constraintKey != null
         ? 'ON CONSTRAINT $constraintKey'
         : (pkey is List ? '(${pkey.join(',')})' : '($pkey)');

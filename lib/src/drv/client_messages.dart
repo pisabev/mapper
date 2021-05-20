@@ -24,7 +24,7 @@ abstract class ClientMessage {
 
   int applyStringToBuffer(
       UTF8BackedString string, ByteData buffer, int offset) {
-    final postStringOffset = string.utf8Bytes.fold(offset, (idx, unit) {
+    final postStringOffset = string.utf8Bytes.fold<int>(offset, (idx, unit) {
       buffer.setInt8(idx, unit);
       return idx + 1;
     });
@@ -34,7 +34,7 @@ abstract class ClientMessage {
   }
 
   int applyBytesToBuffer(List<int> bytes, ByteData buffer, int offset) {
-    final postStringOffset = bytes.fold(offset, (idx, unit) {
+    final postStringOffset = bytes.fold<int>(offset, (idx, unit) {
       buffer.setInt8(idx, unit);
       return idx + 1;
     });
@@ -51,17 +51,19 @@ abstract class ClientMessage {
   }
 
   static Uint8List aggregateBytes(List<ClientMessage> messages) {
-    final totalLength = messages.fold(0, (total, next) => total + next.length);
+    final totalLength =
+        messages.fold<int>(0, (total, next) => total + next.length);
     final buffer = new ByteData(totalLength);
 
-    messages.fold(0, (inOffset, msg) => msg.applyToBuffer(buffer, inOffset));
+    messages.fold<int>(
+        0, (inOffset, msg) => msg.applyToBuffer(buffer, inOffset));
 
     return buffer.buffer.asUint8List();
   }
 }
 
 class StartupMessage extends ClientMessage {
-  StartupMessage(String databaseName, String timeZone, {String username}) {
+  StartupMessage(String databaseName, String timeZone, {String? username}) {
     this.databaseName = new UTF8BackedString(databaseName);
     this.timeZone = new UTF8BackedString(timeZone);
     if (username != null) {
@@ -69,11 +71,11 @@ class StartupMessage extends ClientMessage {
     }
   }
 
-  UTF8BackedString username;
-  UTF8BackedString databaseName;
-  UTF8BackedString timeZone;
+  UTF8BackedString? username;
+  late UTF8BackedString databaseName;
+  late UTF8BackedString timeZone;
 
-  ByteData buffer;
+  //ByteData buffer;
 
   int get length {
     const fixedLength = 53;
@@ -93,7 +95,7 @@ class StartupMessage extends ClientMessage {
 
     if (username != null) {
       offset = applyBytesToBuffer(UTF8ByteConstants.user, buffer, offset);
-      offset = applyStringToBuffer(username, buffer, offset);
+      offset = applyStringToBuffer(username!, buffer, offset);
     }
 
     offset = applyBytesToBuffer(UTF8ByteConstants.database, buffer, offset);
@@ -114,14 +116,14 @@ class StartupMessage extends ClientMessage {
 }
 
 class AuthMD5Message extends ClientMessage {
-  AuthMD5Message(String username, String password, List<int> saltBytes) {
+  AuthMD5Message(String? username, String? password, List<int> saltBytes) {
     final passwordHash = md5.convert('$password$username'.codeUnits).toString();
     final saltString = new String.fromCharCodes(saltBytes);
     hashedAuthString = new UTF8BackedString(
         'md5${md5.convert('$passwordHash$saltString'.codeUnits)}');
   }
 
-  UTF8BackedString hashedAuthString;
+  late UTF8BackedString hashedAuthString;
 
   int get length => 6 + hashedAuthString.utf8Length;
 
@@ -141,7 +143,7 @@ class QueryMessage extends ClientMessage {
     this.queryString = new UTF8BackedString(queryString);
   }
 
-  UTF8BackedString queryString;
+  late UTF8BackedString queryString;
 
   int get length => 6 + queryString.utf8Length;
 
@@ -162,8 +164,8 @@ class ParseMessage extends ClientMessage {
     this.statementName = new UTF8BackedString(statementName);
   }
 
-  UTF8BackedString statementName;
-  UTF8BackedString statement;
+  late UTF8BackedString statementName;
+  late UTF8BackedString statement;
 
   int get length => 9 + statement.utf8Length + statementName.utf8Length;
 
@@ -189,7 +191,7 @@ class DescribeMessage extends ClientMessage {
     this.statementName = new UTF8BackedString(statementName);
   }
 
-  UTF8BackedString statementName;
+  late UTF8BackedString statementName;
 
   int get length => 7 + statementName.utf8Length;
 
@@ -214,13 +216,13 @@ class BindMessage extends ClientMessage {
   }
 
   List<ParameterValue> parameters;
-  UTF8BackedString statementName;
+  late UTF8BackedString statementName;
 
-  int typeSpecCount;
-  int _cachedLength;
+  late int typeSpecCount;
+  int _cachedLength = 0;
 
   int get length {
-    if (_cachedLength == null) {
+    if (_cachedLength == 0) {
       var inputParameterElementCount = parameters.length;
       if (typeSpecCount == parameters.length || typeSpecCount == 0) {
         inputParameterElementCount = 1;
@@ -289,7 +291,7 @@ class BindMessage extends ClientMessage {
         buffer.setInt32(offset, p.length);
         offset += 4;
 
-        offset = p.bytes.fold(offset, (inOffset, byte) {
+        offset = p.bytes!.fold(offset, (inOffset, byte) {
           buffer.setUint8(inOffset, byte);
           return inOffset + 1;
         });

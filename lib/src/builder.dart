@@ -39,7 +39,7 @@ abstract class Expression {
 class Equals extends Expression {
   bool applyIfNull;
 
-  Equals(String k, Object v, {this.applyIfNull = true}) : super(k, v);
+  Equals(String k, dynamic v, {this.applyIfNull = true}) : super(k, v);
 
   void _evaluate(Builder builder) {
     final par = builder.getUniqueKey();
@@ -67,9 +67,8 @@ class TSquery {
   TSquery(this.query);
 
   String toString() {
-    if (query == null) return null;
     final search = query.trim();
-    if (search.length < 2) return null;
+    if (search.length < 2) return '';
     final parts = search.split(new RegExp(r'\s+')).map((e) => e
         .replaceAll('!', '\\!')
         .replaceAll(':', '\\:')
@@ -91,11 +90,11 @@ class Builder {
 
   static const int UPDATE = 3;
 
-  int _counter;
+  late int _counter;
 
   String getUniqueKey() => 'p_unique_${++_counter}';
 
-  drv.PostgreSQLConnection connection;
+  late drv.PostgreSQLConnection connection;
 
   String _sql = '';
 
@@ -269,7 +268,7 @@ class Builder {
     return res;
   }
 
-  void resetQueryParts(List queryPartNames) {
+  void resetQueryParts(List<String> queryPartNames) {
     if (queryPartNames.isEmpty) {
       final queryPartNames = [];
       _sqlParts.forEach((k, v) => queryPartNames.add(k));
@@ -415,26 +414,26 @@ class Builder {
 }
 
 class FilterRule {
-  List<String> eq;
-  List<String> gt;
-  List<String> lt;
-  List<String> gte;
-  List<String> lte;
-  List<String> like;
-  List<String> rlike;
-  List<String> llike;
-  List<String> tsquery;
-  List<String> tsvector;
-  List<String> date;
-  Map<String, String> map;
+  List<String>? eq;
+  List<String>? gt;
+  List<String>? lt;
+  List<String>? gte;
+  List<String>? lte;
+  List<String>? like;
+  List<String>? rlike;
+  List<String>? llike;
+  List<String>? tsquery;
+  List<String>? tsvector;
+  List<String>? date;
+  Map<String, String>? map;
 }
 
 class CollectionMeta {
-  Map<String, dynamic> filter;
-  String orderField;
-  String orderWay;
-  int page;
-  int limit;
+  Map<String, dynamic>? filter;
+  String? orderField;
+  String? orderWay;
+  int? page;
+  int? limit;
 }
 
 class CollectionBuilder<E extends Entity, C extends Collection<E>> {
@@ -446,11 +445,11 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
 
   Map<String, dynamic> filter = {};
 
-  CollectionMeta _collectionMeta;
+  CollectionMeta? _collectionMeta;
 
-  FilterRule filterRule;
+  FilterRule? filterRule;
 
-  C collection;
+  late C collection;
 
   CollectionBuilder(this.query, this.mapper);
 
@@ -486,11 +485,9 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
   }
 
   void order(String order, String way) {
-    if (order != null) {
-      collectionMeta
-        ..orderField = order
-        ..orderWay = way;
-    }
+    collectionMeta
+      ..orderField = order
+      ..orderWay = way;
   }
 
   Future<CollectionBuilder<E, C>> process([bool total = false]) async {
@@ -523,29 +520,31 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
     filter.forEach((k, value) {
       if (value != null) {
         var key = k;
-        if (filterRule.map != null && filterRule.map.containsKey(k))
-          key = filterRule.map[k];
-        if (filterRule.eq != null && filterRule.eq.contains(k))
+        final filterRule = this.filterRule!;
+        if (filterRule.map != null && filterRule.map!.containsKey(k))
+          key = filterRule.map![k]!;
+        if (filterRule.eq != null && filterRule.eq!.contains(k))
           _setEq(query, key, value);
-        else if (filterRule.gt != null && filterRule.gt.contains(k))
+        else if (filterRule.gt != null && filterRule.gt!.contains(k))
           _setGt(query, key, value);
-        else if (filterRule.lt != null && filterRule.lt.contains(k))
+        else if (filterRule.lt != null && filterRule.lt!.contains(k))
           _setLt(query, key, value);
-        else if (filterRule.gte != null && filterRule.gte.contains(k))
+        else if (filterRule.gte != null && filterRule.gte!.contains(k))
           _setGte(query, key, value);
-        else if (filterRule.lte != null && filterRule.lte.contains(k))
+        else if (filterRule.lte != null && filterRule.lte!.contains(k))
           _setLte(query, key, value);
-        else if (filterRule.like != null && filterRule.like.contains(k))
+        else if (filterRule.like != null && filterRule.like!.contains(k))
           _setLike(query, key, value);
-        else if (filterRule.rlike != null && filterRule.rlike.contains(k))
+        else if (filterRule.rlike != null && filterRule.rlike!.contains(k))
           _setRlike(query, key, value);
-        else if (filterRule.llike != null && filterRule.llike.contains(k))
+        else if (filterRule.llike != null && filterRule.llike!.contains(k))
           _setLlike(query, key, value);
-        else if (filterRule.tsquery != null && filterRule.tsquery.contains(k))
+        else if (filterRule.tsquery != null && filterRule.tsquery!.contains(k))
           _setTsquery(query, key, value);
-        else if (filterRule.tsvector != null && filterRule.tsvector.contains(k))
+        else if (filterRule.tsvector != null &&
+            filterRule.tsvector!.contains(k))
           _setTsvector(query, key, value);
-        else if (filterRule.date != null && filterRule.date.contains(k))
+        else if (filterRule.date != null && filterRule.date!.contains(k))
           _setDate(query, key, value);
       }
     });
@@ -554,14 +553,14 @@ class CollectionBuilder<E extends Entity, C extends Collection<E>> {
   void _queryFinalize(Builder query) {
     final meta = collectionMeta;
     if (meta.limit != null) {
-      query.limit(meta.limit);
-      if (meta.page != null) query.offset((meta.page - 1) * meta.limit);
+      query.limit(meta.limit!);
+      if (meta.page != null) query.offset((meta.page! - 1) * meta.limit!);
     }
     if (meta.orderField != null) {
       var k = meta.orderField;
-      if (filterRule.map != null && filterRule.map.containsKey(k))
-        k = filterRule.map[k];
-      query.orderBy(k, meta.orderWay ?? 'ASC');
+      if (filterRule!.map != null && filterRule!.map!.containsKey(k))
+        k = filterRule!.map![k];
+      query.orderBy(k!, meta.orderWay ?? 'ASC');
     }
   }
 
