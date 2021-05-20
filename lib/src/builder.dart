@@ -62,14 +62,12 @@ class Equals extends Expression {
 }
 
 class TSquery {
-  String? query;
+  String query;
 
   TSquery(this.query);
 
-  String? generate() {
-    if (query == null) return null;
-    final search = query!.trim();
-    if (search.length < 2) return null;
+  String toString() {
+    final search = query.trim();
     final parts = search.split(new RegExp(r'\s+')).map((e) => e
         .replaceAll('!', '\\!')
         .replaceAll(':', '\\:')
