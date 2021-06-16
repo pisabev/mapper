@@ -66,7 +66,7 @@ main() {
   }, skip: false);
   test('Pool 4.2', () async {
     final connection = new Pool('localhost', 5432, 'test',
-        user: 'user', password: 'user', min: 2, max: 2);
+        user: 'user', password: 'user', max: 2);
     await connection.start();
     var con1 = await connection.obtain().then((conn) async {
       await new Future.delayed(new Duration(seconds: 1));
@@ -84,17 +84,17 @@ main() {
     final connection =
         new Pool('localhost', 5432, 'test', user: 'user', password: 'user');
     await connection.start();
-    expect(connection.connectionsIdle.length, 1);
+    expect(connection.connectionsIdle.length, 5);
   }, skip: false);
   test('Pool 6', () async {
     final connection = new Pool('localhost', 5432, 'test',
-        user: 'user', password: 'user', min: 2, max: 5);
+        user: 'user', password: 'user', max: 2);
     await connection.start();
     expect(connection.connectionsIdle.length, 2);
   }, skip: false);
   test('Pool 7', () async {
     final connection = new Pool('localhost', 5432, 'test',
-        user: 'user', password: 'user', min: 6, max: 5);
+        user: 'user', password: 'user', max: 6);
     await connection.start();
     expect(connection.connectionsIdle.length, 6);
   }, skip: false);
@@ -109,6 +109,6 @@ main() {
     connection.release(con1);
     expect(con1.isClosed, false);
     await new Future.delayed(const Duration(seconds: 1));
-    expect(connection.connectionsIdle.length, 1);
+    expect(connection.connectionsIdle.length, 3);
   });
 }

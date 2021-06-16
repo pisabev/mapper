@@ -430,7 +430,7 @@ void main() {
         'Building query throws error, connection continues processing pending queries',
         () async {
       conn =
-          new PostgreSQLConnection('localhost', 5432, 'test', username: 'user');
+          new PostgreSQLConnection('localhost', 5432, 'test', username: 'user', password: 'user');
       await conn.open();
 
       // Make some async queries that'll exit the event loop, but then fail on a query that'll die early
@@ -463,12 +463,12 @@ void main() {
   });
 
   group('Network error situations', () {
-    late ServerSocket serverSocket;
-    late Socket socket;
+    ServerSocket? serverSocket;
+    Socket? socket;
 
     tearDown(() async {
-      await serverSocket.close();
-      await socket.close();
+      await serverSocket?.close();
+      await socket?.close();
     });
 
     test(
@@ -503,7 +503,7 @@ void main() {
         () async {
       serverSocket =
           await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
-      serverSocket.listen((s) {
+      serverSocket!.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
@@ -525,7 +525,7 @@ void main() {
         () async {
       serverSocket =
           await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
-      serverSocket.listen((s) {
+      serverSocket!.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
@@ -547,7 +547,7 @@ void main() {
       var openCompleter = new Completer();
       serverSocket =
           await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
-      serverSocket.listen((s) {
+      serverSocket!.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
@@ -575,7 +575,7 @@ void main() {
       var openCompleter = new Completer();
       serverSocket =
           await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 5433);
-      serverSocket.listen((s) {
+      serverSocket!.listen((s) {
         socket = s;
         // Don't respond on purpose
         s.listen((bytes) {});
