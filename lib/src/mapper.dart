@@ -237,7 +237,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
 
   String? _cacheKeyFromData(Map data) => (pkey is List)
       ? pkey.map((k) => data[k]).join(_SEP)
-      : data[pkey].toString();
+      : data[pkey]?.toString();
 
   void _cacheAdd(String k, E e, Map<String, dynamic>? initData) {
     manager.cacheAdd(runtimeType.toString() + k, e, initData);
