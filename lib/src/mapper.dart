@@ -73,7 +73,8 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
     final result = await execute(_setUpdateData(insertBuilder(), data, true));
     setObject(object, result[0]);
     final d = readObject(object);
-    _cacheAdd(_cacheKeyFromData(d), object, notifier != null ? d : null);
+    final key = _cacheKeyFromData(d);
+    if (key != null) _cacheAdd(key, object, notifier != null ? d : null);
     _notifyCreate(object);
     return object;
   }
@@ -136,7 +137,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
   Map<String, dynamic> _readDiff(E obj) {
     final newData = readObject(obj);
     final key = _cacheKeyFromData(newData);
-    final oldData = _cacheGetInitData(key);
+    final oldData = key != null ? _cacheGetInitData(key) : null;
     final diffm = <String, dynamic>{};
     if (oldData != null) {
       newData.forEach((k, v) {
@@ -207,10 +208,13 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
 
   E _onStreamRow(data) {
     final key = _cacheKeyFromData(data);
-    var object = _cacheGet(key);
-    if (object != null) return object;
-    object = createObject(data);
-    _cacheAdd(key, object, notifier != null ? readObject(object) : null);
+    if (key != null) {
+      final object = _cacheGet(key);
+      if (object != null) return object;
+    }
+    final object = createObject(data);
+    if (key != null)
+      _cacheAdd(key, object, notifier != null ? readObject(object) : null);
     return object;
   }
 
@@ -231,7 +235,7 @@ abstract class Mapper<E extends Entity, C extends Collection<E>>
         substitutionValues: builder._params);
   }
 
-  String _cacheKeyFromData(Map data) => (pkey is List)
+  String? _cacheKeyFromData(Map data) => (pkey is List)
       ? pkey.map((k) => data[k]).join(_SEP)
       : data[pkey].toString();
 
