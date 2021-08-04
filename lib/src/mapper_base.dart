@@ -11,7 +11,7 @@ abstract class MapperBase<E extends Entity, C extends Collection<E>> {
 
   MapperBase(this.manager);
 
-  Future<E> loadE(Builder builder) => _streamToEntity(builder)
+  Future<E?> loadE(Builder builder) => _streamToEntity(builder)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
   Future<C> loadC(Builder builder, [bool calcTotal = false]) =>
@@ -24,7 +24,7 @@ abstract class MapperBase<E extends Entity, C extends Collection<E>> {
       .query(builder.getSQL(), substitutionValues: builder._params)
       .catchError((e) => manager._error(e, builder.getSQL(), builder._params));
 
-  Future<E> _streamToEntity(Builder builder) async {
+  Future<E?> _streamToEntity(Builder builder) async {
     final res = await manager._connection!
         .queryToEntityCollection(
             builder.getSQL(), _onStreamRow, createCollection(),
