@@ -87,12 +87,16 @@ Future<void> main() async {
   await pool.start();
   new Database().registerPool(pool);
 
-  final manager = new Database().init();
-
   // Observe all changes to person
   personNotifier.onChange.listen((e) {
     print(e.diff);
   });
+
+  // Get Database connection from the pool
+  final manager = new Database().init();
+  
+  // Begin transaction
+  await manager.begin();
   
   final ent = manager.app.person.createObject()
     ..name = 'John Doe'
@@ -106,5 +110,19 @@ Future<void> main() async {
   // Fetching
   final found = await manager.app.person.find(1);
   PersonCollection col = await manager.app.person.findAll();
+  // col.first.hashCode == found.hashCode
+  
+  found.active = false;
+  
+  // Unit of work
+  manager.addDirty(found);
+  
+  // Flushing everything
+  await manager.persist();
+  // or directly
+  await manager.commit();
+  
+  // Release connection to the pool
+  await manager.close();
 }
 ```
